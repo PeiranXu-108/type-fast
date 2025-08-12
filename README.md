@@ -184,22 +184,8 @@ src/
 4. 推送到分支
 5. 创建Pull Request
 
-## 📄 许可证
+<!-- ## 📄 许可证
 
-本项目采用MIT许可证 - 查看 [LICENSE](LICENSE) 文件了解详情
-
-## 🙏 致谢
-
-- 感谢所有贡献者的付出
-- 灵感来源于各种打字练习工具
-- 使用了许多优秀的开源库
-
-## 📞 联系方式
-
-如有问题或建议，请通过以下方式联系：
-- 提交GitHub Issue
-- 发送邮件至 [your-email@example.com]
-
----
+本项目采用MIT许可证 - 查看 [LICENSE](LICENSE) 文件了解详情 -->
 
 **Happy Typing! 🚀**
