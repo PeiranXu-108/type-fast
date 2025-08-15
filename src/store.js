@@ -9,6 +9,9 @@ export const useStore = create(
       // Articles state
       articles: [],
       
+      // User custom articles state
+      customArticles: [],
+      
       // Practice records state
       records: {},
       
@@ -68,6 +71,25 @@ export const useStore = create(
         return article
       },
       
+      addCustomArticle: (title, content, category = 'custom') => {
+        const id = `custom_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+        const article = {
+          id,
+          title: title.trim(),
+          content: content.trim(),
+          category,
+          createdAt: Date.now(),
+          wordCount: content.trim().split(/\s+/).filter(word => word.length > 0).length,
+          charCount: content.length
+        }
+        
+        set((state) => ({
+          customArticles: [...state.customArticles, article]
+        }))
+        
+        return article
+      },
+      
       updateArticle: (id, updates) => {
         set((state) => ({
           articles: state.articles.map(article =>
@@ -81,6 +103,20 @@ export const useStore = create(
           articles: state.articles.filter(article => article.id !== id),
           records: Object.fromEntries(
             Object.entries(state.records).filter(([key]) => !key.startsWith(`typer.records:${id}`))
+          )
+        }))
+      },
+      
+      deleteCustomArticle: (id) => {
+        set((state) => ({
+          customArticles: state.customArticles.filter(article => article.id !== id)
+        }))
+      },
+      
+      updateCustomArticle: (id, updates) => {
+        set((state) => ({
+          customArticles: state.customArticles.map(article =>
+            article.id === id ? { ...article, ...updates } : article
           )
         }))
       },
@@ -179,6 +215,7 @@ export const useStore = create(
       clearAllData: () => {
         set({
           articles: [],
+          customArticles: [],
           records: {},
           currentArticle: null,
           practiceState: {
@@ -198,6 +235,7 @@ export const useStore = create(
         const state = get()
         const data = {
           articles: state.articles,
+          customArticles: state.customArticles,
           records: state.records,
           settings: state.settings,
           exportDate: new Date().toISOString()
@@ -220,6 +258,10 @@ export const useStore = create(
             set({ articles: parsed.articles })
           }
           
+          if (parsed.customArticles && Array.isArray(parsed.customArticles)) {
+            set({ customArticles: parsed.customArticles })
+          }
+          
           if (parsed.records && typeof parsed.records === 'object') {
             set({ records: parsed.records })
           }
@@ -239,6 +281,7 @@ export const useStore = create(
       name: 'type-fast-storage',
       partialize: (state) => ({
         articles: state.articles,
+        customArticles: state.customArticles,
         records: state.records,
         settings: state.settings
       })

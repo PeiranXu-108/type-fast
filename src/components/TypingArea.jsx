@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useStore } from '../store.js'
-import { calculateWPM, calculateCPM, calculateAccuracy, calculateWPMFromText } from '../utils.js'
+import { calculateWPM, calculateCPM, calculateAccuracy, calculateWPMFromText, formatDuration } from '../utils.js'
+import Grade from '../modals/grade.jsx'
 
 const TypingArea = () => {
   const { currentArticle, practiceState, updatePracticeState, saveRecord, showResults } = useStore()
@@ -10,6 +11,8 @@ const TypingArea = () => {
     cpm: 0,
     accuracy: 100
   })
+  const [showGrade, setShowGrade] = useState(false)
+  const [finalStats, setFinalStats] = useState(null)
   
   const containerRef = useRef(null)
   const statsIntervalRef = useRef(null)
@@ -62,6 +65,7 @@ const TypingArea = () => {
   
   // Handle practice completion
   useEffect(() => {
+    
     if (practiceState.currentIndex >= currentArticle?.content.length) {
       handlePracticeComplete()
     }
@@ -94,7 +98,7 @@ const TypingArea = () => {
   }, [practiceState.isActive, startTime, practiceState.currentIndex, practiceState.keystrokes, currentArticle])
   
   const handleKeyDown = (e) => {
-    if (!practiceState.isActive) return
+    if (!practiceState.isActive || showGrade) return
     
     e.preventDefault()
     
@@ -177,6 +181,46 @@ const TypingArea = () => {
     }
   }
   
+  const handleReturn = () => {
+    setShowGrade(false)
+    setFinalStats(null)
+    
+    // Reset practice state when returning
+    updatePracticeState({
+      isActive: false,
+      currentIndex: 0,
+      startTime: 0,
+      errors: [],
+      backspaces: 0,
+      keystrokes: 0
+    })
+    
+    setStartTime(null)
+    setRealTimeStats({ wpm: 0, cpm: 0, accuracy: 100 })
+  }
+  
+  const handlePracticeAgain = () => {
+    setShowGrade(false)
+    setFinalStats(null)
+    
+    // Reset practice state before starting again
+    updatePracticeState({
+      isActive: false,
+      currentIndex: 0,
+      startTime: 0,
+      errors: [],
+      backspaces: 0,
+      keystrokes: 0
+    })
+    
+    setStartTime(null)
+    setRealTimeStats({ wpm: 0, cpm: 0, accuracy: 100 })
+    
+    if (currentArticle) {
+      useStore.getState().startPractice(currentArticle, practiceState.mode)
+    }
+  }
+  
   const handlePracticeComplete = () => {
     const endTime = Date.now()
     const totalTime = endTime - startTime
@@ -186,6 +230,8 @@ const TypingArea = () => {
     
     const correctChars = practiceState.currentIndex - practiceState.errors.length
     const finalAccuracy = calculateAccuracy(correctChars, practiceState.keystrokes)
+    
+    
     
     const record = {
       durationMs: totalTime,
@@ -201,20 +247,19 @@ const TypingArea = () => {
     }
     
     saveRecord(record)
-    showResults()
     
-    // Reset practice state
-    updatePracticeState({
-      isActive: false,
-      currentIndex: 0,
-      startTime: 0,
-      errors: [],
-      backspaces: 0,
-      keystrokes: 0
+    // Set final stats and show grade modal FIRST
+    setFinalStats({
+      wpm: finalWpm,
+      cpm: realTimeStats.cpm,
+      duration: formatDuration(totalTime),
+      accuracy: finalAccuracy
     })
+    setShowGrade(true)
     
-    setStartTime(null)
-    setRealTimeStats({ wpm: 0, cpm: 0, accuracy: 100 })
+    
+    // Don't reset practice state immediately - let the grade modal show first
+    // We'll reset it when user clicks return or practice again
   }
   
   const renderText = () => {
@@ -367,9 +412,20 @@ const TypingArea = () => {
           练习开始后，直接在此区域输入文字。使用退格键删除错误，Esc键退出练习。
         </p>
       </div>
+      
+      {/* Grade Modal */}
+      {showGrade && finalStats && (
+        <Grade
+          wpm={finalStats.wpm}
+          cpm={finalStats.cpm}
+          duration={finalStats.duration}
+          accuracy={finalStats.accuracy}
+          onReturn={handleReturn}
+          onPracticeAgain={handlePracticeAgain}
+        />
+      )}
     </div>
   )
 }
 
-export default 
-TypingArea
+export default TypingArea

@@ -28,14 +28,27 @@ const PracticeControl = () => {
     }
   }, [practiceState.isActive, practiceState.startTime])
   
+  // Stop timer when practice is completed
+  useEffect(() => {
+    if (practiceState.currentIndex >= currentArticle?.content.length && practiceState.isActive) {
+      // Practice is completed, stop the timer
+      if (timer) {
+        clearInterval(timer)
+        setTimer(null)
+      }
+    }
+  }, [practiceState.currentIndex, currentArticle, practiceState.isActive, timer])
+  
   const handleStart = () => {
     if (currentArticle) {
+      setElapsedTime(0)
       useStore.getState().startPractice(currentArticle, practiceState.mode)
     }
   }
   
   const handleRestart = () => {
     if (currentArticle) {
+      setElapsedTime(0)
       useStore.getState().startPractice(currentArticle, practiceState.mode)
     }
   }

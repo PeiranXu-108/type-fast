@@ -3,11 +3,13 @@ import { useStore } from "../store.js";
 import { formatDuration, formatWPM } from "../utils.js";
 import { BarChart3, TrendingUp, Calendar, Target } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import Confirm from "../modals/confirm.jsx";
 
 const HistoryPage = () => {
   const { articles, records, startPractice } = useStore();
   const [selectedArticle, setSelectedArticle] = useState(null);
   const [selectedRecordRange, setSelectedRecordRange] = useState("recent20");
+  const [confirmingPractice, setConfirmingPractice] = useState(null);
   const navigate = useNavigate();
 
   const getArticleRecords = (articleId) => {
@@ -71,10 +73,19 @@ const HistoryPage = () => {
     console.log(article);
     setSelectedArticle(article);
   };
-
-  const handlePracticeAgain = (article) => {
+  
+  const handlePracticeConfirm = (article) => {
     navigate("/"); // 跳转到练习页面
     startPractice(article);
+    setConfirmingPractice(null);
+  };
+  
+  const handlePracticeCancel = () => {
+    setConfirmingPractice(null);
+  };
+
+  const handlePracticeAgain = (article) => {
+    setConfirmingPractice(article);
   };
 
   const getWPMColor = (wpm) => {
@@ -166,9 +177,9 @@ const HistoryPage = () => {
 
                       {stats && (
                         <div className="space-y-1">
-                          <div className="flex items-center justify-between text-xs">
+                          <div className="items-center text-xs">
                             <span className="text-gray-500 dark:text-gray-400">
-                              最佳 WPM:
+                              最佳 WPM: {" "}
                             </span>
                             <span
                               className={`font-semibold ${getWPMColor(
@@ -178,9 +189,9 @@ const HistoryPage = () => {
                               {formatWPM(stats.bestRecord.wpm)}
                             </span>
                           </div>
-                          <div className="flex items-center justify-between text-xs">
+                          <div className="items-center text-xs">
                             <span className="text-gray-500 dark:text-gray-400">
-                              练习次数:
+                              练习次数: {" "}
                             </span>
                             <span className="font-semibold text-gray-700 dark:text-gray-300">
                               {stats.practiceCount}
@@ -415,6 +426,15 @@ const HistoryPage = () => {
           )}
         </div>
       </div>
+      
+      {/* Practice Confirmation Modal */}
+      {confirmingPractice && (
+        <Confirm
+          title={confirmingPractice.title}
+          onConfirm={() => handlePracticeConfirm(confirmingPractice)}
+          onCancel={handlePracticeCancel}
+        />
+      )}
     </div>
   );
 };

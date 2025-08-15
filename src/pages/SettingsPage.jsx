@@ -1,78 +1,116 @@
-import React, { useState } from 'react'
-import { useStore } from '../store.js'
-import { useTheme } from '../hooks/useTheme.js'
-import { Settings, Palette, Volume2, Monitor, Download, Upload, Trash2, AlertTriangle } from 'lucide-react'
+import React, { useState } from "react";
+import { useStore } from "../store.js";
+import { useTheme } from "../hooks/useTheme.js";
+import {
+  Settings,
+  Palette,
+  Volume2,
+  Monitor,
+  Download,
+  Upload,
+  Trash2,
+  AlertTriangle,
+  Keyboard
+} from "lucide-react";
 
 const SettingsPage = () => {
-  const { settings, updateSettings, exportData, importData, clearAllData } = useStore()
-  const { theme, setTheme } = useTheme()
-  const [showClearConfirm, setShowClearConfirm] = useState(false)
-  const [importFile, setImportFile] = useState(null)
-  const [importStatus, setImportStatus] = useState('')
-  
+  const { settings, updateSettings, exportData, importData, clearAllData } =
+    useStore();
+  const { theme, setTheme } = useTheme();
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [importFile, setImportFile] = useState(null);
+  const [importStatus, setImportStatus] = useState("");
+
   const handleSettingChange = (key, value) => {
-    updateSettings({ [key]: value })
-  }
-  
+    updateSettings({ [key]: value });
+  };
+
   const handleNestedSettingChange = (parentKey, childKey, value) => {
     updateSettings({
       [parentKey]: {
         ...settings[parentKey],
-        [childKey]: value
-      }
-    })
-  }
-  
+        [childKey]: value,
+      },
+    });
+  };
+
   const handleExport = () => {
-    exportData()
-  }
-  
+    exportData();
+  };
+
   const handleImport = async (event) => {
-    const file = event.target.files[0]
-    if (!file) return
-    
+    const file = event.target.files[0];
+    if (!file) return;
+
     try {
-      const text = await file.text()
-      const success = importData(text)
-      
+      const text = await file.text();
+      const success = importData(text);
+
       if (success) {
-        setImportStatus('success')
-        setTimeout(() => setImportStatus(''), 3000)
+        setImportStatus("success");
+        setTimeout(() => setImportStatus(""), 3000);
       } else {
-        setImportStatus('error')
-        setTimeout(() => setImportStatus(''), 3000)
+        setImportStatus("error");
+        setTimeout(() => setImportStatus(""), 3000);
       }
     } catch (error) {
-      setImportStatus('error')
-      setTimeout(() => setImportStatus(''), 3000)
+      setImportStatus("error");
+      setTimeout(() => setImportStatus(""), 3000);
     }
-    
+
     // Reset file input
-    event.target.value = ''
-  }
-  
+    event.target.value = "";
+  };
+
   const handleClearData = () => {
-    clearAllData()
-    setShowClearConfirm(false)
-  }
-  
+    clearAllData();
+    setShowClearConfirm(false);
+  };
+
+  // Calculate storage size in KB
+  const getStorageSize = () => {
+    try {
+      let totalSize = 0;
+
+      // Calculate localStorage size
+      for (let key in localStorage) {
+        if (localStorage.hasOwnProperty(key)) {
+          const item = localStorage.getItem(key);
+          if (item) {
+            totalSize += key.length + item.length;
+          }
+        }
+      }
+
+      // Convert to KB with 2 decimal places
+      return (totalSize / 1024).toFixed(2);
+    } catch (error) {
+      console.error("Error calculating storage size:", error);
+      return "0.00";
+    }
+  };
+
   const getThemeLabel = (themeValue) => {
     switch (themeValue) {
-      case 'light': return '浅色'
-      case 'dark': return '深色'
-      case 'system': return '跟随系统'
-      default: return '跟随系统'
+      case "light":
+        return "浅色";
+      case "dark":
+        return "深色";
+      case "system":
+        return "跟随系统";
+      default:
+        return "跟随系统";
     }
-  }
-  
+  };
+
   const getModeLabel = (mode) => {
-    return mode === 'strict' ? '严格模式' : '宽容模式'
-  }
-  
+    return mode === "strict" ? "严格模式" : "宽容模式";
+  };
+
   const getWPMCalculationLabel = (method) => {
-    return method === 'word-based' ? '基于单词' : '基于字符(5字符=1词)'
-  }
-  
+    return method === "word-based" ? "基于单词" : "基于字符(5字符=1词)";
+  };
+
   return (
     <div className="space-y-6">
       <div className="text-center">
@@ -83,7 +121,7 @@ const SettingsPage = () => {
           自定义你的打字练习体验
         </p>
       </div>
-      
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Appearance Settings */}
         <div className="card p-6">
@@ -91,7 +129,7 @@ const SettingsPage = () => {
             <Palette className="w-5 h-5 mr-2 text-blue-600 dark:text-blue-400" />
             外观设置
           </h2>
-          
+
           <div className="space-y-4">
             {/* Theme Selection */}
             <div>
@@ -111,7 +149,7 @@ const SettingsPage = () => {
                 当前: {getThemeLabel(theme)}
               </p>
             </div>
-            
+
             {/* Font Size */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -119,7 +157,13 @@ const SettingsPage = () => {
               </label>
               <select
                 value={settings.visual.fontSize}
-                onChange={(e) => handleNestedSettingChange('visual', 'fontSize', e.target.value)}
+                onChange={(e) =>
+                  handleNestedSettingChange(
+                    "visual",
+                    "fontSize",
+                    e.target.value
+                  )
+                }
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
                 <option value="small">小</option>
@@ -127,7 +171,7 @@ const SettingsPage = () => {
                 <option value="large">大</option>
               </select>
             </div>
-            
+
             {/* Line Height */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -135,7 +179,13 @@ const SettingsPage = () => {
               </label>
               <select
                 value={settings.visual.lineHeight}
-                onChange={(e) => handleNestedSettingChange('visual', 'lineHeight', e.target.value)}
+                onChange={(e) =>
+                  handleNestedSettingChange(
+                    "visual",
+                    "lineHeight",
+                    e.target.value
+                  )
+                }
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
                 <option value="tight">紧凑</option>
@@ -143,7 +193,7 @@ const SettingsPage = () => {
                 <option value="loose">宽松</option>
               </select>
             </div>
-            
+
             {/* Cursor Style */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -151,7 +201,13 @@ const SettingsPage = () => {
               </label>
               <select
                 value={settings.visual.cursorStyle}
-                onChange={(e) => handleNestedSettingChange('visual', 'cursorStyle', e.target.value)}
+                onChange={(e) =>
+                  handleNestedSettingChange(
+                    "visual",
+                    "cursorStyle",
+                    e.target.value
+                  )
+                }
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
                 <option value="block">方块</option>
@@ -159,7 +215,7 @@ const SettingsPage = () => {
                 <option value="underline">下划线</option>
               </select>
             </div>
-            
+
             {/* Contrast Enhancement */}
             <div className="flex items-center justify-between">
               <div>
@@ -173,20 +229,26 @@ const SettingsPage = () => {
               <input
                 type="checkbox"
                 checked={settings.visual.contrastEnhance}
-                onChange={(e) => handleNestedSettingChange('visual', 'contrastEnhance', e.target.checked)}
+                onChange={(e) =>
+                  handleNestedSettingChange(
+                    "visual",
+                    "contrastEnhance",
+                    e.target.checked
+                  )
+                }
                 className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
               />
             </div>
           </div>
         </div>
-        
+
         {/* Practice Settings */}
         <div className="card p-6">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
             <Settings className="w-5 h-5 mr-2 text-green-600 dark:text-green-400" />
             练习设置
           </h2>
-          
+
           <div className="space-y-4">
             {/* Default Mode */}
             <div>
@@ -195,7 +257,9 @@ const SettingsPage = () => {
               </label>
               <select
                 value={settings.defaultMode}
-                onChange={(e) => handleSettingChange('defaultMode', e.target.value)}
+                onChange={(e) =>
+                  handleSettingChange("defaultMode", e.target.value)
+                }
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
                 <option value="lenient">宽容模式</option>
@@ -205,7 +269,7 @@ const SettingsPage = () => {
                 当前: {getModeLabel(settings.defaultMode)}
               </p>
             </div>
-            
+
             {/* WPM Calculation Method */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -213,7 +277,9 @@ const SettingsPage = () => {
               </label>
               <select
                 value={settings.wpmCalculation}
-                onChange={(e) => handleSettingChange('wpmCalculation', e.target.value)}
+                onChange={(e) =>
+                  handleSettingChange("wpmCalculation", e.target.value)
+                }
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
                 <option value="word-based">基于单词</option>
@@ -223,44 +289,60 @@ const SettingsPage = () => {
                 当前: {getWPMCalculationLabel(settings.wpmCalculation)}
               </p>
             </div>
-            
+
             {/* Sound Settings */}
             <div className="space-y-3">
               <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center">
                 <Volume2 className="w-4 h-4 mr-2" />
                 声音设置
               </h3>
-              
+
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-400">按键音</span>
+                <span className="text-sm text-gray-600 dark:text-gray-400">
+                  按键音
+                </span>
                 <input
                   type="checkbox"
                   checked={settings.sounds.keyPress}
-                  onChange={(e) => handleNestedSettingChange('sounds', 'keyPress', e.target.checked)}
+                  onChange={(e) =>
+                    handleNestedSettingChange(
+                      "sounds",
+                      "keyPress",
+                      e.target.checked
+                    )
+                  }
                   className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                 />
               </div>
-              
+
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-400">完成提示音</span>
+                <span className="text-sm text-gray-600 dark:text-gray-400">
+                  完成提示音
+                </span>
                 <input
                   type="checkbox"
                   checked={settings.sounds.completion}
-                  onChange={(e) => handleNestedSettingChange('sounds', 'completion', e.target.checked)}
+                  onChange={(e) =>
+                    handleNestedSettingChange(
+                      "sounds",
+                      "completion",
+                      e.target.checked
+                    )
+                  }
                   className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                 />
               </div>
             </div>
           </div>
         </div>
-        
+
         {/* Data Management */}
         <div className="card p-6">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
             <Monitor className="w-5 h-5 mr-2 text-purple-600 dark:text-purple-400" />
             数据管理
           </h2>
-          
+
           <div className="space-y-4">
             {/* Export Data */}
             <div>
@@ -275,7 +357,25 @@ const SettingsPage = () => {
                 导出所有练习记录和设置到 JSON 文件
               </p>
             </div>
-            
+
+            {/* Storage Usage */}
+            <div>
+              <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <div className="flex items-center">
+                  <Monitor className="w-4 h-4 mr-2 text-gray-500 dark:text-gray-400" />
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                    本地存储使用
+                  </span>
+                </div>
+                <span className="text-sm font-medium text-gray-900 dark:text-white">
+                  {getStorageSize()} KB
+                </span>
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                占用浏览器空间大小
+              </p>
+            </div>
+
             {/* Import Data */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -288,16 +388,20 @@ const SettingsPage = () => {
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
               {importStatus && (
-                <p className={`text-xs mt-1 ${
-                  importStatus === 'success' 
-                    ? 'text-green-600 dark:text-green-400' 
-                    : 'text-red-600 dark:text-red-400'
-                }`}>
-                  {importStatus === 'success' ? '导入成功！' : '导入失败，请检查文件格式'}
+                <p
+                  className={`text-xs mt-1 ${
+                    importStatus === "success"
+                      ? "text-green-600 dark:text-green-400"
+                      : "text-red-600 dark:text-red-400"
+                  }`}
+                >
+                  {importStatus === "success"
+                    ? "导入成功！"
+                    : "导入失败，请检查文件格式"}
                 </p>
               )}
             </div>
-            
+
             {/* Clear Data */}
             <div>
               <button
@@ -313,37 +417,46 @@ const SettingsPage = () => {
             </div>
           </div>
         </div>
-        
+
         {/* Keyboard Shortcuts */}
         <div className="card p-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+            <Keyboard className="w-5 h-5 mr-2 text-gray-600 dark:text-gray-400" />
             键盘快捷键
           </h2>
-          
+
           <div className="space-y-3">
             <div className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700">
               <span className="text-gray-600 dark:text-gray-400">开始练习</span>
-              <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded text-sm">Space</kbd>
+              <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded text-sm">
+                Space
+              </kbd>
             </div>
-            
+
             <div className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700">
               <span className="text-gray-600 dark:text-gray-400">退出练习</span>
-              <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded text-sm">Esc</kbd>
+              <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded text-sm">
+                Esc
+              </kbd>
             </div>
-            
+
             <div className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700">
               <span className="text-gray-600 dark:text-gray-400">重新开始</span>
-              <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded text-sm">Ctrl + Enter</kbd>
+              <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded text-sm">
+                Ctrl + Enter
+              </kbd>
             </div>
-            
+
             <div className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700">
               <span className="text-gray-600 dark:text-gray-400">切换模式</span>
-              <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded text-sm">Tab</kbd>
+              <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded text-sm">
+                Tab
+              </kbd>
             </div>
           </div>
         </div>
       </div>
-      
+
       {/* Clear Data Confirmation Modal */}
       {showClearConfirm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -354,11 +467,11 @@ const SettingsPage = () => {
                 确认清除数据
               </h3>
             </div>
-            
+
             <p className="text-gray-600 dark:text-gray-400 mb-6">
               此操作将永久删除所有练习记录、文章和设置。此操作不可逆，请确认你真的要这样做。
             </p>
-            
+
             <div className="flex space-x-3">
               <button
                 onClick={() => setShowClearConfirm(false)}
@@ -377,7 +490,7 @@ const SettingsPage = () => {
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default SettingsPage
+export default SettingsPage;
