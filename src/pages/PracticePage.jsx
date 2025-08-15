@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react'
-import { useStore } from '../store.js'
-import { generateSampleArticles } from '../utils.js'
-import TextInputCard from '../components/TextInputCard.jsx'
-import PracticeControl from '../components/PracticeControl.jsx'
-import UnifiedTypingArea from '../components/UnifiedTypingArea.jsx'
-import ResultsPanel from '../components/ResultsPanel.jsx'
-import { Edit3, Trash2, X, Check } from 'lucide-react'
+import React, { useState, useEffect } from "react";
+import { useStore } from "../store.js";
+import { generateSampleArticles } from "../utils.js";
+import TextInputCard from "../components/TextInputCard.jsx";
+import PracticeControl from "../components/PracticeControl.jsx";
+import TypingArea from "../components/TypingArea.jsx";
+import ResultsPanel from "../components/ResultsPanel.jsx";
+import { Edit3, Trash2, X, Check } from "lucide-react";
 
 const PracticePage = () => {
   const {
@@ -15,161 +15,190 @@ const PracticePage = () => {
     ui,
     addArticle,
     setCurrentArticle,
-    showResults
-  } = useStore()
-  
-  const [activeTab, setActiveTab] = useState('custom')
-  const [customText, setCustomText] = useState('')
-  const [sampleArticles, setSampleArticles] = useState(generateSampleArticles())
-  
+    showResults,
+  } = useStore();
+
+  const [activeTab, setActiveTab] = useState("custom");
+  const [customText, setCustomText] = useState("");
+  const [sampleArticles, setSampleArticles] = useState(
+    generateSampleArticles()
+  );
+
   // Edit and delete states
-  const [editingArticle, setEditingArticle] = useState(null)
-  const [editTitle, setEditTitle] = useState('')
-  const [editContent, setEditContent] = useState('')
-  const [deletingArticle, setDeletingArticle] = useState(null)
+  const [editingArticle, setEditingArticle] = useState(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editContent, setEditContent] = useState("");
+  const [deletingArticle, setDeletingArticle] = useState(null);
   
+  // Practice confirmation state
+  const [confirmingArticle, setConfirmingArticle] = useState(null);
+
   // Initialize with sample articles if no articles exist
   useEffect(() => {
     if (articles.length === 0) {
-      sampleArticles.forEach(article => {
-        addArticle(article.title, article.content)
-      })
+      sampleArticles.forEach((article) => {
+        addArticle(article.title, article.content);
+      });
     }
-  }, [])
-  
+  }, []);
+
   // Keyboard shortcuts for modals
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === 'Escape') {
+      if (e.key === "Escape") {
         if (editingArticle) {
-          handleEditCancel()
+          handleEditCancel();
         } else if (deletingArticle) {
-          handleDeleteCancel()
+          handleDeleteCancel();
+        } else if (confirmingArticle) {
+          handlePracticeCancel();
         }
       }
+    };
+
+    if (editingArticle || deletingArticle || confirmingArticle) {
+      document.addEventListener("keydown", handleKeyDown);
+      return () => document.removeEventListener("keydown", handleKeyDown);
     }
-    
-    if (editingArticle || deletingArticle) {
-      document.addEventListener('keydown', handleKeyDown)
-      return () => document.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [editingArticle, deletingArticle])
-  
+  }, [editingArticle, deletingArticle, confirmingArticle]);
+
   const handleStartPractice = (article, mode) => {
-    setCurrentArticle(article)
-    useStore.getState().startPractice(article, mode)
-  }
-  
+    setCurrentArticle(article);
+    useStore.getState().startPractice(article, mode);
+  };
+
   const handleCustomTextSubmit = () => {
     if (customText.trim()) {
-      const article = addArticle('', customText.trim())
-      setCurrentArticle(article)
-      useStore.getState().startPractice(article)
-      setCustomText('')
+      const article = addArticle("", customText.trim());
+      setCurrentArticle(article);
+      useStore.getState().startPractice(article);
+      setCustomText("");
     }
-  }
-  
+  };
+
   const handleSampleArticleSelect = (article) => {
-    setCurrentArticle(article)
-    useStore.getState().startPractice(article)
-  }
-  
+    setConfirmingArticle(article);
+  };
+
   const handleRecentArticleSelect = (article) => {
-    setCurrentArticle(article)
-    useStore.getState().startPractice(article)
-  }
-  
+    setCurrentArticle(article);
+    useStore.getState().startPractice(article);
+  };
+
   // Edit and delete handlers
   const handleEditClick = (e, article) => {
-    e.stopPropagation()
-    setEditingArticle(article)
-    setEditTitle(article.title)
-    setEditContent(article.content)
-  }
-  
+    e.stopPropagation();
+    setEditingArticle(article);
+    setEditTitle(article.title);
+    setEditContent(article.content);
+  };
+
   const handleDeleteClick = (e, article) => {
-    e.stopPropagation()
-    setDeletingArticle(article)
-  }
-  
+    e.stopPropagation();
+    setDeletingArticle(article);
+  };
+
   const handleEditSave = () => {
     if (editTitle.trim() && editContent.trim()) {
-      const updatedArticles = sampleArticles.map(article => 
-        article.id === editingArticle.id 
+      const updatedArticles = sampleArticles.map((article) =>
+        article.id === editingArticle.id
           ? { ...article, title: editTitle.trim(), content: editContent.trim() }
           : article
-      )
-      setSampleArticles(updatedArticles)
-      
+      );
+      setSampleArticles(updatedArticles);
+
       // Also update the store if this article is current
       if (currentArticle && currentArticle.id === editingArticle.id) {
-        const updatedArticle = { ...currentArticle, title: editTitle.trim(), content: editContent.trim() }
-        setCurrentArticle(updatedArticle)
+        const updatedArticle = {
+          ...currentArticle,
+          title: editTitle.trim(),
+          content: editContent.trim(),
+        };
+        setCurrentArticle(updatedArticle);
       }
-      
-      setEditingArticle(null)
-      setEditTitle('')
-      setEditContent('')
+
+      setEditingArticle(null);
+      setEditTitle("");
+      setEditContent("");
     }
-  }
-  
+  };
+
   const handleEditCancel = () => {
-    setEditingArticle(null)
-    setEditTitle('')
-    setEditContent('')
-  }
-  
+    setEditingArticle(null);
+    setEditTitle("");
+    setEditContent("");
+  };
+
   const handleDeleteConfirm = () => {
     if (deletingArticle) {
-      const updatedArticles = sampleArticles.filter(article => article.id !== deletingArticle.id)
-      setSampleArticles(updatedArticles)
-      
+      const updatedArticles = sampleArticles.filter(
+        (article) => article.id !== deletingArticle.id
+      );
+      setSampleArticles(updatedArticles);
+
       // Also remove from store if this article is current
       if (currentArticle && currentArticle.id === deletingArticle.id) {
-        setCurrentArticle(null)
+        setCurrentArticle(null);
       }
-      
-      setDeletingArticle(null)
+
+      setDeletingArticle(null);
     }
-  }
-  
+  };
+
   const handleDeleteCancel = () => {
-    setDeletingArticle(null)
-  }
+    setDeletingArticle(null);
+  };
   
+  const handlePracticeConfirm = () => {
+    if (confirmingArticle) {
+      setCurrentArticle(confirmingArticle);
+      useStore.getState().startPractice(confirmingArticle);
+      setConfirmingArticle(null);
+    }
+  };
+  
+  const handlePracticeCancel = () => {
+    setConfirmingArticle(null);
+  };
+
   const getRecentArticles = () => {
     // Get articles with recent practice records
-    const recentArticles = articles.filter(article => {
-      const records = useStore.getState().records[`typer.records:${article.id}`] || []
-      return records.length > 0
-    })
-    
+    const recentArticles = articles.filter((article) => {
+      const records =
+        useStore.getState().records[`typer.records:${article.id}`] || [];
+      return records.length > 0;
+    });
+
     // Sort by most recent practice
-    return recentArticles.sort((a, b) => {
-      const aRecords = useStore.getState().records[`typer.records:${a.id}`] || []
-      const bRecords = useStore.getState().records[`typer.records:${b.id}`] || []
-      
-      if (aRecords.length === 0 && bRecords.length === 0) return 0
-      if (aRecords.length === 0) return 1
-      if (bRecords.length === 0) return -1
-      
-      const aLatest = Math.max(...aRecords.map(r => r.endedAt))
-      const bLatest = Math.max(...bRecords.map(r => r.endedAt))
-      
-      return bLatest - aLatest
-    }).slice(0, 5)
-  }
-  
+    return recentArticles
+      .sort((a, b) => {
+        const aRecords =
+          useStore.getState().records[`typer.records:${a.id}`] || [];
+        const bRecords =
+          useStore.getState().records[`typer.records:${b.id}`] || [];
+
+        if (aRecords.length === 0 && bRecords.length === 0) return 0;
+        if (aRecords.length === 0) return 1;
+        if (bRecords.length === 0) return -1;
+
+        const aLatest = Math.max(...aRecords.map((r) => r.endedAt));
+        const bLatest = Math.max(...bRecords.map((r) => r.endedAt));
+
+        return bLatest - aLatest;
+      })
+      .slice(0, 5);
+  };
+
   if (practiceState.isActive && currentArticle) {
     return (
       <div className="space-y-6">
         <PracticeControl />
-        <UnifiedTypingArea />
+        <TypingArea />
         {ui.showResults && <ResultsPanel />}
       </div>
-    )
+    );
   }
-  
+
   return (
     <div className="space-y-6">
       <div className="text-center">
@@ -180,43 +209,43 @@ const PracticePage = () => {
           选择文本或输入自定义内容，提升你的英文打字速度和准确率
         </p>
       </div>
-      
+
       {/* Text Source Selection */}
       <div className="card p-6">
         <div className="flex flex-wrap gap-2 mb-6">
-          {['custom', 'samples', 'recent'].map((tab) => (
+          {["custom", "samples", "recent"].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
                 activeTab === tab
-                  ? 'bg-primary-600 text-white'
-                  : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                  ? "bg-primary-600 text-white"
+                  : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
               }`}
             >
-              {tab === 'custom' && '自定义文本'}
-              {tab === 'samples' && '素材库'}
-              {tab === 'recent' && '近期使用'}
+              {tab === "custom" && "自定义文本"}
+              {tab === "samples" && "素材库"}
+              {tab === "recent" && "近期使用"}
             </button>
           ))}
         </div>
-        
+
         {/* Custom Text Tab */}
-        {activeTab === 'custom' && (
+        {activeTab === "custom" && (
           <TextInputCard
             value={customText}
             onChange={setCustomText}
             onSubmit={handleCustomTextSubmit}
           />
         )}
-        
+
         {/* Sample Articles Tab */}
-        {activeTab === 'samples' && (
+        {activeTab === "samples" && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {sampleArticles.map((article) => (
               <div
                 key={article.id}
-                className="card p-4 hover:shadow-lg transition-shadow duration-200 cursor-pointer relative h-48 flex flex-col"
+                className="card p-4 hover:shadow-lg transition-shadow duration-200 cursor-pointer relative h-64 flex flex-col"
                 onClick={() => handleSampleArticleSelect(article)}
               >
                 {/* Edit and Delete buttons */}
@@ -236,19 +265,21 @@ const PracticePage = () => {
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
-                
-                <h3 
-                  className="font-semibold text-gray-900 dark:text-white mb-2 pr-16 text-base leading-tight truncate" 
+
+                <h3
+                  className="font-semibold text-gray-900 dark:text-white mb-2 pr-16 text-base leading-tight truncate"
                   title={article.title}
                 >
                   {article.title}
                 </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-3 flex-1">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-3 flex-1 h-48 overflow-hidden">
                   {article.content}
                 </p>
                 <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mt-auto">
                   <span className="capitalize">{article.category}</span>
-                  <span className='bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-200 px-2 py-1 rounded-full text-xs'>{article.wordCount} 词</span>
+                  <span className="bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-200 px-2 py-1 rounded-full text-xs">
+                    {article.wordCount} 词
+                  </span>
                   {/* <span className={`px-2 py-1 rounded-full text-xs ${
                     article.difficulty === 'easy' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
                     article.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
@@ -261,18 +292,21 @@ const PracticePage = () => {
             ))}
           </div>
         )}
-        
+
         {/* Recent Articles Tab */}
-        {activeTab === 'recent' && (
+        {activeTab === "recent" && (
           <div className="space-y-4">
             {getRecentArticles().length > 0 ? (
               getRecentArticles().map((article) => {
-                const records = useStore.getState().records[`typer.records:${article.id}`] || []
-                const bestRecord = records.reduce((best, current) => 
-                  current.wpm > best.wpm ? current : best, records[0] || { wpm: 0 }
-                )
-                const lastRecord = records[records.length - 1]
-                
+                const records =
+                  useStore.getState().records[`typer.records:${article.id}`] ||
+                  [];
+                const bestRecord = records.reduce(
+                  (best, current) => (current.wpm > best.wpm ? current : best),
+                  records[0] || { wpm: 0 }
+                );
+                const lastRecord = records[records.length - 1];
+
                 return (
                   <div
                     key={article.id}
@@ -302,10 +336,12 @@ const PracticePage = () => {
                     <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
                       <span>{article.wordCount} 词</span>
                       <span>练习 {records.length} 次</span>
-                      <span>{new Date(article.createdAt).toLocaleDateString()}</span>
+                      <span>
+                        {new Date(article.createdAt).toLocaleDateString()}
+                      </span>
                     </div>
                   </div>
-                )
+                );
               })
             ) : (
               <div className="text-center py-8 text-gray-500 dark:text-gray-400">
@@ -316,7 +352,7 @@ const PracticePage = () => {
           </div>
         )}
       </div>
-      
+
       {/* Edit Modal */}
       {editingArticle && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -332,7 +368,7 @@ const PracticePage = () => {
                 <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
               </button>
             </div>
-            
+
             <div className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -346,7 +382,7 @@ const PracticePage = () => {
                   placeholder="输入文章标题"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   内容
@@ -360,7 +396,7 @@ const PracticePage = () => {
                 />
               </div>
             </div>
-            
+
             <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200 dark:border-gray-700">
               <button
                 onClick={handleEditCancel}
@@ -380,7 +416,7 @@ const PracticePage = () => {
           </div>
         </div>
       )}
-      
+
       {/* Delete Confirmation Modal */}
       {deletingArticle && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -401,11 +437,13 @@ const PracticePage = () => {
                   </p>
                 </div>
               </div>
-              
+
               <p className="text-gray-700 dark:text-gray-300 mb-6">
-                确定要删除文章 <span className="font-semibold">"{deletingArticle.title}"</span> 吗？
+                确定要删除文章{" "}
+                <span className="font-semibold">"{deletingArticle.title}"</span>{" "}
+                吗？
               </p>
-              
+
               <div className="flex items-center justify-end space-x-3">
                 <button
                   onClick={handleDeleteCancel}
@@ -425,8 +463,59 @@ const PracticePage = () => {
           </div>
         </div>
       )}
-    </div>
-  )
-}
 
-export default PracticePage
+      {/* Practice Confirmation Modal */}
+      {confirmingArticle && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
+            <div className="p-6">
+              <div className="flex items-center mb-4">
+                <div className="flex-shrink-0">
+                  <div className="w-10 h-10 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center">
+                    <svg className="w-5 h-5 text-primary-600 dark:text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                    确认开始练习
+                  </h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    准备开始打字练习
+                  </p>
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <h4 className="text-gray-700 dark:text-gray-300 mb-6">
+                  现在开始练习文章 <span className="font-semibold">"{confirmingArticle.title}"</span> 吗？
+                </h4>
+              </div>
+
+              <div className="flex items-center justify-end space-x-3">
+                <button
+                  onClick={handlePracticeCancel}
+                  className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg transition-colors duration-200"
+                >
+                  取消
+                </button>
+                <button
+                  onClick={handlePracticeConfirm}
+                  className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors duration-200 flex items-center space-x-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>开始练习</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default PracticePage;

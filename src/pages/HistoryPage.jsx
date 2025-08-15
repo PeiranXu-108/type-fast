@@ -68,6 +68,7 @@ const HistoryPage = () => {
   };
 
   const handleArticleSelect = (article) => {
+    console.log(article);
     setSelectedArticle(article);
   };
 
@@ -91,7 +92,7 @@ const HistoryPage = () => {
 
   // Sort articles by most recent practice, with practiced articles first
   const getSortedArticles = () => {
-    return articles.sort((a, b) => {
+    return [...articles].sort((a, b) => {
       const aRecords =
         useStore.getState().records[`typer.records:${a.id}`] || [];
       const bRecords =
@@ -226,8 +227,15 @@ const HistoryPage = () => {
               <div className="card p-4">
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
                   <TrendingUp className="w-5 h-5 mr-2 text-green-600 dark:text-green-400" />
-                  {selectedArticle.title} - 统计概览
+                  统计概览  {selectedArticle.title}
                 </h2>
+                
+                {/* Article Content Display */}
+                <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
+                    {selectedArticle.content}
+                  </div>
+                </div>
 
                 {(() => {
                   const stats = getArticleStats(selectedArticle.id);
@@ -339,7 +347,7 @@ const HistoryPage = () => {
                       {getFilteredRecords(selectedArticle.id).map(
                         (record, index) => (
                           <tr
-                            key={record.id}
+                            key={`${selectedArticle.id}-${record.endedAt}-${index}`}
                             className={`border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 ${
                               index === 0
                                 ? "bg-yellow-50 dark:bg-yellow-900/20"
@@ -364,7 +372,7 @@ const HistoryPage = () => {
                                 record.accuracy * 100
                               )}`}
                             >
-                              {Math.round(record.accuracy * 100)}%
+                              {Number(record.accuracy * 100).toFixed(2)}%
                             </td>
                             <td className="py-2 text-gray-700 dark:text-gray-300">
                               {formatDuration(record.durationMs)}

@@ -69,9 +69,8 @@ export const calculateCPM = (charCount, durationMs) => {
 
 // Calculate accuracy percentage
 export const calculateAccuracy = (correctChars, totalKeystrokes) => {
-  if (totalKeystrokes === 0) return 100
-  
-  return Math.round((correctChars / totalKeystrokes) * 100)
+  if (totalKeystrokes === 0) return 100.00
+  return Number(((correctChars / totalKeystrokes) * 100).toFixed(2))
 }
 
 // Count words in text

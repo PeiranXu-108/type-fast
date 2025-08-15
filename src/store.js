@@ -44,8 +44,7 @@ export const useStore = create(
       // UI state
       ui: {
         currentTab: 'practice',
-        showResults: false,
-        focusMode: false
+        showResults: false
       },
       
       // Actions
@@ -168,11 +167,7 @@ export const useStore = create(
         }))
       },
       
-      toggleFocusMode: () => {
-        set((state) => ({
-          ui: { ...state.ui, focusMode: !state.ui.focusMode }
-        }))
-      },
+
       
       showResults: () => {
         set((state) => ({
