@@ -136,10 +136,10 @@ const PracticeControl = () => {
           {/* Stop button */}
           <button
             onClick={handleStop}
-            className="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg transition-colors duration-200 h-10 flex items-center justify-center"
+            className="px-4 py-2 bg-red-200 dark:bg-red-500 hover:bg-red-300 dark:hover:bg-red-400 text-red-600 dark:text-red-300 font-medium rounded-lg transition-colors duration-200 h-10 flex items-center justify-center"
             title="停止练习"
           >
-            停止
+            退出
           </button>
         </div>
       </div>

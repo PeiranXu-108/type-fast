@@ -1,15 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useStore } from "../store.js";
 import { formatDuration, formatWPM } from "../utils.js";
-import { BarChart3, TrendingUp, Calendar, Target } from "lucide-react";
+import { BarChart3, TrendingUp, Calendar, Target, Trash2, Play } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Confirm from "../modals/confirm.jsx";
 
 const HistoryPage = () => {
-  const { articles, records, startPractice } = useStore();
+  const { articles, records, startPractice, deleteAllRecords } = useStore();
   const [selectedArticle, setSelectedArticle] = useState(null);
   const [selectedRecordRange, setSelectedRecordRange] = useState("recent20");
   const [confirmingPractice, setConfirmingPractice] = useState(null);
+  const [confirmingDelete, setConfirmingDelete] = useState(null);
   const navigate = useNavigate();
 
   const getArticleRecords = (articleId) => {
@@ -63,29 +64,55 @@ const HistoryPage = () => {
       case "recent50":
         return articleRecords.slice(-50).reverse();
       case "all":
-        return articleRecords.reverse();
+        return [...articleRecords].reverse();
       default:
         return articleRecords.slice(-20).reverse();
     }
   };
 
+  const articlesUnique = useMemo(() => {
+    const map = new Map();
+    for (const a of articles) {
+      if (!map.has(a.id)) map.set(a.id, a); 
+    }
+    return Array.from(map.values());
+  }, [articles]);
+
   const handleArticleSelect = (article) => {
     console.log(article);
     setSelectedArticle(article);
   };
-  
+
   const handlePracticeConfirm = (article) => {
-    navigate("/"); // 跳转到练习页面
+    navigate("/");
     startPractice(article);
     setConfirmingPractice(null);
   };
-  
+
   const handlePracticeCancel = () => {
     setConfirmingPractice(null);
   };
 
   const handlePracticeAgain = (article) => {
     setConfirmingPractice(article);
+  };
+
+  const handleDeleteRecords = (article) => {
+    setConfirmingDelete(article);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (confirmingDelete) {
+      deleteAllRecords(confirmingDelete.id);
+      setConfirmingDelete(null);
+      if (selectedArticle && selectedArticle.id === confirmingDelete.id) {
+        setSelectedArticle(null);
+      }
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setConfirmingDelete(null);
   };
 
   const getWPMColor = (wpm) => {
@@ -102,24 +129,16 @@ const HistoryPage = () => {
   };
 
   // Sort articles by most recent practice, with practiced articles first
-  const getSortedArticles = () => {
-    return [...articles].sort((a, b) => {
-      const aRecords =
-        useStore.getState().records[`typer.records:${a.id}`] || [];
-      const bRecords =
-        useStore.getState().records[`typer.records:${b.id}`] || [];
-
-      // If both have no records, keep original order
-      if (aRecords.length === 0 && bRecords.length === 0) return 0;
-
-      // Articles with practice records come first
-      if (aRecords.length === 0 && bRecords.length > 0) return 1;
-      if (bRecords.length === 0 && aRecords.length > 0) return -1;
-
-      // Sort by most recent practice time (newest first)
-      const aLatest = Math.max(...aRecords.map((r) => r.endedAt));
-      const bLatest = Math.max(...bRecords.map((r) => r.endedAt));
-
+  const getSortedArticles = (arr = []) => {
+    if (!Array.isArray(arr)) return [];
+    return [...arr].sort((a, b) => {
+      const aRecs = records[`typer.records:${a.id}`] || [];
+      const bRecs = records[`typer.records:${b.id}`] || [];
+      if (aRecs.length === 0 && bRecs.length === 0) return 0;
+      if (aRecs.length === 0) return 1;
+      if (bRecs.length === 0) return -1;
+      const aLatest = Math.max(...aRecs.map(r => r.endedAt));
+      const bLatest = Math.max(...bRecs.map(r => r.endedAt));
       return bLatest - aLatest;
     });
   };
@@ -148,13 +167,13 @@ const HistoryPage = () => {
                 文章列表
               </h2>
               <span className="text-sm text-gray-500 dark:text-gray-400">
-                {articles.length} 篇文章
+                {articlesUnique.length} 篇文章
               </span>
             </div>
 
             <div className="space-y-3 max-h-[700px] overflow-y-auto">
-              {articles.length > 0 ? (
-                getSortedArticles().map((article) => {
+              {articlesUnique.length > 0 ? (
+                getSortedArticles(articlesUnique).map((article) => {
                   const stats = getArticleStats(article.id);
                   const isSelected = selectedArticle?.id === article.id;
 
@@ -177,9 +196,9 @@ const HistoryPage = () => {
 
                       {stats && (
                         <div className="space-y-1">
-                          <div className="items-center text-xs">
+                          <div className="items-center text-sm">
                             <span className="text-gray-500 dark:text-gray-400">
-                              最佳 WPM: {" "}
+                              最佳 WPM:{" "}
                             </span>
                             <span
                               className={`font-semibold ${getWPMColor(
@@ -189,16 +208,16 @@ const HistoryPage = () => {
                               {formatWPM(stats.bestRecord.wpm)}
                             </span>
                           </div>
-                          <div className="items-center text-xs">
+                          <div className="items-center text-sm">
                             <span className="text-gray-500 dark:text-gray-400">
-                              练习次数: {" "}
+                              练习次数:{" "}
                             </span>
                             <span className="font-semibold text-gray-700 dark:text-gray-300">
                               {stats.practiceCount}
                             </span>
                           </div>
                           {stats.lastPractice && (
-                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                            <div className="text-sm text-gray-500 dark:text-gray-400">
                               最近:{" "}
                               {new Date(
                                 stats.lastPractice.endedAt
@@ -208,15 +227,28 @@ const HistoryPage = () => {
                         </div>
                       )}
 
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handlePracticeAgain(article);
-                        }}
-                        className="mt-2 w-full btn-primary py-1 text-sm flex items-center justify-center"
-                      >
-                        再次练习
-                      </button>
+                      <div className="flex gap-3 mt-3">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteRecords(article);
+                          }}
+                          className="flex-1 btn-secondary text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/20"
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          删除记录
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handlePracticeAgain(article);
+                          }}
+                          className="flex-1 btn-primary"
+                        >
+                          <Play className="w-4 h-4 mr-2" />
+                          再次练习
+                        </button>
+                      </div>
                     </div>
                   );
                 })
@@ -238,9 +270,9 @@ const HistoryPage = () => {
               <div className="card p-4">
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
                   <TrendingUp className="w-5 h-5 mr-2 text-green-600 dark:text-green-400" />
-                  统计概览  {selectedArticle.title}
+                  统计概览 {selectedArticle.title}
                 </h2>
-                
+
                 {/* Article Content Display */}
                 <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                   <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
@@ -358,7 +390,7 @@ const HistoryPage = () => {
                       {getFilteredRecords(selectedArticle.id).map(
                         (record, index) => (
                           <tr
-                            key={`${selectedArticle.id}-${record.endedAt}-${index}`}
+                            key={record.id ?? `${selectedArticle.id}-${record.endedAt}-${index}`}
                             className={`border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 ${
                               index === 0
                                 ? "bg-yellow-50 dark:bg-yellow-900/20"
@@ -426,7 +458,52 @@ const HistoryPage = () => {
           )}
         </div>
       </div>
-      
+
+      {/* Delete Records Confirmation Modal */}
+      {confirmingDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
+            <div className="p-6">
+              <div className="flex items-center mb-4">
+                <div className="flex-shrink-0">
+                  <div className="w-10 h-10 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center">
+                    <Trash2 className="w-5 h-5 text-red-600 dark:text-red-400" />
+                  </div>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                    确认删除记录
+                  </h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    此操作无法撤销
+                  </p>
+                </div>
+              </div>
+
+              <p className="text-gray-700 dark:text-gray-300 mb-6">
+                确定要删除 <span className="font-semibold">"{confirmingDelete.title}"</span> 的所有练习记录吗？
+              </p>
+
+              <div className="flex items-center justify-end space-x-3">
+                <button
+                  onClick={handleDeleteCancel}
+                  className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg transition-colors duration-200"
+                >
+                  取消
+                </button>
+                <button
+                  onClick={handleDeleteConfirm}
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 flex items-center space-x-2"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>删除</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Practice Confirmation Modal */}
       {confirmingPractice && (
         <Confirm

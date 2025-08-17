@@ -44,15 +44,24 @@ const PracticePage = () => {
   const [newArticleTitle, setNewArticleTitle] = useState("");
   const [newArticleContent, setNewArticleContent] = useState("");
   const [newArticleCategory, setNewArticleCategory] = useState("custom");
+  const [samplesInitialized, setSamplesInitialized] = useState(false);
 
   // Initialize with sample articles if no articles exist
   useEffect(() => {
-    if (articles.length === 0) {
+    if (articles.length === 0 && !samplesInitialized) {
       sampleArticles.forEach((article) => {
         addArticle(article.title, article.content);
       });
+      setSamplesInitialized(true);
     }
-  }, []);
+  }, [articles.length, samplesInitialized]);
+
+  // Reset samplesInitialized when articles become empty (e.g., after clearAllData)
+  useEffect(() => {
+    if (articles.length === 0) {
+      setSamplesInitialized(false);
+    }
+  }, [articles.length]);
 
   // Keyboard shortcuts for modals
   useEffect(() => {

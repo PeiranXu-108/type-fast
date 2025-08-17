@@ -11,12 +11,12 @@ export default function Grade({
 }) {
   // Helper function to get grade based on WPM
   const getGrade = (wpm) => {
-    if (wpm >= 80) return { grade: 'A+', color: 'text-green-600 dark:text-green-400', bgColor: 'bg-green-100 dark:bg-green-900/20' }
-    if (wpm >= 70) return { grade: 'A', color: 'text-green-600 dark:text-green-400', bgColor: 'bg-green-100 dark:bg-green-900/20' }
-    if (wpm >= 60) return { grade: 'B+', color: 'text-blue-600 dark:text-blue-400', bgColor: 'bg-blue-100 dark:bg-blue-900/20' }
-    if (wpm >= 50) return { grade: 'B', color: 'text-blue-600 dark:text-blue-400', bgColor: 'bg-blue-100 dark:bg-blue-900/20' }
-    if (wpm >= 40) return { grade: 'C+', color: 'text-yellow-600 dark:text-yellow-400', bgColor: 'bg-yellow-100 dark:bg-yellow-900/20' }
-    if (wpm >= 30) return { grade: 'C', color: 'text-yellow-600 dark:text-yellow-400', bgColor: 'bg-yellow-100 dark:bg-yellow-900/20' }
+    if (wpm >= 60) return { grade: 'A+', color: 'text-green-600 dark:text-green-400', bgColor: 'bg-green-100 dark:bg-green-900/20' }
+    if (wpm >= 50) return { grade: 'A', color: 'text-green-600 dark:text-green-400', bgColor: 'bg-green-100 dark:bg-green-900/20' }
+    if (wpm >= 40) return { grade: 'B+', color: 'text-blue-600 dark:text-blue-400', bgColor: 'bg-blue-100 dark:bg-blue-900/20' }
+    if (wpm >= 35) return { grade: 'B', color: 'text-blue-600 dark:text-blue-400', bgColor: 'bg-blue-100 dark:bg-blue-900/20' }
+    if (wpm >= 30) return { grade: 'C+', color: 'text-yellow-600 dark:text-yellow-400', bgColor: 'bg-yellow-100 dark:bg-yellow-900/20' }
+    if (wpm >= 25) return { grade: 'C', color: 'text-yellow-600 dark:text-yellow-400', bgColor: 'bg-yellow-100 dark:bg-yellow-900/20' }
     if (wpm >= 20) return { grade: 'D', color: 'text-orange-600 dark:text-orange-400', bgColor: 'bg-orange-100 dark:bg-orange-900/20' }
     return { grade: 'F', color: 'text-red-600 dark:text-red-400', bgColor: 'bg-red-100 dark:bg-red-900/20' }
   }

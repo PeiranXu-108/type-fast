@@ -55,6 +55,8 @@ export const useStore = create(
       // Article actions
       addArticle: (title, content) => {
         const id = generateHash(content)
+        const exists = get().articles.find(a => a.id === id);
+        if(exists) return exists;
         const article = {
           id,
           title: title || content.substring(0, 50) + '...',
@@ -187,6 +189,32 @@ export const useStore = create(
         }))
         
         return fullRecord
+      },
+      
+      deleteRecord: (articleId, recordId) => {
+        set((state) => ({
+          records: {
+            ...state.records,
+            [`typer.records:${articleId}`]: (state.records[`typer.records:${articleId}`] || []).filter(
+              record => record.id !== recordId
+            )
+          }
+        }))
+      },
+      
+      deleteAllRecords: (articleId) => {
+        set((state) => {
+          const newRecords = { ...state.records }
+          delete newRecords[`typer.records:${articleId}`]
+          
+          // Also remove the article from articles array
+          const newArticles = state.articles.filter(article => article.id !== articleId)
+          
+          return { 
+            records: newRecords,
+            articles: newArticles
+          }
+        })
       },
       
       // Settings actions
