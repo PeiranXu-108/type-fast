@@ -13,6 +13,7 @@ const TypingArea = () => {
   })
   const [showGrade, setShowGrade] = useState(false)
   const [finalStats, setFinalStats] = useState(null)
+  const [strictModeErrors, setStrictModeErrors] = useState([]) // Track errors in strict mode
   
   const containerRef = useRef(null)
   const statsIntervalRef = useRef(null)
@@ -21,10 +22,9 @@ const TypingArea = () => {
   const normalizeChar = (char) => {
     if (!char) return char
     
-    // Handle various space characters (tabs, newlines, etc.)
+    // Handle various space characters 
     if (/\s/.test(char)) return ' '
-    
-    // Handle common full-width vs half-width character mappings
+
     const charMap = {
       '\uFF0C': ',',  
       '\u3002': '.',  
@@ -56,10 +56,12 @@ const TypingArea = () => {
     }
   }
   
-  // Focus container when practice starts
+  // Focus container when practice starts and reset strict mode errors
   useEffect(() => {
     if (practiceState.isActive) {
       containerRef.current?.focus()
+      // Reset strict mode errors when starting new practice
+      setStrictModeErrors([])
     }
   }, [practiceState.isActive])
   
@@ -82,8 +84,19 @@ const TypingArea = () => {
           // Use the new WPM calculation function that properly counts words
           const wpm = calculateWPMFromText(currentArticle.content, practiceState.currentIndex, elapsed)
           const cpm = calculateCPM(practiceState.currentIndex, elapsed)
-          const correctChars = practiceState.currentIndex - practiceState.errors.length
-          const accuracy = calculateAccuracy(correctChars, practiceState.keystrokes)
+          
+          // Calculate accuracy based on mode
+          let accuracy
+          if (practiceState.mode === 'strict') {
+            // In strict mode, accuracy is based on highlighted errors
+            const totalTyped = practiceState.currentIndex + strictModeErrors.length
+            const correctChars = practiceState.currentIndex
+            accuracy = totalTyped > 0 ? Math.round((correctChars / totalTyped) * 100) : 100
+          } else {
+            // In lenient mode, use the original calculation
+            const correctChars = practiceState.currentIndex - practiceState.errors.length
+            accuracy = calculateAccuracy(correctChars, practiceState.keystrokes)
+          }
           
           setRealTimeStats({ wpm, cpm, accuracy })
         }
@@ -95,7 +108,7 @@ const TypingArea = () => {
         }
       }
     }
-  }, [practiceState.isActive, startTime, practiceState.currentIndex, practiceState.keystrokes, currentArticle])
+  }, [practiceState.isActive, startTime, practiceState.currentIndex, practiceState.keystrokes, currentArticle, strictModeErrors])
   
   const handleKeyDown = (e) => {
     if (!practiceState.isActive || showGrade) return
@@ -121,6 +134,11 @@ const TypingArea = () => {
     // Handle backspace
     if (pressedChar === 'Backspace') {
       if (practiceState.mode === 'strict' && practiceState.currentIndex > 0) {
+        // Remove the last error if we're going back from an error position
+        if (strictModeErrors.includes(practiceState.currentIndex - 1)) {
+          setStrictModeErrors(prev => prev.filter(index => index !== practiceState.currentIndex - 1))
+        }
+        
         updatePracticeState({
           currentIndex: practiceState.currentIndex - 1,
           backspaces: practiceState.backspaces + 1,
@@ -176,8 +194,19 @@ const TypingArea = () => {
         if (!startTime) {
           setStartTime(Date.now())
         }
+      } else if (practiceState.mode === 'strict') {
+        // Strict mode - mark error and prevent progression until corrected
+        setStrictModeErrors(prev => [...prev, practiceState.currentIndex])
+        // Don't increment currentIndex, don't add to errors array
+        // Just track the keystroke
+        updatePracticeState({
+          keystrokes: practiceState.keystrokes + 1
+        })
+        
+        if (!startTime) {
+          setStartTime(Date.now())
+        }
       }
-      // In strict mode, wrong characters are ignored
     }
   }
   
@@ -197,6 +226,7 @@ const TypingArea = () => {
     
     setStartTime(null)
     setRealTimeStats({ wpm: 0, cpm: 0, accuracy: 100 })
+    setStrictModeErrors([]) // Reset strict mode errors
   }
   
   const handlePracticeAgain = () => {
@@ -215,6 +245,7 @@ const TypingArea = () => {
     
     setStartTime(null)
     setRealTimeStats({ wpm: 0, cpm: 0, accuracy: 100 })
+    setStrictModeErrors([]) // Reset strict mode errors
     
     if (currentArticle) {
       useStore.getState().startPractice(currentArticle, practiceState.mode)
@@ -228,8 +259,18 @@ const TypingArea = () => {
     // Calculate final WPM using the same function for consistency
     const finalWpm = calculateWPMFromText(currentArticle.content, practiceState.currentIndex, totalTime)
     
-    const correctChars = practiceState.currentIndex - practiceState.errors.length
-    const finalAccuracy = calculateAccuracy(correctChars, practiceState.keystrokes)
+    // Calculate final accuracy based on mode
+    let finalAccuracy
+    if (practiceState.mode === 'strict') {
+      // In strict mode, accuracy is based on highlighted errors
+      const totalTyped = practiceState.currentIndex + strictModeErrors.length
+      const correctChars = practiceState.currentIndex
+      finalAccuracy = totalTyped > 0 ? Math.round((correctChars / totalTyped) * 100) : 100
+    } else {
+      // In lenient mode, use the original calculation
+      const correctChars = practiceState.currentIndex - practiceState.errors.length
+      finalAccuracy = calculateAccuracy(correctChars, practiceState.keystrokes)
+    }
     
     
     
@@ -242,7 +283,11 @@ const TypingArea = () => {
       accuracy: finalAccuracy / 100,
       totalKeystrokes: practiceState.keystrokes,
       backspaces: practiceState.backspaces,
-      errors: practiceState.errors,
+      errors: practiceState.mode === 'strict' ? strictModeErrors.map(index => ({
+        index,
+        expected: currentArticle.content[index],
+        actual: 'incorrect'
+      })) : practiceState.errors,
       meta: {}
     }
     
@@ -274,7 +319,8 @@ const TypingArea = () => {
       if (index < practiceState.currentIndex) {
         // Already typed
         const isError = practiceState.errors.some(error => error.index === index)
-        className += isError ? ' typing-error' : ' typing-correct'
+        const isStrictError = strictModeErrors.includes(index)
+        className += isError || isStrictError ? ' typing-error' : ' typing-correct'
       } else if (index === practiceState.currentIndex) {
         // Current character
         className += ' typing-current'
