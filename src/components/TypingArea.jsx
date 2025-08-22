@@ -40,6 +40,10 @@ const TypingArea = () => {
       '\u300B': '>',  
       '\u2014': '-',  
       '\u2026': '...', 
+      '\u2018': "'",   
+      '\u2019': "'",   
+      '\uFF07': "'",   
+      '\u0027': "'",   
     }
     
     // Check if character is in the map
