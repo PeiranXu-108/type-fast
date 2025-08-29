@@ -1,5 +1,6 @@
 import React from 'react';
 import { Edit3, Trash2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const TextCard = ({ 
   article, 
@@ -8,6 +9,7 @@ const TextCard = ({
   onDelete, 
   showActions = true
 }) => {
+  const { t } = useTranslation();
   const handleCardClick = (e) => {
     if (e.target.closest('button')) {
       return;
@@ -35,14 +37,14 @@ const TextCard = ({
           <button
             onClick={handleEditClick}
             className="p-1.5 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900 dark:hover:bg-blue-800 text-blue-600 dark:text-blue-400 rounded transition-colors duration-200 hover:scale-105"
-            title="编辑"
+            title={t('text-cards.edit')}
           >
             <Edit3 className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={handleDeleteClick}
             className="p-1.5 bg-red-100 hover:bg-red-200 dark:bg-red-900 dark:hover:bg-red-800 text-red-600 dark:text-red-400 rounded transition-colors duration-200 hover:scale-105"
-            title="删除"
+            title={t('text-cards.delete')}
           >
             <Trash2 className="w-3.5 h-3.5" />
           </button>
@@ -65,7 +67,7 @@ const TextCard = ({
       <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mt-auto">
         <span className="capitalize">{article.category}</span>
         <span className="bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-200 px-2 py-1 rounded-full text-xs">
-          {article.wordCount} 词
+          {article.wordCount} {t('text-cards.words')}
         </span>
       </div>
     </div>
@@ -82,6 +84,8 @@ const TextCardsGrid = ({
   showAddCard = false,
   onAddClick
 }) => {
+  const { t } = useTranslation();
+  
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {articles.map((article) => (
@@ -118,10 +122,10 @@ const TextCardsGrid = ({
               </svg>
             </div>
             <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              添加新素材
+              {t('text-cards.add-new-material')}
             </h3>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              点击创建自定义练习素材
+              {t('text-cards.click-to-create')}
             </p>
           </div>
         </div>

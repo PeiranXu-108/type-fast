@@ -1,6 +1,6 @@
 import React from 'react'
 import { Trophy, Clock, Target, TrendingUp, ArrowLeft, RotateCcw } from 'lucide-react'
-
+import { useTranslation } from 'react-i18next';
 export default function Grade({ 
   wpm, 
   cpm, 
@@ -9,6 +9,7 @@ export default function Grade({
   onReturn, 
   onPracticeAgain 
 }) {
+  const { t } = useTranslation();
   // Helper function to get grade based on WPM
   const getGrade = (wpm) => {
     if (wpm >= 60) return { grade: 'A+', color: 'text-green-600 dark:text-green-400', bgColor: 'bg-green-100 dark:bg-green-900/20' }
@@ -35,7 +36,7 @@ export default function Grade({
               </div>
             </div>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-              练习完成！
+              {t('results.practice-completed')}
             </h2>
             <div className={`inline-block px-4 py-2 ${gradeInfo.bgColor} rounded-full`}>
               <span className={`text-2xl font-bold ${gradeInfo.color}`}>
@@ -72,7 +73,7 @@ export default function Grade({
             <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
               <div className="flex items-center justify-center mb-2">
                 <Clock className="w-5 h-5 text-purple-600 dark:text-purple-400 mr-2" />
-                <span className="text-sm text-purple-600 dark:text-purple-400 font-medium">用时</span>
+                <span className="text-sm text-purple-600 dark:text-purple-400 font-medium">{t('results.elapsed-time')}</span>
               </div>
               <div className="text-lg font-bold text-purple-600 dark:text-purple-400">
                 {duration}
@@ -83,7 +84,7 @@ export default function Grade({
             <div className="text-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
               <div className="flex items-center justify-center mb-2">
                 <Target className="w-5 h-5 text-orange-600 dark:text-orange-400 mr-2" />
-                <span className="text-sm text-orange-600 dark:text-orange-400 font-medium">准确率</span>
+                <span className="text-sm text-orange-600 dark:text-orange-400 font-medium">{t('results.accuracy')}</span>
               </div>
               <div className="text-lg font-bold text-orange-600 dark:text-orange-400">
                 {accuracy}%
@@ -98,14 +99,14 @@ export default function Grade({
               className="flex-1 px-4 py-3 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg transition-colors duration-200 flex items-center justify-center"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
-              返回
+              {t('results.return')}
             </button>
             <button
               onClick={onPracticeAgain}
               className="flex-1 px-4 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors duration-200 flex items-center justify-center"
             >
               <RotateCcw className="w-4 h-4 mr-2" />
-              再次练习
+              {t('results.practice-again')}
             </button>
           </div>
         </div>

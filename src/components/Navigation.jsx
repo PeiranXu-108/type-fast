@@ -1,18 +1,23 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Sun, Moon, Monitor } from 'lucide-react'
+import { Sun, Moon, Languages } from 'lucide-react'
 import { useTheme } from '../hooks/useTheme.js'
 import { useStore } from '../store.js'
-
+import { useTranslation } from 'react-i18next'
 const Navigation = () => {
   const location = useLocation()
   const { theme, setTheme } = useTheme()
   const { ui, setCurrentTab } = useStore()
+  const { t, i18n } = useTranslation()
+  const [language, setLanguage] = useState(i18n.language || 'zh')
   
+  useEffect(() => {
+    setLanguage(i18n.language || 'zh')
+  }, [i18n.language])
   const navItems = [
-    { path: '/', label: '练习', tab: 'practice' },
-    { path: '/history', label: '历史', tab: 'history' },
-    { path: '/settings', label: '设置', tab: 'settings' }
+    { path: '/', label: t('navigation.practice'), tab: 'practice' },
+    { path: '/history', label: t('navigation.history'), tab: 'history' },
+    { path: '/settings', label: t('navigation.settings'), tab: 'settings' }
   ]
   
   const handleNavClick = (tab) => {
@@ -67,8 +72,8 @@ const Navigation = () => {
             ))}
           </div>
           
-          {/* Right side - Theme toggle and mobile menu */}
-          <div className="flex items-center space-x-4">
+          {/* Right side - Theme toggle, language switch, and mobile menu */}
+          <div className="flex items-center space-x-2">
             {/* Theme Toggle */}
             <button
               onClick={cycleTheme}
@@ -76,6 +81,18 @@ const Navigation = () => {
               title={`当前主题: ${theme === 'system' ? '跟随系统' : theme === 'light' ? '浅色' : '深色'}`}
             >
               {getThemeIcon()}
+            </button>
+            {/* Language Switch */}
+            <button
+              onClick={() => {
+                const newLanguage = language === 'zh' ? 'en' : 'zh'
+                i18n.changeLanguage(newLanguage)
+                setLanguage(newLanguage)
+              }}
+              className="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
+              title={language === 'zh' ? 'Switch to English' : '切换到中文'}
+            >
+              <Languages className="w-4 h-4" />
             </button>
             
 

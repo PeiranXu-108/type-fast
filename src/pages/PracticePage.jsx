@@ -8,8 +8,9 @@ import ResultsPanel from "../components/ResultsPanel.jsx";
 import { Edit3, Trash2, X, Check, Plus } from "lucide-react";
 import Confirm from "../modals/confirm.jsx";
 import { TextCardsGrid } from "../cards/textCards.jsx";
-
+import { useTranslation } from "react-i18next";
 const PracticePage = () => {
+  const { t } = useTranslation()
   const {
     articles,
     customArticles,
@@ -333,10 +334,10 @@ const PracticePage = () => {
     <div className="space-y-6">
       <div className="text-center">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-          开始你的打字练习
+          {t('practice.title')}
         </h1>
         <p className="text-gray-600 dark:text-gray-400">
-          选择文本或输入自定义内容，提升你的英文打字速度和准确率
+          {t('practice.subtitle')}
         </p>
       </div>
 
@@ -353,9 +354,9 @@ const PracticePage = () => {
                   : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
               }`}
             >
-              {tab === "custom" && "自定义文本"}
-              {tab === "samples" && "素材库"}
-              {tab === "recent" && "近期使用"}
+              {tab === "custom" && t('practice.custom-text')}
+              {tab === "samples" && t('practice.material-library')}
+              {tab === "recent" && t('practice.recent-usage')}
             </button>
           ))}
         </div>
@@ -376,7 +377,6 @@ const PracticePage = () => {
             customArticles={customArticles}
             onSelect={handleSampleArticleSelect}
             onEdit={(e, article) => {
-              // 根据素材类型调用不同的编辑函数
               if (customArticles.some(custom => custom.id === article.id)) {
                 handleCustomArticleEdit(e, article);
               } else {
@@ -384,7 +384,6 @@ const PracticePage = () => {
               }
             }}
             onDelete={(e, article) => {
-              // 根据素材类型调用不同的删除函数
               if (customArticles.some(custom => custom.id === article.id)) {
                 handleCustomArticleDelete(e, article);
               } else {
@@ -424,12 +423,12 @@ const PracticePage = () => {
                       <div className="flex items-center space-x-2">
                         {bestRecord && (
                           <span className="bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 px-2 py-1 rounded-full text-xs">
-                            最佳: {bestRecord.wpm} WPM
+                            {t('best')}: {bestRecord.wpm} WPM
                           </span>
-                        )}
+                        )}  
                         {lastRecord && (
                           <span className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full text-xs">
-                            最近: {lastRecord.wpm} WPM
+                            {t('recent')}: {lastRecord.wpm} WPM
                           </span>
                         )}
                       </div>
@@ -438,8 +437,8 @@ const PracticePage = () => {
                       {article.content.substring(0, 100)}...
                     </p>
                     <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-                      <span>{article.wordCount} 词</span>
-                      <span>练习 {records.length} 次</span>
+                      <span>{article.wordCount} {t('word')}</span>
+                      <span>{t('practice.practice')} {records.length} {t('practice.times')}</span>
                       <span>
                         {new Date(article.createdAt).toLocaleDateString()}
                       </span>
@@ -449,8 +448,8 @@ const PracticePage = () => {
               })
             ) : (
               <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                <p>还没有练习记录</p>
-                <p className="text-sm">开始练习一些文章吧！</p>
+                <p>{t('practice.no-practice-records')}</p>
+                <p className="text-sm">{t('practice.start-practicing')}</p>
               </div>
             )}
           </div>
@@ -463,7 +462,7 @@ const PracticePage = () => {
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
             <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                编辑文章
+                {t('practice.edit-article')}
               </h3>
               <button
                 onClick={handleEditCancel}
@@ -476,45 +475,45 @@ const PracticePage = () => {
             <div className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  标题
+                  {t('practice.title-label')}
                 </label>
                 <input
                   type="text"
                   value={editTitle}
                   onChange={(e) => setEditTitle(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  placeholder="输入文章标题"
+                  placeholder={t('practice.title-placeholder')}
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  分类
+                  {t('category')}
                 </label>
                 <select
                   value={newArticleCategory}
                   onChange={(e) => setNewArticleCategory(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 >
-                  <option value="custom">自定义</option>
-                  <option value="technology">科技</option>
-                  <option value="literature">文学</option>
-                  <option value="news">新闻</option>
-                  <option value="business">商业</option>
-                  <option value="science">科学</option>
+                  <option value="custom">{t('categories.custom')}</option>
+                  <option value="technology">{t('categories.technology')}</option>
+                  <option value="literature">{t('categories.literature')}</option>
+                  <option value="news">{t('categories.news')}</option>
+                  <option value="business">{t('categories.business')}</option>
+                  <option value="science">{t('categories.science')}</option>
                 </select>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  内容
+                  {t('content')}
                 </label>
                 <textarea
                   value={editContent}
                   onChange={(e) => setEditContent(e.target.value)}
                   rows={8}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none"
-                  placeholder="输入文章内容"
+                  placeholder={t('practice.enter-article-content')}
                 />
               </div>
             </div>
@@ -524,7 +523,7 @@ const PracticePage = () => {
                 onClick={handleEditCancel}
                 className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg transition-colors duration-200"
               >
-                取消
+                {t('cancel')}
               </button>
               <button
                 onClick={handleCustomArticleEditSave}
@@ -532,7 +531,7 @@ const PracticePage = () => {
                 className="px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-200 flex items-center space-x-2"
               >
                 <Check className="w-4 h-4" />
-                <span>保存</span>
+                <span>{t('save')}</span>
               </button>
             </div>
           </div>
@@ -552,18 +551,18 @@ const PracticePage = () => {
                 </div>
                 <div className="ml-3">
                   <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                    确认删除
+                    {t('practice.confirm-delete')}
                   </h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    此操作无法撤销
+                    {t('practice.delete-irreversible')}
                   </p>
                 </div>
               </div>
 
               <p className="text-gray-700 dark:text-gray-300 mb-6">
-                确定要删除{" "}
-                <span className="font-semibold">"{deletingArticle.title}"</span>{" "}
-                吗？
+                {t('practice.delete-confirmation')}
+                <span className="font-semibold">{' '}"{deletingArticle.title}"{' '}</span>
+                {t('practice.delete-article')}
               </p>
 
               <div className="flex items-center justify-end space-x-3">
@@ -571,14 +570,14 @@ const PracticePage = () => {
                   onClick={handleDeleteCancel}
                   className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg transition-colors duration-200"
                 >
-                  取消
+                    {t('cancel')}
                 </button>
                 <button
                   onClick={handleCustomArticleDeleteConfirm}
                   className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 flex items-center space-x-2"
                 >
                   <Trash2 className="w-4 h-4" />
-                  <span>删除</span>
+                  <span>{t('text-cards.delete')}</span>
                 </button>
               </div>
             </div>
@@ -601,7 +600,7 @@ const PracticePage = () => {
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
             <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                添加新素材
+                {t('practice.add-new-material')}
               </h3>
               <button
                 onClick={handleAddArticleCancel}
@@ -614,45 +613,45 @@ const PracticePage = () => {
             <div className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  标题
+                  {t('practice.title-label')}
                 </label>
                 <input
                   type="text"
                   value={newArticleTitle}
                   onChange={(e) => setNewArticleTitle(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  placeholder="输入素材标题"
+                  placeholder={t('practice.title-placeholder')}
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  分类
+                  {t('practice.category')}
                 </label>
                 <select
                   value={newArticleCategory}
                   onChange={(e) => setNewArticleCategory(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 >
-                  <option value="custom">自定义</option>
-                  <option value="technology">科技</option>
-                  <option value="literature">文学</option>
-                  <option value="news">新闻</option>
-                  <option value="business">商业</option>
-                  <option value="science">科学</option>
+                  <option value="custom">{t('categories.custom')}</option>
+                  <option value="technology">{t('categories.technology')}</option>
+                  <option value="literature">{t('categories.literature')}</option>
+                  <option value="news">{t('categories.news')}</option>
+                  <option value="business">{t('categories.business')}</option>
+                  <option value="science">{t('categories.science')}</option>
                 </select>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  内容
+                  {t('practice.content')}
                 </label>
                 <textarea
                   value={newArticleContent}
                   onChange={(e) => setNewArticleContent(e.target.value)}
                   rows={8}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none"
-                  placeholder="输入素材内容"
+                  placeholder={t('practice.content-placeholder')}
                 />
               </div>
             </div>
@@ -662,7 +661,7 @@ const PracticePage = () => {
                 onClick={handleAddArticleCancel}
                 className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg transition-colors duration-200"
               >
-                取消
+                {t('cancel')}
               </button>
               <button
                 onClick={handleAddArticleSave}
@@ -670,7 +669,7 @@ const PracticePage = () => {
                 className="px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-200 flex items-center space-x-2"
               >
                 <Plus className="w-4 h-4" />
-                <span>创建素材</span> 
+                <span>{t('practice.create-material')}</span> 
               </button>
             </div>
           </div>

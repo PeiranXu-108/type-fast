@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useStore } from '../store.js'
 import { calculateWPM, calculateCPM, calculateAccuracy, calculateWPMFromText, formatDuration } from '../utils.js'
 import Grade from '../modals/grade.jsx'
-
+import { useTranslation } from 'react-i18next'
 const TypingArea = () => {
+  const { t } = useTranslation()
   const { currentArticle, practiceState, updatePracticeState, saveRecord, showResults } = useStore()
   const [startTime, setStartTime] = useState(null)
   const [realTimeStats, setRealTimeStats] = useState({
@@ -375,7 +376,7 @@ const TypingArea = () => {
   return (
     <div className="card p-6">
       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-        练习区域
+        {t('practice-area')}
       </h3>
       
       {/* Real-time Stats */}
@@ -396,13 +397,13 @@ const TypingArea = () => {
           <div className="text-lg font-bold text-green-600 dark:text-green-400">
             {realTimeStats.accuracy}%
           </div>
-          <div className="text-xs text-gray-500 dark:text-gray-400">准确率</div>
+          <div className="text-xs text-gray-500 dark:text-gray-400">{t('accuracy')}</div>
         </div>
         <div className="text-center">
           <div className="text-lg font-bold text-orange-600 dark:text-orange-400">
             {practiceState.backspaces}
           </div>
-          <div className="text-xs text-gray-500 dark:text-gray-400">退格</div>
+          <div className="text-xs text-gray-500 dark:text-gray-400">{t('backspace')}</div>
         </div>
       </div>
       
@@ -435,10 +436,10 @@ const TypingArea = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
-            <p className="text-xl mb-2">点击"开始练习"开始打字</p>
-            <p className="text-sm">练习开始后，直接在此区域输入即可</p>
+            <p className="text-xl mb-2">{t('click-start-practice-to-start-typing')}</p>
+            <p className="text-sm">{t('after-practice-starts-you-can-start-typing-here')}</p>
             <p className="text-xs mt-2 text-gray-400 dark:text-gray-500">
-              支持多行文本，空格键和换行符都会被正确处理
+              {t('supports-multiple-lines-of-text-space-key-and-newline-key-will-be-handled-correctly')}
             </p>
           </div>
         )}
@@ -447,19 +448,19 @@ const TypingArea = () => {
       {/* Instructions */}
       <div className="mt-4 text-sm text-gray-600 dark:text-gray-400">
         <p className="mb-2">
-          <strong>模式：</strong>
+          <strong>{t('mode')}:</strong>
           {practiceState.mode === 'strict' 
             ? '严格模式 - 错误需回退更正' 
             : '宽容模式 - 错误可继续'
           }
         </p>
-        <p className="mb-2">
-          <strong>状态：</strong>
-          {practiceState.isActive ? '进行中' : '未开始'}
+        <p className="mb-2">  
+          <strong>{t('status')}:</strong>
+          {practiceState.isActive ? t('in-progress') : t('not-started')}
         </p>
         <p>
-          <strong>操作：</strong>
-          练习开始后，直接在此区域输入文字。使用退格键删除错误，Esc键退出练习。
+          <strong>{t('operation')}:</strong>
+          {t('after-practice-starts-you-can-start-typing-here')}
         </p>
       </div>
       

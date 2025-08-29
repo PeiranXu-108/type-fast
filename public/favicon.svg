@@ -1,0 +1,5 @@
+<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-label="T logo">
+  <rect x="0" y="0" width="32" height="32" rx="8" fill="#0284c7"/>
+  <rect x="7" y="8" width="17" height="3" fill="#ffffff"/>
+  <rect x="14" y="11" width="3" height="14" fill="#ffffff"/>
+</svg>

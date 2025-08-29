@@ -10,8 +10,9 @@ import {
   Upload,
   Trash2,
   AlertTriangle,
-  Keyboard
+  Keyboard,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const SettingsPage = () => {
   const { settings, updateSettings, exportData, importData, clearAllData } =
@@ -20,7 +21,7 @@ const SettingsPage = () => {
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [importFile, setImportFile] = useState(null);
   const [importStatus, setImportStatus] = useState("");
-
+  const { t } = useTranslation();
   const handleSettingChange = (key, value) => {
     updateSettings({ [key]: value });
   };
@@ -93,32 +94,34 @@ const SettingsPage = () => {
   const getThemeLabel = (themeValue) => {
     switch (themeValue) {
       case "light":
-        return "浅色";
+        return t("settings.light");
       case "dark":
-        return "深色";
+        return t("settings.dark");
       case "system":
-        return "跟随系统";
+        return t("settings.follow-system");
       default:
-        return "跟随系统";
+        return t("settings.follow-system");
     }
   };
 
   const getModeLabel = (mode) => {
-    return mode === "strict" ? "严格模式" : "宽容模式";
+    return mode === "strict" ? t("settings.strict") : t("settings.lenient");
   };
 
   const getWPMCalculationLabel = (method) => {
-    return method === "word-based" ? "基于单词" : "基于字符(5字符=1词)";
+    return method === "word-based"
+      ? t("settings.word-based")
+      : t("settings.char-based");
   };
 
   return (
     <div className="space-y-6">
       <div className="text-center">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-          设置
+          {t("settings.title")}
         </h1>
         <p className="text-gray-600 dark:text-gray-400">
-          自定义你的打字练习体验
+          {t("settings.subtitle")}
         </p>
       </div>
 
@@ -127,33 +130,33 @@ const SettingsPage = () => {
         <div className="card p-6">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
             <Palette className="w-5 h-5 mr-2 text-blue-600 dark:text-blue-400" />
-            外观设置
+            {t("settings.appearance-settings")}
           </h2>
 
           <div className="space-y-4">
             {/* Theme Selection */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                主题
+                {t("settings.theme")}
               </label>
               <select
                 value={theme}
                 onChange={(e) => setTheme(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
-                <option value="system">跟随系统</option>
-                <option value="light">浅色主题</option>
-                <option value="dark">深色主题</option>
+                <option value="system">{t("settings.follow-system")}</option>
+                <option value="light">{t("settings.light")}</option>
+                <option value="dark">{t("settings.dark")}</option>
               </select>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                当前: {getThemeLabel(theme)}
+                {t("settings.current")}: {getThemeLabel(theme)}
               </p>
             </div>
 
             {/* Font Size */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                字体大小
+                {t("settings.font-size")}
               </label>
               <select
                 value={settings.visual.fontSize}
@@ -166,16 +169,16 @@ const SettingsPage = () => {
                 }
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
-                <option value="small">小</option>
-                <option value="medium">中</option>
-                <option value="large">大</option>
+                <option value="small">{t("settings.small")}</option>
+                <option value="medium">{t("settings.medium")}</option>
+                <option value="large">{t("settings.large")}</option>
               </select>
             </div>
 
             {/* Line Height */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                行高
+                {t("settings.line-height")}
               </label>
               <select
                 value={settings.visual.lineHeight}
@@ -188,16 +191,16 @@ const SettingsPage = () => {
                 }
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
-                <option value="tight">紧凑</option>
-                <option value="normal">正常</option>
-                <option value="loose">宽松</option>
+                <option value="tight">{t("settings.tight")}</option>
+                <option value="normal">{t("settings.normal")}</option>
+                <option value="loose">{t("settings.loose")}</option>
               </select>
             </div>
 
             {/* Cursor Style */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                光标样式
+                {t("settings.cursor-style")}
               </label>
               <select
                 value={settings.visual.cursorStyle}
@@ -210,9 +213,9 @@ const SettingsPage = () => {
                 }
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
-                <option value="block">方块</option>
-                <option value="line">线条</option>
-                <option value="underline">下划线</option>
+                <option value="block">{t("settings.block")}</option>
+                <option value="line">{t("settings.line")}</option>
+                <option value="underline">{t("settings.underline")}</option>
               </select>
             </div>
 
@@ -220,10 +223,10 @@ const SettingsPage = () => {
             <div className="flex items-center justify-between">
               <div>
                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  增强对比度
+                  {t("settings.contrast-enhancement")}
                 </label>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  提高文字与背景的对比度
+                  {t("settings.contrast-description")}
                 </p>
               </div>
               <input
@@ -246,14 +249,14 @@ const SettingsPage = () => {
         <div className="card p-6">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
             <Settings className="w-5 h-5 mr-2 text-green-600 dark:text-green-400" />
-            练习设置
+            {t("settings.practice-settings")}
           </h2>
 
           <div className="space-y-4">
             {/* Default Mode */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                默认练习模式
+                {t("settings.default-practice-mode")}
               </label>
               <select
                 value={settings.defaultMode}
@@ -262,18 +265,18 @@ const SettingsPage = () => {
                 }
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
-                <option value="lenient">宽容模式</option>
-                <option value="strict">严格模式</option>
+                <option value="lenient">{t("settings.lenient")}</option>
+                <option value="strict">{t("settings.strict")}</option>
               </select>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                当前: {getModeLabel(settings.defaultMode)}
+                {t("settings.current")}: {getModeLabel(settings.defaultMode)}
               </p>
             </div>
 
             {/* WPM Calculation Method */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                WPM 计算方式
+                {t("settings.wpm-calculation")}
               </label>
               <select
                 value={settings.wpmCalculation}
@@ -282,11 +285,12 @@ const SettingsPage = () => {
                 }
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
-                <option value="word-based">基于单词</option>
-                <option value="char-based">基于字符(5字符=1词)</option>
+                <option value="word-based">{t("settings.word-based")}</option>
+                <option value="char-based">{t("settings.char-based")}</option>
               </select>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                当前: {getWPMCalculationLabel(settings.wpmCalculation)}
+                {t("settings.current")}:{" "}
+                {getWPMCalculationLabel(settings.wpmCalculation)}
               </p>
             </div>
 
@@ -294,12 +298,12 @@ const SettingsPage = () => {
             <div className="space-y-3">
               <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center">
                 <Volume2 className="w-4 h-4 mr-2" />
-                声音设置
+                {t("settings.sound-settings")}
               </h3>
 
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600 dark:text-gray-400">
-                  按键音
+                  {t("settings.key-press-sound")}
                 </span>
                 <input
                   type="checkbox"
@@ -317,7 +321,7 @@ const SettingsPage = () => {
 
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600 dark:text-gray-400">
-                  完成提示音
+                  {t("settings.completion-sound")}
                 </span>
                 <input
                   type="checkbox"
@@ -340,7 +344,7 @@ const SettingsPage = () => {
         <div className="card p-6">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
             <Monitor className="w-5 h-5 mr-2 text-purple-600 dark:text-purple-400" />
-            数据管理
+            {t("settings.data-management")}
           </h2>
 
           <div className="space-y-4">
@@ -351,10 +355,10 @@ const SettingsPage = () => {
                 className="w-full btn-secondary flex items-center justify-center"
               >
                 <Download className="w-4 h-4 mr-2" />
-                导出数据
+                {t("settings.export-data")}
               </button>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                导出所有练习记录和设置到 JSON 文件
+                {t("settings.export-description")}
               </p>
             </div>
 
@@ -364,7 +368,7 @@ const SettingsPage = () => {
                 <div className="flex items-center">
                   <Monitor className="w-4 h-4 mr-2 text-gray-500 dark:text-gray-400" />
                   <span className="text-sm text-gray-600 dark:text-gray-400">
-                    本地存储使用
+                    {t("settings.local-storage-usage")}
                   </span>
                 </div>
                 <span className="text-sm font-medium text-gray-900 dark:text-white">
@@ -372,14 +376,14 @@ const SettingsPage = () => {
                 </span>
               </div>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                占用浏览器空间大小
+                {t("settings.storage-description")}
               </p>
             </div>
 
             {/* Import Data */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                导入数据
+                {t("settings.import-data")}
               </label>
               <input
                 type="file"
@@ -396,8 +400,8 @@ const SettingsPage = () => {
                   }`}
                 >
                   {importStatus === "success"
-                    ? "导入成功！"
-                    : "导入失败，请检查文件格式"}
+                    ? t("settings.import-success")
+                    : t("settings.import-failed")}
                 </p>
               )}
             </div>
@@ -409,10 +413,10 @@ const SettingsPage = () => {
                 className="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors duration-200 flex items-center justify-center"
               >
                 <Trash2 className="w-4 h-4 mr-2" />
-                清除所有数据
+                {t("settings.clear-all-data")}
               </button>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                此操作不可逆，请谨慎操作
+                {t("settings.clear-description")}
               </p>
             </div>
           </div>
@@ -422,33 +426,41 @@ const SettingsPage = () => {
         <div className="card p-6">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
             <Keyboard className="w-5 h-5 mr-2 text-gray-600 dark:text-gray-400" />
-            键盘快捷键
+            {t("settings.keyboard-shortcuts")}
           </h2>
 
           <div className="space-y-3">
             <div className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700">
-              <span className="text-gray-600 dark:text-gray-400">开始练习</span>
+              <span className="text-gray-600 dark:text-gray-400">
+                {t("settings.start-practice")}
+              </span>
               <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded text-sm">
                 Space
               </kbd>
             </div>
 
             <div className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700">
-              <span className="text-gray-600 dark:text-gray-400">退出练习</span>
+              <span className="text-gray-600 dark:text-gray-400">
+                {t("settings.exit-practice")}
+              </span>
               <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded text-sm">
                 Esc
               </kbd>
             </div>
 
             <div className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700">
-              <span className="text-gray-600 dark:text-gray-400">重新开始</span>
+              <span className="text-gray-600 dark:text-gray-400">
+                {t("settings.restart")}
+              </span>
               <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded text-sm">
                 Ctrl + Enter
               </kbd>
             </div>
 
             <div className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700">
-              <span className="text-gray-600 dark:text-gray-400">切换模式</span>
+              <span className="text-gray-600 dark:text-gray-400">
+                {t("settings.toggle-mode")}
+              </span>
               <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded text-sm">
                 Tab
               </kbd>
@@ -464,12 +476,12 @@ const SettingsPage = () => {
             <div className="flex items-center mb-4">
               <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400 mr-3" />
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                确认清除数据
+                {t("settings.confirm-clear-data")}
               </h3>
             </div>
 
             <p className="text-gray-600 dark:text-gray-400 mb-6">
-              此操作将永久删除所有练习记录、文章和设置。此操作不可逆，请确认你真的要这样做。
+              {t("settings.clear-data-warning")}
             </p>
 
             <div className="flex space-x-3">
@@ -477,13 +489,13 @@ const SettingsPage = () => {
                 onClick={() => setShowClearConfirm(false)}
                 className="flex-1 btn-secondary"
               >
-                取消
+                {t("cancel")}
               </button>
               <button
                 onClick={handleClearData}
                 className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors duration-200"
               >
-                确认清除
+                {t("settings.confirm-clear")}
               </button>
             </div>
           </div>

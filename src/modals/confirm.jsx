@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
-
+import { useTranslation } from 'react-i18next';
 export default function Confirm({ title, onConfirm, onCancel }) {
+    const { t } = useTranslation();
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (e.key === 'Enter') {
@@ -36,21 +37,21 @@ export default function Confirm({ title, onConfirm, onCancel }) {
                 </div>
                 <div className="ml-3">
                   <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                    确认开始练习
+                    {t('confirm')}
                   </h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    准备开始打字练习
+                    {t('prepare')}
                   </p>
                 </div>
               </div>
 
               <div className="mb-6">
                 <h4 className="text-gray-700 dark:text-gray-300 mb-6">
-                  准备好开始练习{" "}
+                  {t('prepare')}
                   <span className="font-semibold">
-                    "{title}"   
-                  </span>{" "}
-                  了吗？
+                    "{title}"
+                  </span>
+                  {t('ready')}
                 </h4>
               </div>
 
@@ -59,7 +60,7 @@ export default function Confirm({ title, onConfirm, onCancel }) {
                   onClick={onCancel}
                   className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg transition-colors duration-200"
                 >
-                  取消
+                  {t('cancel')}
                 </button>
                 <button
                   onClick={onConfirm}
@@ -78,7 +79,7 @@ export default function Confirm({ title, onConfirm, onCancel }) {
                       d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                     />
                   </svg>
-                  <span>开始练习</span>
+                  <span>{t('start')}</span>
                 </button>
               </div>
             </div>

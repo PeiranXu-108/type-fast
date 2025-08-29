@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react'
 import { Play, Pause, RotateCcw, Settings } from 'lucide-react'
 import { useStore } from '../store.js'
 import { formatDuration } from '../utils.js'
-
+import { useTranslation } from 'react-i18next'
 const PracticeControl = () => {
+  const { t } = useTranslation()
   const { currentArticle, practiceState, settings, updatePracticeState, stopPractice } = useStore()
   const [elapsedTime, setElapsedTime] = useState(0)
   const [timer, setTimer] = useState(null)
@@ -75,7 +76,7 @@ const PracticeControl = () => {
               {currentArticle.title}
             </h3>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              {currentArticle.wordCount} 词 • {practiceState.mode === 'lenient' ? '宽容模式' : '严格模式'}
+              {currentArticle.wordCount} {t('word')} • {practiceState.mode === 'lenient' ? t('lenient-mode') : t('strict-mode')}
             </p>
           </div>
           
@@ -84,7 +85,7 @@ const PracticeControl = () => {
               {formatDuration(elapsedTime)}
             </div>
             <div className="text-xs text-gray-500 dark:text-gray-400">
-              用时
+              {t('time-elapsed')}
             </div>
           </div>
         </div>
@@ -99,9 +100,9 @@ const PracticeControl = () => {
                 ? 'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300'
                 : 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300'
             }`}
-            title={practiceState.mode === 'strict' ? '严格模式：错误需回退更正' : '宽容模式：错误可继续'}
+            title={practiceState.mode === 'strict' ? t('strict-mode-description') : t('lenient-mode-description')}
           >
-            {practiceState.mode === 'strict' ? '严格' : '宽容'}
+            {practiceState.mode === 'strict' ? t('strict') : t('lenient')}
           </button>
           
           {/* Start button */}
@@ -113,12 +114,12 @@ const PracticeControl = () => {
             {practiceState.isActive ? (
               <>
                 <Play className="w-4 h-4 mr-2" />
-                练习中
+                {t('in-progress')}
               </>
             ) : (
               <>
                 <Play className="w-4 h-4 mr-2" />
-                开始练习
+                {t('start-practice')}
               </>
             )}
           </button>
@@ -127,19 +128,19 @@ const PracticeControl = () => {
           <button
             onClick={handleRestart}
             className="btn-secondary flex items-center justify-center"
-            title="重新开始练习"
+            title={t('restart-practice')}
           >
             <RotateCcw className="w-4 h-4 mr-2" />
-            重新开始
+            {t('restart')}
           </button>
           
           {/* Stop button */}
           <button
             onClick={handleStop}
             className="px-4 py-2 bg-red-200 dark:bg-red-500 hover:bg-red-300 dark:hover:bg-red-400 text-red-600 dark:text-red-300 font-medium rounded-lg transition-colors duration-200 h-10 flex items-center justify-center"
-            title="停止练习"
+            title={t('stop-practice')}
           >
-            退出
+            {t('exit')}
           </button>
         </div>
       </div>
@@ -147,7 +148,7 @@ const PracticeControl = () => {
       {/* Progress bar */}
       <div className="mt-4">
         <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 mb-1">
-          <span>进度</span>
+          <span>{t('progress')}</span>
           <span>{Math.round((practiceState.currentIndex / currentArticle.content.length) * 100)}%</span>
         </div>
         <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
@@ -160,10 +161,10 @@ const PracticeControl = () => {
       
       {/* Keyboard shortcuts info */}
       <div className="mt-3 text-xs text-gray-500 dark:text-gray-400">
-        <span>快捷键：</span>
-        <span className="mx-2">Space 开始练习</span>
-        <span className="mx-2">Esc 退出</span>
-        <span className="mx-2">Ctrl+Enter 重开</span>
+        <span>{t('keyboard-shortcuts')}:</span>
+        <span className="mx-2">{t('space-to-start-practice')}</span>
+        <span className="mx-2">{t('esc-to-exit')}</span>
+        <span className="mx-2">{t('ctrl-enter-to-restart')}</span>
       </div>
     </div>
   )

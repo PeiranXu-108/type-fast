@@ -2,8 +2,10 @@ import React from 'react'
 import { Trophy, Clock, Target, TrendingUp, RotateCcw, ArrowRight } from 'lucide-react'
 import { useStore } from '../store.js'
 import { formatDuration, formatWPM } from '../utils.js'
+import { useTranslation } from 'react-i18next'
 
 const ResultsPanel = () => {
+  const { t } = useTranslation()
   const { currentArticle, records, startPractice, setCurrentTab } = useStore()
   
   if (!currentArticle) return null
@@ -55,10 +57,10 @@ const ResultsPanel = () => {
     <div className="card p-6">
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-          练习完成！🎉
+          {t('results.practice-completed')}
         </h2>
         <p className="text-gray-600 dark:text-gray-400">
-          {currentArticle.title}
+          {t('results.practice-completed-subtitle')}
         </p>
       </div>
       
@@ -72,9 +74,9 @@ const ResultsPanel = () => {
           <div className={`text-4xl font-bold ${getWPMColor(latestRecord.wpm)}`}>
             {formatWPM(latestRecord.wpm)}
           </div>
-          <div className="text-blue-600 dark:text-blue-400 font-medium">WPM</div>
+          <div className="text-blue-600 dark:text-blue-400 font-medium">{t('results.wpm')}</div>
           <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            每分钟词数
+            {t('results.wpm-description')}
           </div>
         </div>
         
@@ -86,9 +88,9 @@ const ResultsPanel = () => {
           <div className={`text-4xl font-bold ${getAccuracyColor(latestRecord.accuracy * 100)}`}>
             {Math.round(latestRecord.accuracy * 100)}%
           </div>
-          <div className="text-green-600 dark:text-green-400 font-medium">准确率</div>
+          <div className="text-green-600 dark:text-green-400 font-medium">{t('results.accuracy')}</div>
           <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            正确字符比例
+            {t('results.accuracy-description')}
           </div>
         </div>
         
@@ -100,9 +102,9 @@ const ResultsPanel = () => {
           <div className="text-4xl font-bold text-purple-600 dark:text-purple-400">
             {formatDuration(latestRecord.durationMs)}
           </div>
-          <div className="text-purple-600 dark:text-purple-400 font-medium">用时</div>
+          <div className="text-purple-600 dark:text-purple-400 font-medium">{t('results.elapsed-time')}</div>
           <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            总练习时间
+            {t('results.elapsed-time-description')}
           </div>
         </div>
       </div>
@@ -112,29 +114,29 @@ const ResultsPanel = () => {
         <div className="card p-4">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
             <TrendingUp className="w-5 h-5 mr-2 text-green-600 dark:text-green-400" />
-            详细统计
+            {t('results.detailed-stats')}
           </h3>
           <div className="space-y-3">
             <div className="flex justify-between">
-              <span className="text-gray-600 dark:text-gray-400">CPM (字符/分钟)</span>
+              <span className="text-gray-600 dark:text-gray-400">{t('results.cpm')}</span>
               <span className="font-mono font-semibold">{latestRecord.cpm}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600 dark:text-gray-400">总击键数</span>
+              <span className="text-gray-600 dark:text-gray-400">{t('results.total-keystrokes')}</span>
               <span className="font-mono font-semibold">{latestRecord.totalKeystrokes}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600 dark:text-gray-400">退格次数</span>
+              <span className="text-gray-600 dark:text-gray-400">{t('results.backspaces')}</span>
               <span className="font-mono font-semibold">{latestRecord.backspaces}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600 dark:text-gray-400">错误数量</span>
+              <span className="text-gray-600 dark:text-gray-400">{t('results.error-count')}</span>
               <span className="font-mono font-semibold">{latestRecord.errors.length}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600 dark:text-gray-400">练习模式</span>
+              <span className="text-gray-600 dark:text-gray-400">{t('results.practice-mode')}</span>
               <span className="font-semibold">
-                {latestRecord.mode === 'strict' ? '严格模式' : '宽容模式'}
+                {latestRecord.mode === 'strict' ? t('results.strict-mode') : t('results.lenient-mode')}
               </span>
             </div>
           </div>
@@ -142,34 +144,34 @@ const ResultsPanel = () => {
         
         <div className="card p-4">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            历史对比
+            {t('results.history-comparison')}
           </h3>
           <div className="space-y-3">
             <div className="flex justify-between">
-              <span className="text-gray-600 dark:text-gray-400">本次成绩</span>
+              <span className="text-gray-600 dark:text-gray-400">{t('results.current-score')}</span>
               <span className="font-mono font-semibold text-primary-600 dark:text-primary-400">
                 {formatWPM(latestRecord.wpm)} WPM
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600 dark:text-gray-400">历史最佳</span>
+              <span className="text-gray-600 dark:text-gray-400">{t('results.best-record')}</span>
               <span className="font-mono font-semibold text-yellow-600 dark:text-yellow-400">
                 {formatWPM(getBestRecord().wpm)} WPM
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600 dark:text-gray-400">平均成绩</span>
+              <span className="text-gray-600 dark:text-gray-400">{t('results.average-score')}</span>
               <span className="font-mono font-semibold text-blue-600 dark:text-blue-400">
                 {formatWPM(getAverageWPM())} WPM
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600 dark:text-gray-400">练习次数</span>
+              <span className="text-gray-600 dark:text-gray-400">{t('results.practice-count')}</span>
               <span className="font-semibold">{articleRecords.length}</span>
             </div>
             {articleRecords.length >= 2 && (
               <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">相比上次</span>
+                <span className="text-gray-600 dark:text-gray-400">{t('results.compared-to-last')}</span>
                 <span className={`font-semibold ${getImprovement() >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                   {getImprovement() >= 0 ? '+' : ''}{getImprovement()} WPM
                 </span>
@@ -186,7 +188,7 @@ const ResultsPanel = () => {
           className="btn-primary px-8 py-3 text-lg flex items-center justify-center"
         >
           <RotateCcw className="w-5 h-5 mr-2" />
-          再次练习
+          {t('results.practice-again')}
         </button>
         
         <button
@@ -194,7 +196,7 @@ const ResultsPanel = () => {
           className="btn-secondary px-8 py-3 text-lg flex items-center justify-center"
         >
           <ArrowRight className="w-5 h-5 mr-2" />
-          查看历史
+          {t('results.view-history')}
         </button>
       </div>
       
@@ -202,14 +204,14 @@ const ResultsPanel = () => {
       <div className="text-center mt-8 p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg">
         <p className="text-gray-700 dark:text-gray-300">
           {latestRecord.wpm >= 60 ? 
-            '🎯 太棒了！你的打字速度已经达到专业水平！' :
+            t('results.encouragement-excellent') :
             latestRecord.wpm >= 40 ?
-            '🚀 很好！继续练习，你很快就能达到更高水平！' :
-            '💪 好的开始！坚持练习，你的速度会不断提升！'
+            t('results.encouragement-good') :
+            t('results.encouragement-start')
           }
         </p>
         <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-          建议每天练习15-30分钟，保持手指的灵活性和准确性
+          {t('results.practice-suggestion')}
         </p>
       </div>
     </div>

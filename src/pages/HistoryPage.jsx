@@ -1,12 +1,27 @@
 import React, { useState, useMemo } from "react";
 import { useStore } from "../store.js";
 import { formatDuration, formatWPM } from "../utils.js";
-import { BarChart3, TrendingUp, Calendar, Target, Trash2, Play } from "lucide-react";
+import {
+  BarChart3,
+  TrendingUp,
+  Calendar,
+  Target,
+  Trash2,
+  Play,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Confirm from "../modals/confirm.jsx";
+import { useTranslation } from "react-i18next";
 
 const HistoryPage = () => {
-  const { articles, records, startPractice, deleteAllRecords } = useStore();
+  const { t } = useTranslation();
+  const {
+    articles,
+    customArticles,
+    records,
+    startPractice,
+    deleteArticleRecords,
+  } = useStore();
   const [selectedArticle, setSelectedArticle] = useState(null);
   const [selectedRecordRange, setSelectedRecordRange] = useState("recent20");
   const [confirmingPractice, setConfirmingPractice] = useState(null);
@@ -72,11 +87,16 @@ const HistoryPage = () => {
 
   const articlesUnique = useMemo(() => {
     const map = new Map();
+    // Add regular articles
     for (const a of articles) {
-      if (!map.has(a.id)) map.set(a.id, a); 
+      if (!map.has(a.id)) map.set(a.id, a);
+    }
+    // Add custom articles
+    for (const a of customArticles) {
+      if (!map.has(a.id)) map.set(a.id, a);
     }
     return Array.from(map.values());
-  }, [articles]);
+  }, [articles, customArticles]);
 
   const handleArticleSelect = (article) => {
     console.log(article);
@@ -103,7 +123,9 @@ const HistoryPage = () => {
 
   const handleDeleteConfirm = () => {
     if (confirmingDelete) {
-      deleteAllRecords(confirmingDelete.id);
+      // Delete records for the article (without deleting the article itself)
+      deleteArticleRecords(confirmingDelete.id);
+
       setConfirmingDelete(null);
       if (selectedArticle && selectedArticle.id === confirmingDelete.id) {
         setSelectedArticle(null);
@@ -137,8 +159,8 @@ const HistoryPage = () => {
       if (aRecs.length === 0 && bRecs.length === 0) return 0;
       if (aRecs.length === 0) return 1;
       if (bRecs.length === 0) return -1;
-      const aLatest = Math.max(...aRecs.map(r => r.endedAt));
-      const bLatest = Math.max(...bRecs.map(r => r.endedAt));
+      const aLatest = Math.max(...aRecs.map((r) => r.endedAt));
+      const bLatest = Math.max(...bRecs.map((r) => r.endedAt));
       return bLatest - aLatest;
     });
   };
@@ -147,10 +169,10 @@ const HistoryPage = () => {
     <div className="space-y-6">
       <div className="text-center">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-          练习历史
+          {t("history.title")}
         </h1>
         <p className="text-gray-600 dark:text-gray-400">
-          查看你的练习记录，追踪进步趋势
+          {t("history.subtitle")}
         </p>
       </div>
 
@@ -164,10 +186,10 @@ const HistoryPage = () => {
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
                 <Calendar className="w-5 h-5 mr-2 text-primary-600 dark:text-primary-400" />
-                文章列表
+                {t("history.article-list")}
               </h2>
               <span className="text-sm text-gray-500 dark:text-gray-400">
-                {articlesUnique.length} 篇文章
+                {articlesUnique.length} {t("history.articles-count")}
               </span>
             </div>
 
@@ -191,14 +213,15 @@ const HistoryPage = () => {
                         {article.title}
                       </h3>
                       <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                        {article.wordCount} 词 • {article.charCount} 字符
+                        {article.wordCount} {t("history.words-count")} •{" "}
+                        {article.charCount} {t("history.chars-count")}
                       </p>
 
                       {stats && (
                         <div className="space-y-1">
                           <div className="items-center text-sm">
                             <span className="text-gray-500 dark:text-gray-400">
-                              最佳 WPM:{" "}
+                              {t("history.best-wpm")}:{" "}
                             </span>
                             <span
                               className={`font-semibold ${getWPMColor(
@@ -210,7 +233,7 @@ const HistoryPage = () => {
                           </div>
                           <div className="items-center text-sm">
                             <span className="text-gray-500 dark:text-gray-400">
-                              练习次数:{" "}
+                              {t("history.practice-count")}:{" "}
                             </span>
                             <span className="font-semibold text-gray-700 dark:text-gray-300">
                               {stats.practiceCount}
@@ -218,7 +241,7 @@ const HistoryPage = () => {
                           </div>
                           {stats.lastPractice && (
                             <div className="text-sm text-gray-500 dark:text-gray-400">
-                              最近:{" "}
+                              {t("history.recent")}{" "}
                               {new Date(
                                 stats.lastPractice.endedAt
                               ).toLocaleDateString()}
@@ -236,7 +259,7 @@ const HistoryPage = () => {
                           className="flex-1 btn-secondary text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/20"
                         >
                           <Trash2 className="w-4 h-4 mr-2" />
-                          删除记录
+                          {t("history.delete-records")}
                         </button>
                         <button
                           onClick={(e) => {
@@ -246,7 +269,7 @@ const HistoryPage = () => {
                           className="flex-1 btn-primary"
                         >
                           <Play className="w-4 h-4 mr-2" />
-                          再次练习
+                          {t("history.practice-again")}
                         </button>
                       </div>
                     </div>
@@ -254,8 +277,8 @@ const HistoryPage = () => {
                 })
               ) : (
                 <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                  <p>还没有练习记录</p>
-                  <p className="text-sm">开始练习一些文章吧！</p>
+                  <p>{t("history.no-practice-records")}</p>
+                  <p className="text-sm">{t("history.start-practicing")}</p>
                 </div>
               )}
             </div>
@@ -270,7 +293,7 @@ const HistoryPage = () => {
               <div className="card p-4">
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
                   <TrendingUp className="w-5 h-5 mr-2 text-green-600 dark:text-green-400" />
-                  统计概览 {selectedArticle.title}
+                  {t("history.stats-overview")} {selectedArticle.title}
                 </h2>
 
                 {/* Article Content Display */}
@@ -285,7 +308,7 @@ const HistoryPage = () => {
                   if (!stats)
                     return (
                       <p className="text-gray-500 dark:text-gray-400">
-                        暂无练习记录
+                        {t("history.no-practice-records")}
                       </p>
                     );
 
@@ -296,7 +319,7 @@ const HistoryPage = () => {
                           {formatWPM(stats.bestRecord.wpm)}
                         </div>
                         <div className="text-sm text-blue-600 dark:text-blue-400">
-                          最佳 WPM
+                          {t("history.best-wpm")}
                         </div>
                       </div>
 
@@ -305,7 +328,7 @@ const HistoryPage = () => {
                           {formatWPM(stats.averageWPM)}
                         </div>
                         <div className="text-sm text-green-600 dark:text-green-400">
-                          平均 WPM
+                          {t("history.average-wpm")}
                         </div>
                       </div>
 
@@ -314,7 +337,7 @@ const HistoryPage = () => {
                           {stats.averageAccuracy}%
                         </div>
                         <div className="text-sm text-purple-600 dark:text-purple-400">
-                          平均准确率
+                          {t("history.average-accuracy")}
                         </div>
                       </div>
 
@@ -323,7 +346,7 @@ const HistoryPage = () => {
                           {stats.practiceCount}
                         </div>
                         <div className="text-sm text-orange-600 dark:text-orange-400">
-                          练习次数
+                          {t("history.practice-count")}
                         </div>
                       </div>
                     </div>
@@ -337,27 +360,28 @@ const HistoryPage = () => {
                   <div className="flex items-center space-x-3">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
                       <BarChart3 className="w-5 h-5 mr-2 text-blue-600 dark:text-blue-400" />
-                      练习记录
+                      {t("history.practice-records")}
                     </h3>
                     <span className="text-sm text-gray-500 dark:text-gray-400">
-                      ({getFilteredRecords(selectedArticle.id).length} 条记录)
+                      ({getFilteredRecords(selectedArticle.id).length}{" "}
+                      {t("history.records-count")})
                     </span>
                   </div>
 
                   <div className="flex items-center space-x-3">
                     <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
                       <div className="w-3 h-3 bg-yellow-100 dark:bg-yellow-900/20 rounded"></div>
-                      <span>最近记录</span>
+                      <span>{t("history.recent-records")}</span>
                     </div>
                     <select
                       value={selectedRecordRange}
                       onChange={(e) => setSelectedRecordRange(e.target.value)}
                       className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                     >
-                      <option value="recent10">最近10次</option>
-                      <option value="recent20">最近20次</option>
-                      <option value="recent50">最近50次</option>
-                      <option value="all">全部记录</option>
+                      <option value="recent10">{t("history.recent-10")}</option>
+                      <option value="recent20">{t("history.recent-20")}</option>
+                      <option value="recent50">{t("history.recent-50")}</option>
+                      <option value="all">{t("history.all-records")}</option>
                     </select>
                   </div>
                 </div>
@@ -367,7 +391,7 @@ const HistoryPage = () => {
                     <thead className="sticky top-0 bg-white dark:bg-gray-800 z-10">
                       <tr className="border-b border-gray-200 dark:border-gray-700">
                         <th className="text-left py-2 text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800">
-                          日期
+                          {t("history.date")}
                         </th>
                         <th className="text-left py-2 text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800">
                           WPM
@@ -376,13 +400,13 @@ const HistoryPage = () => {
                           CPM
                         </th>
                         <th className="text-left py-2 text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800">
-                          准确率
+                          {t("history.accuracy")}
                         </th>
                         <th className="text-left py-2 text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800">
-                          用时
+                          {t("history.duration")}
                         </th>
                         <th className="text-left py-2 text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800">
-                          模式
+                          {t("history.mode")}
                         </th>
                       </tr>
                     </thead>
@@ -390,7 +414,10 @@ const HistoryPage = () => {
                       {getFilteredRecords(selectedArticle.id).map(
                         (record, index) => (
                           <tr
-                            key={record.id ?? `${selectedArticle.id}-${record.endedAt}-${index}`}
+                            key={
+                              record.id ??
+                              `${selectedArticle.id}-${record.endedAt}-${index}`
+                            }
                             className={`border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 ${
                               index === 0
                                 ? "bg-yellow-50 dark:bg-yellow-900/20"
@@ -428,7 +455,9 @@ const HistoryPage = () => {
                                     : "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
                                 }`}
                               >
-                                {record.mode === "strict" ? "严格" : "宽容"}
+                                {record.mode === "strict"
+                                  ? t("history.strict")
+                                  : t("history.lenient")}
                               </span>
                             </td>
                           </tr>
@@ -440,7 +469,7 @@ const HistoryPage = () => {
 
                 {getFilteredRecords(selectedArticle.id).length === 0 && (
                   <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                    <p>暂无练习记录</p>
+                    <p>{t("history.no-practice-records")}</p>
                   </div>
                 )}
               </div>
@@ -449,10 +478,10 @@ const HistoryPage = () => {
             <div className="card p-8 text-center">
               <Target className="w-16 h-16 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                选择文章查看历史
+                {t("history.select-article")}
               </h3>
               <p className="text-gray-600 dark:text-gray-400">
-                从左侧列表中选择一篇文章来查看其练习历史和统计数据
+                {t("history.select-article-desc")}
               </p>
             </div>
           )}
@@ -472,16 +501,20 @@ const HistoryPage = () => {
                 </div>
                 <div className="ml-3">
                   <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                    确认删除记录
+                    {t("history.confirm-delete-records")}
                   </h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    此操作无法撤销
+                    {t("history.delete-records-irreversible")}
                   </p>
                 </div>
               </div>
 
               <p className="text-gray-700 dark:text-gray-300 mb-6">
-                确定要删除 <span className="font-semibold">"{confirmingDelete.title}"</span> 的所有练习记录吗？
+                {t("history.delete-records-confirmation")}{" "}
+                <span className="font-semibold">
+                  "{confirmingDelete.title}"
+                </span>{" "}
+                {t("history.delete-records-irreversible")}
               </p>
 
               <div className="flex items-center justify-end space-x-3">
@@ -489,14 +522,14 @@ const HistoryPage = () => {
                   onClick={handleDeleteCancel}
                   className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg transition-colors duration-200"
                 >
-                  取消
+                  {t("history.cancel")}
                 </button>
                 <button
                   onClick={handleDeleteConfirm}
                   className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 flex items-center space-x-2"
                 >
                   <Trash2 className="w-4 h-4" />
-                  <span>删除</span>
+                  <span>{t("delete.delete")}</span>
                 </button>
               </div>
             </div>

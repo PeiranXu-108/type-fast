@@ -217,6 +217,18 @@ export const useStore = create(
         })
       },
       
+      // Delete records for a specific article (without deleting the article itself)
+      deleteArticleRecords: (articleId) => {
+        set((state) => {
+          const newRecords = { ...state.records }
+          delete newRecords[`typer.records:${articleId}`]
+          
+          return { 
+            records: newRecords
+          }
+        })
+      },
+      
       // Settings actions
       updateSettings: (updates) => {
         set((state) => ({
