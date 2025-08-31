@@ -2,6 +2,28 @@
 
 一个Web应用，用于练习英文打字速度与准确率。支持自定义文本、实时统计、历史记录对比等功能
 
+## 功能预览
+
+### 练习页面
+![练习页面](public/practice.png)
+*练习界面，支持实时统计和错误提示*
+
+### 输入界面
+![输入界面](public/input.png)
+*直观的文本输入和错误显示*
+
+### 素材库
+![素材库](public/samples.png)
+*丰富的练习素材，支持自定义文本输入*
+
+### 历史记录
+![历史记录](public/history.png)
+*详细的练习历史统计和进度追踪*
+
+### 设置页面
+![设置页面](public/setting.png)
+*个性化设置，包括主题、模式等配置*
+
 ## 使用指南
 
 ### 开始练习
@@ -45,6 +67,38 @@
 
 ### 准确率
 - 正确字符数 / 总击键数 × 100%
+
+## 技术特性
+
+- 🚀 **现代化技术栈**: React + Vite + Tailwind CSS
+- 🌍 **国际化支持**: 中英文双语界面
+- 🎨 **主题切换**: 浅色/深色主题自动切换
+- 💾 **本地存储**: 数据持久化，无需注册账号
+- 🐳 **Docker支持**: 一键部署，支持容器化
+
+## 快速开始
+
+### 本地开发
+```bash
+# 克隆项目
+git clone <repository-url>
+cd type-fast
+
+# 安装依赖
+npm install
+
+# 启动开发服务器
+npm run dev
+```
+
+### Docker部署
+```bash
+# 拉取镜像
+docker pull peiranxu2048/typefast:latest
+
+# 运行容器
+docker run -d -p 8080:80 peiranxu2048/typefast:latest
+```
 
 ## 贡献指南
 
