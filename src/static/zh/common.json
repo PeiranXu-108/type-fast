@@ -64,8 +64,8 @@
     "practice-control": {
         "lenient-mode": "宽容模式",
         "strict-mode": "严格模式",
-        "strict-mode-desc": "严格模式：错误需回退更正",
-        "lenient-mode-desc": "宽容模式：错误可继续",
+        "strict-mode-desc": "错误需回退更正",
+        "lenient-mode-desc": "错误可继续",
         "strict": "严格",
         "lenient": "宽容",
         "practicing": "练习中",
@@ -78,7 +78,11 @@
         "keyboard-shortcuts": "快捷键：",
         "space-start": "Space 开始练习",
         "esc-exit": "Esc 退出",
-        "ctrl-enter-restart": "Ctrl+Enter 重开"
+        "ctrl-enter-restart": "Ctrl+Enter 重开",
+        "mode": "模式",
+        "status": "状态",
+        "operation": "操作",
+        "practice-area": "练习区域"
     },
 
     "categories": {

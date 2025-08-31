@@ -376,7 +376,7 @@ const TypingArea = () => {
   return (
     <div className="card p-6">
       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-        {t('practice-area')}
+        {t('practice-control.practice-area')}
       </h3>
       
       {/* Real-time Stats */}
@@ -397,13 +397,13 @@ const TypingArea = () => {
           <div className="text-lg font-bold text-green-600 dark:text-green-400">
             {realTimeStats.accuracy}%
           </div>
-          <div className="text-xs text-gray-500 dark:text-gray-400">{t('accuracy')}</div>
+          <div className="text-xs text-gray-500 dark:text-gray-400">{t('results.accuracy')}</div>
         </div>
         <div className="text-center">
           <div className="text-lg font-bold text-orange-600 dark:text-orange-400">
             {practiceState.backspaces}
           </div>
-          <div className="text-xs text-gray-500 dark:text-gray-400">{t('backspace')}</div>
+          <div className="text-xs text-gray-500 dark:text-gray-400">{t('results.backspaces')}</div>
         </div>
       </div>
       
@@ -448,20 +448,20 @@ const TypingArea = () => {
       {/* Instructions */}
       <div className="mt-4 text-sm text-gray-600 dark:text-gray-400">
         <p className="mb-2">
-          <strong>{t('mode')}:</strong>
+          <strong>{t('practice-control.mode')}:</strong>
           {practiceState.mode === 'strict' 
-            ? '严格模式 - 错误需回退更正' 
-            : '宽容模式 - 错误可继续'
+            ? t('practice-control.strict-mode-desc')
+            : t('practice-control.lenient-mode-desc')
           }
         </p>
-        <p className="mb-2">  
-          <strong>{t('status')}:</strong>
-          {practiceState.isActive ? t('in-progress') : t('not-started')}
+        {/* <p className="mb-2">  
+          <strong>{t('practice-control.status')}:</strong>
+          {practiceState.isActive ? t('practice-control.in-progress') : t('practice-control.not-started')}
         </p>
         <p>
-          <strong>{t('operation')}:</strong>
-          {t('after-practice-starts-you-can-start-typing-here')}
-        </p>
+          <strong>{t('practice-control.operation')}:</strong>
+          {t('practice-control.after-practice-starts-you-can-start-typing-here')}
+        </p> */}
       </div>
       
       {/* Grade Modal */}

@@ -66,8 +66,8 @@
     "practice-control": {
         "lenient-mode": "Lenient Mode",
         "strict-mode": "Strict Mode",
-        "strict-mode-desc": "Strict Mode: Errors must be corrected before continuing",
-        "lenient-mode-desc": "Lenient Mode: Errors can be skipped",
+        "strict-mode-desc": "Errors must be corrected before continuing",
+        "lenient-mode-desc": "Errors can be skipped",
         "strict": "Strict",
         "lenient": "Lenient",
         "practicing": "Practicing",
@@ -80,7 +80,11 @@
         "keyboard-shortcuts": "Keyboard Shortcuts:",
         "space-start": "Space: Start Practice",
         "esc-exit": "Esc: Exit",
-        "ctrl-enter-restart": "Ctrl+Enter: Restart"
+        "ctrl-enter-restart": "Ctrl+Enter: Restart",
+        "mode": "Mode",
+        "status": "Status",
+        "operation": "Operation",
+        "practice-area": "Practice Area"
     },
 
     "categories": {
