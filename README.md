@@ -68,20 +68,12 @@
 ### 准确率
 - 正确字符数 / 总击键数 × 100%
 
-## 技术特性
-
-- 🚀 **现代化技术栈**: React + Vite + Tailwind CSS
-- 🌍 **国际化支持**: 中英文双语界面
-- 🎨 **主题切换**: 浅色/深色主题自动切换
-- 💾 **本地存储**: 数据持久化，无需注册账号
-- 🐳 **Docker支持**: 一键部署，支持容器化
-
 ## 快速开始
 
 ### 本地开发
 ```bash
 # 克隆项目
-git clone <repository-url>
+git clone https://github.com/PeiranXu-108/type-fast.git
 cd type-fast
 
 # 安装依赖
