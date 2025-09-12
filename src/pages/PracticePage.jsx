@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useStore } from "../store.js";
 import { generateSampleArticles } from "../utils.js";
 import TextInputCard from "../components/TextInputCard.jsx";
@@ -17,6 +17,7 @@ const PracticePage = () => {
     currentArticle,
     practiceState,
     ui,
+    records,
     addArticle,
     addCustomArticle,
     updateCustomArticle,
@@ -292,33 +293,30 @@ const PracticePage = () => {
     setNewArticleCategory("custom");
   };
 
-  const getRecentArticles = () => {
+  const recentArticles = useMemo(() => {
     // Get articles with recent practice records
-    const recentArticles = articles.filter((article) => {
-      const records =
-        useStore.getState().records[`typer.records:${article.id}`] || [];
-      return records.length > 0;
-    });
+    const withRecords = articles.filter((article) => {
+      const recs = records[`typer.records:${article.id}`] || []
+      return recs.length > 0
+    })
 
     // Sort by most recent practice
-    return recentArticles
-      .sort((a, b) => {
-        const aRecords =
-          useStore.getState().records[`typer.records:${a.id}`] || [];
-        const bRecords =
-          useStore.getState().records[`typer.records:${b.id}`] || [];
+    const sorted = withRecords.sort((a, b) => {
+      const aRecords = records[`typer.records:${a.id}`] || []
+      const bRecords = records[`typer.records:${b.id}`] || []
 
-        if (aRecords.length === 0 && bRecords.length === 0) return 0;
-        if (aRecords.length === 0) return 1;
-        if (bRecords.length === 0) return -1;
+      if (aRecords.length === 0 && bRecords.length === 0) return 0
+      if (aRecords.length === 0) return 1
+      if (bRecords.length === 0) return -1
 
-        const aLatest = Math.max(...aRecords.map((r) => r.endedAt));
-        const bLatest = Math.max(...bRecords.map((r) => r.endedAt));
+      const aLatest = Math.max(...aRecords.map((r) => r.endedAt))
+      const bLatest = Math.max(...bRecords.map((r) => r.endedAt))
 
-        return bLatest - aLatest;
-      })
-      .slice(0, 5);
-  };
+      return bLatest - aLatest
+    })
+
+    return sorted.slice(0, 5)
+  }, [articles, records])
 
   if (practiceState.isActive && currentArticle) {
     return (
@@ -399,8 +397,8 @@ const PracticePage = () => {
         {/* Recent Articles Tab */}
         {activeTab === "recent" && (
           <div className="space-y-4">
-            {getRecentArticles().length > 0 ? (
-              getRecentArticles().map((article) => {
+            {recentArticles.length > 0 ? (
+              recentArticles.map((article) => {
                 const records =
                   useStore.getState().records[`typer.records:${article.id}`] ||
                   [];

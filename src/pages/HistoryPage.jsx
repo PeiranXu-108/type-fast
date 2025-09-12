@@ -99,7 +99,6 @@ const HistoryPage = () => {
   }, [articles, customArticles]);
 
   const handleArticleSelect = (article) => {
-    console.log(article);
     setSelectedArticle(article);
   };
 

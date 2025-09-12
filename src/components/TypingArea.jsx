@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { useStore } from '../store.js'
 import { calculateWPM, calculateCPM, calculateAccuracy, calculateWPMFromText, formatDuration } from '../utils.js'
 import Grade from '../modals/grade.jsx'
@@ -18,6 +18,12 @@ const TypingArea = () => {
   
   const containerRef = useRef(null)
   const statsIntervalRef = useRef(null)
+  
+  // Build error index set for O(1) lookup to avoid O(n^2) cost
+  const errorIndexSet = useMemo(() => new Set([
+    ...practiceState.errors.map(error => error.index),
+    ...strictModeErrors
+  ]), [practiceState.errors, strictModeErrors])
   
   // Normalize characters for comparison to handle various edge cases
   const normalizeChar = (char) => {
@@ -323,9 +329,8 @@ const TypingArea = () => {
       
       if (index < practiceState.currentIndex) {
         // Already typed
-        const isError = practiceState.errors.some(error => error.index === index)
-        const isStrictError = strictModeErrors.includes(index)
-        className += isError || isStrictError ? ' typing-error' : ' typing-correct'
+        const isError = errorIndexSet.has(index)
+        className += isError ? ' typing-error' : ' typing-correct'
       } else if (index === practiceState.currentIndex) {
         // Current character
         className += ' typing-current'
@@ -350,26 +355,21 @@ const TypingArea = () => {
     })
   }
   
-  // Calculate text dimensions for proper height adjustment
-  const getTextDimensions = () => {
+  // Calculate text dimensions for proper height adjustment (memoized)
+  const textDimensions = useMemo(() => {
     if (!currentArticle) return { lines: 0, height: 400 }
-    
+
     const content = currentArticle.content
     const lines = content.split('\n').length
     const maxLineLength = Math.max(...content.split('\n').map(line => line.length))
-    
-    // Calculate height based on lines and content length
-    // Each line approximately 24px height, plus padding and margins
-    const baseHeight = 100 // padding and margins
-    const lineHeight = 24 // estimated line height
+
+    // Each line ~24px height + base padding/margins
+    const baseHeight = 100
+    const lineHeight = 24
     const estimatedHeight = Math.max(400, Math.min(800, lines * lineHeight + baseHeight))
-    
-    return {
-      lines,
-      maxLineLength,
-      height: estimatedHeight
-    }
-  }
+
+    return { lines, maxLineLength, height: estimatedHeight }
+  }, [currentArticle?.content])
   
   if (!currentArticle) return null
   
@@ -418,7 +418,7 @@ const TypingArea = () => {
             : 'border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 cursor-default'
         }`}
         style={{ 
-          height: `${getTextDimensions().height}px`,
+          height: `${textDimensions.height}px`,
           maxHeight: '800px',
           width: '100%',
           wordBreak: 'break-word',

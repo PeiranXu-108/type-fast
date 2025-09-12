@@ -1,10 +1,14 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { countWords, countCharacters } from '../utils.js'
+import { debounce } from '../utils.js'
 import { useTranslation } from 'react-i18next'
 const TextInputCard = ({ value, onChange, onSubmit }) => {
   const { t } = useTranslation()
   const wordCount = countWords(value)
   const charCount = countCharacters(value)
+  
+  // Debounce input changes to reduce upstream renders
+  const debouncedOnChange = useMemo(() => debounce(onChange, 150), [onChange])
   
   const handleClear = () => {
     onChange('')
@@ -42,7 +46,7 @@ const TextInputCard = ({ value, onChange, onSubmit }) => {
       
       <textarea
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => debouncedOnChange(e.target.value)}
         placeholder={t('custom-text-placeholder')}
         className="w-full h-32 p-4 border border-gray-300 dark:border-gray-600 rounded-lg resize-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-mono text-sm"
         disabled={false}

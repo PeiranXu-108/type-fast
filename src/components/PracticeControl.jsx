@@ -16,7 +16,7 @@ const PracticeControl = () => {
         const now = Date.now()
         const actualElapsed = now - practiceState.startTime
         setElapsedTime(actualElapsed)
-      }, 16) // ~60fps
+      }, 100) // reduce update frequency to ease re-renders
       
       setTimer(interval)
       
