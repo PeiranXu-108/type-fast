@@ -181,7 +181,7 @@ const HistoryPage = () => {
         <div className="lg:col-span-1">
           <div
             className="card p-4"
-            style={{ minHeight: "800px", maxHeight: "1000px", height: "100%" }}
+            style={{ minHeight: "500px", maxHeight: "1300px", height: "100%" }}
           >
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
@@ -193,7 +193,7 @@ const HistoryPage = () => {
               </span>
             </div>
 
-            <div className="space-y-3 max-h-[700px] overflow-y-auto">
+            <div className="space-y-3 max-h-[1000px] overflow-y-auto">
               {articlesUnique.length > 0 ? (
                 getSortedArticles(articlesUnique).map((article) => {
                   const stats = getArticleStats(article.id);

@@ -40,22 +40,34 @@ export const calculateWPM = (charCount, durationMs, method = 'word-based') => {
 
 // Calculate WPM based on actual text content and completed characters
 export const calculateWPMFromText = (text, completedChars, durationMs) => {
-  if (durationMs === 0 || !text || completedChars === 0) return 0
-  
-  // Extract the portion of text that has been completed
-  const completedText = text.substring(0, completedChars)
-  
-  // Count words in the completed portion
-  const words = completedText.trim().split(/\s+/).filter(word => word.length > 0)
-  const wordCount = words.length
-  
+  if (!text || durationMs <= 0 || completedChars <= 0) return 0
+
   const durationMinutes = durationMs / (1000 * 60)
-  
-  // Handle very short durations
-  if (durationMinutes < 0.1) { // Less than 6 seconds
-    return Math.round(wordCount * 60 / (durationMs / 1000))
+  const completedText = text.slice(0, completedChars)
+
+  // Helper: estimate if content is primarily CJK (no spaces, word boundary is unclear)
+  const cjkRegex = /[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF\u3040-\u30FF]/
+  const hasWhitespace = /\s/.test(completedText)
+  let cjkCount = 0
+  for (let i = 0; i < completedText.length; i++) {
+    if (cjkRegex.test(completedText[i])) cjkCount++
   }
-  
+  const cjkRatio = cjkCount / completedText.length
+
+  // Prefer true word counting when spaces exist and text isn't mostly CJK
+  let wordCount
+  if (hasWhitespace && cjkRatio < 0.4) {
+    // Count only fully completed words: drop trailing partial if no trailing whitespace
+    const endsWithSpace = /\s$/.test(completedText)
+    const tokens = completedText.trim().split(/\s+/).filter(Boolean)
+    wordCount = tokens.length - (endsWithSpace ? 0 : 1)
+    if (wordCount < 0) wordCount = 0
+  } else {
+    // Fallback to standard typing-test convention: 5 chars = 1 word
+    wordCount = completedChars / 5
+  }
+
+  // Return integer WPM for internal use; callers format as needed
   return Math.round(wordCount / durationMinutes)
 }
 
