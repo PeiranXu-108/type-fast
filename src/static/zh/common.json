@@ -171,7 +171,10 @@
         "confirm-delete-records": "确认删除记录",
         "delete-records-irreversible": "此操作无法撤销",
         "delete-records-confirmation": "确定要删除",
-        "delete-records-article": "的所有练习记录吗？"
+        "delete-records-article": "的所有练习记录吗？",
+        "practice-trend": "练习趋势图",
+        "the":"第",
+        "session": "次练习"
     },
     
     "settings": {

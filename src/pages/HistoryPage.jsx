@@ -12,6 +12,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import Confirm from "../modals/confirm.jsx";
 import { useTranslation } from "react-i18next";
+import PracticeChart from "../components/PracticeChart.jsx";
 
 const HistoryPage = () => {
   const { t } = useTranslation();
@@ -352,6 +353,24 @@ const HistoryPage = () => {
                   );
                 })()}
               </div>
+
+              {/* Practice Chart - Only show if practice count >= 2 */}
+              {(() => {
+                const stats = getArticleStats(selectedArticle.id);
+                if (!stats || stats.practiceCount < 2) return null;
+
+                return (
+                  <div className="card p-4">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                      <TrendingUp className="w-5 h-5 mr-2 text-blue-600 dark:text-blue-400" />
+                      {t("history.practice-trend")}
+                    </h3>
+                    <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                      <PracticeChart records={getArticleRecords(selectedArticle.id)} />
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Records Table */}
               <div className="card p-4">

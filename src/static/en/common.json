@@ -172,7 +172,10 @@
         "confirm-delete-records": "Confirm Delete Records",
         "delete-records-irreversible": "This action cannot be undone",
         "delete-records-confirmation": "Are you sure you want to delete",
-        "delete-records-article": "all practice records of this article?"
+        "delete-records-article": "all practice records of this article?",
+        "practice-trend": "Practice Trend Chart",
+        "the": "The",
+        "session": "Session"
     },
     
     "settings": {
