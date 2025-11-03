@@ -115,6 +115,9 @@ const TextCardsGrid = ({
           className="card p-4 hover:shadow-lg transition-shadow duration-200 cursor-pointer relative h-64 flex flex-col border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-primary-400 dark:hover:border-primary-500 group"
           onClick={onAddClick}
         >
+          <div className="absolute top-2 right-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md">
+            AI
+          </div>
           <div className="flex flex-col items-center justify-center h-full text-center">
             <div className="w-16 h-16 bg-primary-100 dark:bg-primary-900/20 rounded-full flex items-center justify-center mb-4 group-hover:bg-primary-200 dark:group-hover:bg-primary-800/30 transition-colors duration-200">
               <svg className="w-8 h-8 text-primary-600 dark:text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
