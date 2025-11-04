@@ -30,7 +30,6 @@ app.use(
       '^/api/doubao': '/api/v3/chat/completions',
     },
     onProxyReq: (proxyReq, req, res) => {
-      // 从环境变量获取 API Key 并添加到请求头
       const apiKey = process.env.VITE_DOUBAO_API_KEY || process.env.DOUBAO_API_KEY
       if (apiKey) {
         proxyReq.setHeader('Authorization', `Bearer ${apiKey}`)
