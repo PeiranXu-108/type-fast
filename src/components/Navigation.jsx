@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Sun, Moon, Languages } from 'lucide-react'
+import { Sun, Moon, Languages, Github } from 'lucide-react'
 import { useTheme } from '../hooks/useTheme.js'
 import { useStore } from '../store.js'
 import { useTranslation } from 'react-i18next'
@@ -92,9 +92,19 @@ const Navigation = () => {
               className="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
               title={language === 'zh' ? 'Switch to English' : '切换到中文'}
             >
-              <Languages className="w-4 h-4" />
+              <Languages className="w-5 h-5" />
             </button>
             
+            {/* GitHub Link */}
+            <a
+              href="https://github.com/PeiranXu-108/type-fast"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
+              title="GitHub Repository"
+            >
+              <Github className="w-5 h-5" />
+            </a>
 
             
             {/* Mobile menu button */}
