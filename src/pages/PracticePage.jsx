@@ -55,6 +55,8 @@ const PracticePage = () => {
   const [aiWordCount, setAiWordCount] = useState(100);
   const [isGenerating, setIsGenerating] = useState(false);
   const [aiError, setAiError] = useState("");
+  const [streamingContent, setStreamingContent] = useState(""); // For streaming content display
+  const [isStreaming, setIsStreaming] = useState(false); // Track streaming state
 
   // Initialize with sample articles if no articles exist
   useEffect(() => {
@@ -285,7 +287,7 @@ const PracticePage = () => {
     setAiError("");
   };
   
-  // AI generation handler
+  // AI generation handler with streaming support
   const handleAiGenerate = async () => {
     if (!aiTopic.trim()) {
       setAiError(t('practice.ai-topic') + ' 是必填项');
@@ -293,20 +295,52 @@ const PracticePage = () => {
     }
     
     setIsGenerating(true);
+    setIsStreaming(true);
     setAiError("");
+    setStreamingContent(""); // Clear previous streaming content
+    
+    // Create AbortController for cancellation support
+    const abortController = new AbortController();
     
     try {
-      const generatedText = await generateTextWithDoubao(aiTopic.trim(), aiWordCount);
-      setNewArticleContent(generatedText);
-      if (!newArticleTitle.trim()) {
-        setNewArticleTitle(`${aiTopic} - ${t('practice.ai-generate-title')}`);
+      const generatedText = await generateTextWithDoubao(
+        aiTopic.trim(), 
+        aiWordCount,
+        {
+          // Stream callback - called for each chunk
+          onChunk: (chunk, fullText) => {
+            setStreamingContent(fullText);
+          },
+          // Complete callback - called when streaming finishes
+          onComplete: (finalText) => {
+            setNewArticleContent(finalText);
+            setStreamingContent(""); // Clear streaming display
+            setIsStreaming(false);
+            
+            // Auto-set title if not set
+            if (!newArticleTitle.trim()) {
+              setNewArticleTitle(`${aiTopic} - ${t('practice.ai-generate-title')}`);
+            }
+          },
+          // Pass abort signal for cancellation support
+          signal: abortController.signal
+        }
+      );
+      
+      // Fallback in case onComplete is not called (non-streaming mode)
+      if (!isStreaming) {
+        setNewArticleContent(generatedText);
+        if (!newArticleTitle.trim()) {
+          setNewArticleTitle(`${aiTopic} - ${t('practice.ai-generate-title')}`);
+        }
       }
-      setAddMode("manual"); // Switch to manual mode to allow editing
     } catch (error) {
       console.error('AI generation error:', error);
       setAiError(error.message || t('practice.ai-error-invalid'));
+      setStreamingContent(""); // Clear on error
     } finally {
       setIsGenerating(false);
+      setIsStreaming(false);
     }
   };
 
@@ -332,6 +366,8 @@ const PracticePage = () => {
     setAiTopic("");
     setAiWordCount(100);
     setAiError("");
+    setStreamingContent(""); // Clear streaming content
+    setIsStreaming(false); // Reset streaming state
   };
 
   const recentArticles = useMemo(() => {
@@ -752,12 +788,34 @@ const PracticePage = () => {
                       )}
                     </button>
 
-                    {newArticleContent && (
-                      <div className="mt-4">
-                        <div className="flex items-center justify-between mb-2">
+                    {/* Streaming content display with typewriter effect */}
+                    {isStreaming && streamingContent && (
+                      <div className="mt-4 animate-fadeIn">
+                        <div className="flex items-center mb-2">
+                          <Loader2 className="w-4 h-4 animate-spin text-primary-600 dark:text-primary-400 mr-2" />
                           <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                            {t('practice.use-ai-generated')}
+                            {t('practice.ai-generating')}...
                           </p>
+                        </div>
+                        <div className="bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4 max-h-60 overflow-y-auto relative">
+                          <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
+                            {streamingContent}
+                            <span className="inline-block w-0.5 h-4 bg-primary-600 dark:bg-primary-400 ml-0.5 animate-pulse"></span>
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Final generated content preview */}
+                    {!isStreaming && newArticleContent && (
+                      <div className="mt-4 animate-fadeIn">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center">
+                            <Check className="w-4 h-4 text-green-600 dark:text-green-400 mr-2" />
+                            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                              {t('practice.use-ai-generated')}
+                            </p>
+                          </div>
                           <button
                             onClick={() => setAddMode("manual")}
                             className="text-sm text-primary-600 dark:text-primary-400 hover:underline"
@@ -765,10 +823,17 @@ const PracticePage = () => {
                             {t('practice.manual-input')}
                           </button>
                         </div>
-                        <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-3 max-h-40 overflow-y-auto">
-                          <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap">
-                            {newArticleContent.substring(0, 200)}...
+                        <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 max-h-60 overflow-y-auto border border-gray-200 dark:border-gray-700">
+                          <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap leading-relaxed">
+                            {newArticleContent.length > 300 
+                              ? newArticleContent.substring(0, 300) + '...' 
+                              : newArticleContent}
                           </p>
+                          {newArticleContent.length > 300 && (
+                            <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
+                              ({newArticleContent.split(/\s+/).length} {t('word')})
+                            </p>
+                          )}
                         </div>
                       </div>
                     )}
