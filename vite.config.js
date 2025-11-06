@@ -22,6 +22,16 @@ export default defineConfig(({ mode }) => {
               }
             })
             
+            // Support for SSE streaming
+            proxy.on('proxyRes', (proxyRes, req, res) => {
+              // Disable buffering for streaming responses
+              if (proxyRes.headers['content-type']?.includes('text/event-stream')) {
+                delete proxyRes.headers['content-encoding']
+                res.setHeader('Cache-Control', 'no-cache')
+                res.setHeader('Connection', 'keep-alive')
+              }
+            })
+            
             proxy.on('error', (err, req, res) => {
               console.error('Proxy error:', err.message)
             })
