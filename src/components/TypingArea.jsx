@@ -5,7 +5,7 @@ import Grade from '../modals/grade.jsx'
 import { useTranslation } from 'react-i18next'
 const TypingArea = () => {
   const { t } = useTranslation()
-  const { currentArticle, practiceState, updatePracticeState, saveRecord, showResults } = useStore()
+  const { currentArticle, practiceState, updatePracticeState, saveRecord, showResults, settings } = useStore()
   const [startTime, setStartTime] = useState(null)
   const [realTimeStats, setRealTimeStats] = useState({
     wpm: 0,
@@ -19,6 +19,20 @@ const TypingArea = () => {
   const containerRef = useRef(null)
   const statsIntervalRef = useRef(null)
   
+  // Add sound refs instead
+  const keyPressSound = useRef(null)
+  const completionSound = useRef(null)
+
+  // Preload sounds
+  useEffect(() => {
+    keyPressSound.current = new Audio('/sounds/keypress.mp3')
+    completionSound.current = new Audio('/sounds/completion.mp3')
+    
+    // Preload to avoid delay on first play
+    keyPressSound.current.preload = 'auto'
+    completionSound.current.preload = 'auto'
+  }, [])
+
   // Build error index set for O(1) lookup to avoid O(n^2) cost
   const errorIndexSet = useMemo(() => new Set([
     ...practiceState.errors.map(error => error.index),
@@ -172,6 +186,14 @@ const TypingArea = () => {
           keystrokes: practiceState.keystrokes + 1
         })
         
+        // Play key press sound if enabled
+        if (settings.sounds.keyPress) {
+          if (keyPressSound.current) {
+            keyPressSound.current.currentTime = 0 // Reset to start
+            keyPressSound.current.play().catch(() => {}) // Handle autoplay restrictions
+          }
+        }
+        
         // Start timer on first correct input
         if (!startTime) {
           setStartTime(Date.now())
@@ -202,6 +224,14 @@ const TypingArea = () => {
           keystrokes: practiceState.keystrokes + 1
         })
         
+        // Play key press sound if enabled (even on error)
+        if (settings.sounds.keyPress) {
+          if (keyPressSound.current) {
+            keyPressSound.current.currentTime = 0 // Reset to start
+            keyPressSound.current.play().catch(() => {}) // Handle autoplay restrictions
+          }
+        }
+        
         if (!startTime) {
           setStartTime(Date.now())
         }
@@ -213,6 +243,14 @@ const TypingArea = () => {
         updatePracticeState({
           keystrokes: practiceState.keystrokes + 1
         })
+        
+        // Play key press sound if enabled
+        if (settings.sounds.keyPress) {
+          if (keyPressSound.current) {
+            keyPressSound.current.currentTime = 0 // Reset to start
+            keyPressSound.current.play().catch(() => {}) // Handle autoplay restrictions
+          }
+        }
         
         if (!startTime) {
           setStartTime(Date.now())
@@ -267,6 +305,14 @@ const TypingArea = () => {
     const endTime = Date.now()
     const totalTime = endTime - startTime
     
+    // Play completion sound if enabled
+    if (settings.sounds.completion) {
+      if (completionSound.current) {
+        completionSound.current.currentTime = 0
+        completionSound.current.play().catch(() => {})
+      }
+    }
+
     // Calculate final WPM using the same function for consistency
     const finalWpm = calculateWPMFromText(currentArticle.content, practiceState.currentIndex, totalTime)
     
