@@ -16,6 +16,7 @@ const Navigation = () => {
   }, [i18n.language])
   const navItems = [
     { path: '/', label: t('navigation.practice'), tab: 'practice' },
+    { path: '/battle', label: t('navigation.battle'), tab: 'battle' },
     { path: '/history', label: t('navigation.history'), tab: 'history' },
     { path: '/settings', label: t('navigation.settings'), tab: 'settings' }
   ]
