@@ -1,17 +1,22 @@
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useStore } from '../store.js';
+import { matchesShortcut } from '../utils/shortcuts.js';
 export default function Confirm({ title, onConfirm, onCancel }) {
     const { t } = useTranslation();
+    const { settings } = useStore();
     useEffect(() => {
         const handleKeyDown = (e) => {
-            if (e.key === 'Enter') {
+            const startShortcut = settings?.shortcuts?.startPractice
+            // Keep Enter as a fallback for accessibility/legacy behavior.
+            if (e.key === 'Enter' || (startShortcut && matchesShortcut(e, startShortcut))) {
                 onConfirm();
             }
         };
 
         document.addEventListener('keydown', handleKeyDown);
         return () => document.removeEventListener('keydown', handleKeyDown);
-    }, [onConfirm]);
+    }, [onConfirm, settings?.shortcuts?.startPractice]);
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">

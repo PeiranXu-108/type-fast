@@ -3,6 +3,7 @@ import { Play, Pause, RotateCcw, Settings } from 'lucide-react'
 import { useStore } from '../store.js'
 import { formatDuration } from '../utils.js'
 import { useTranslation } from 'react-i18next'
+import { formatShortcut } from '../utils/shortcuts.js'
 const PracticeControl = () => {
   const { t } = useTranslation()
   const { currentArticle, practiceState, settings, updatePracticeState, stopPractice } = useStore()
@@ -162,9 +163,15 @@ const PracticeControl = () => {
       {/* Keyboard shortcuts info */}
       <div className="mt-3 text-xs text-gray-500 dark:text-gray-400">
         <span>{t('practice-control.keyboard-shortcuts')}</span>
-        <span className="mx-2">{t('practice-control.space-start')}</span>
-        <span className="mx-2">{t('practice-control.esc-exit')}</span>
-        <span className="mx-2">{t('practice-control.ctrl-enter-restart')}</span>
+        <span className="mx-2">
+          {formatShortcut(settings?.shortcuts?.startPractice) || t('practice-control.space-start')}
+        </span>
+        <span className="mx-2">
+          {formatShortcut(settings?.shortcuts?.exitPractice) || t('practice-control.esc-exit')}
+        </span>
+        <span className="mx-2">
+          {formatShortcut(settings?.shortcuts?.restartPractice) || t('practice-control.ctrl-enter-restart')}
+        </span>
       </div>
     </div>
   )

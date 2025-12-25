@@ -1,6 +1,24 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { generateHash, generateId, storage } from './utils.js'
+import { DEFAULT_SHORTCUTS } from './utils/shortcuts.js'
+
+const DEFAULT_SETTINGS = {
+  theme: 'system',
+  wpmCalculation: 'word-based',
+  defaultMode: 'lenient',
+  sounds: {
+    keyPress: true,
+    completion: true
+  },
+  visual: {
+    fontSize: 'medium',
+    lineHeight: 'normal',
+    cursorStyle: 'block',
+    contrastEnhance: false
+  },
+  shortcuts: DEFAULT_SHORTCUTS
+}
 
 // Create store with persistence
 export const useStore = create(
@@ -29,19 +47,7 @@ export const useStore = create(
       
       // Settings
       settings: {
-        theme: 'system',
-        wpmCalculation: 'word-based',
-        defaultMode: 'lenient',
-        sounds: {
-          keyPress: true,
-          completion: true
-        },
-        visual: {
-          fontSize: 'medium',
-          lineHeight: 'normal',
-          cursorStyle: 'block',
-          contrastEnhance: false
-        }
+        ...DEFAULT_SETTINGS
       },
       
       // UI state
@@ -149,6 +155,7 @@ export const useStore = create(
       
       stopPractice: () => {
         set((state) => ({
+          currentArticle: null,
           practiceState: {
             ...state.practiceState,
             isActive: false 
@@ -324,7 +331,36 @@ export const useStore = create(
         customArticles: state.customArticles,
         records: state.records,
         settings: state.settings
-      })
+      }),
+      merge: (persistedState, currentState) => {
+        const p = persistedState || {}
+        const persistedSettings = (p && typeof p === 'object' ? p.settings : null) || {}
+
+        return {
+          ...currentState,
+          ...p,
+          settings: {
+            ...DEFAULT_SETTINGS,
+            ...currentState.settings,
+            ...persistedSettings,
+            sounds: {
+              ...DEFAULT_SETTINGS.sounds,
+              ...(currentState.settings?.sounds || {}),
+              ...(persistedSettings.sounds || {})
+            },
+            visual: {
+              ...DEFAULT_SETTINGS.visual,
+              ...(currentState.settings?.visual || {}),
+              ...(persistedSettings.visual || {})
+            },
+            shortcuts: {
+              ...DEFAULT_SETTINGS.shortcuts,
+              ...(currentState.settings?.shortcuts || {}),
+              ...(persistedSettings.shortcuts || {})
+            }
+          }
+        }
+      }
     }
   )
 )

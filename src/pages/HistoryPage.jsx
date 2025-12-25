@@ -540,7 +540,7 @@ const HistoryPage = () => {
                   onClick={handleDeleteCancel}
                   className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg transition-colors duration-200"
                 >
-                  {t("history.cancel")}
+                  {t("delete.cancel")}
                 </button>
                 <button
                   onClick={handleDeleteConfirm}

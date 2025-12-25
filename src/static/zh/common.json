@@ -241,7 +241,14 @@
         "start-practice": "开始练习",
         "exit-practice": "退出练习",
         "restart": "重新开始",
-        "toggle-mode": "切换模式"
+        "toggle-mode": "切换模式",
+        "press-shortcut": "现在按下新的快捷键（支持 Ctrl/Shift/Alt/Cmd 等组合键）。",
+        "shortcut-tip": "点击“编辑”即可自定义，修改会自动保存。",
+        "reset-shortcuts": "恢复默认",
+        "edit-shortcut": "编辑",
+        "listening": "正在监听…",
+        "shortcut-conflict": "该快捷键已被其他操作占用。",
+        "shortcut-modifier-only": "请按下一个非修饰键（不要只按 Ctrl/Shift/Alt/Cmd）。"
     },
     
     

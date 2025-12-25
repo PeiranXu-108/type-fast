@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useStore } from "../store.js";
 import { useTheme } from "../hooks/useTheme.js";
 import {
@@ -13,6 +13,13 @@ import {
   Keyboard,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import {
+  DEFAULT_SHORTCUTS,
+  eventToShortcut,
+  formatShortcut,
+  isModifierOnlyShortcut,
+  shortcutsEqual,
+} from "../utils/shortcuts.js";
 
 const SettingsPage = () => {
   const { settings, updateSettings, exportData, importData, clearAllData } =
@@ -22,6 +29,63 @@ const SettingsPage = () => {
   const [importFile, setImportFile] = useState(null);
   const [importStatus, setImportStatus] = useState("");
   const { t } = useTranslation();
+  const [editingShortcutKey, setEditingShortcutKey] = useState(null);
+  const [shortcutError, setShortcutError] = useState("");
+
+  const shortcuts = settings?.shortcuts || DEFAULT_SHORTCUTS;
+
+  const shortcutItems = useMemo(
+    () => [
+      { key: "startPractice", label: t("settings.start-practice") },
+      { key: "exitPractice", label: t("settings.exit-practice") },
+      { key: "restartPractice", label: t("settings.restart") },
+      { key: "toggleMode", label: t("settings.toggle-mode") },
+    ],
+    [t]
+  );
+
+  useEffect(() => {
+    if (!editingShortcutKey) return;
+
+    const onKeyDown = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (isModifierOnlyShortcut(e.code)) {
+        setShortcutError(t("settings.shortcut-modifier-only"));
+        return;
+      }
+
+      const next = eventToShortcut(e);
+      // conflict check
+      const conflict = Object.entries(shortcuts).find(([k, v]) => {
+        if (k === editingShortcutKey) return false;
+        return shortcutsEqual(v, next);
+      });
+      if (conflict) {
+        setShortcutError(t("settings.shortcut-conflict"));
+        return;
+      }
+
+      updateSettings({
+        shortcuts: {
+          ...shortcuts,
+          [editingShortcutKey]: next,
+        },
+      });
+      setEditingShortcutKey(null);
+      setShortcutError("");
+    };
+
+    document.addEventListener("keydown", onKeyDown, true);
+    return () => document.removeEventListener("keydown", onKeyDown, true);
+  }, [editingShortcutKey, shortcuts, t, updateSettings]);
+
+  const resetShortcuts = () => {
+    updateSettings({ shortcuts: DEFAULT_SHORTCUTS });
+    setEditingShortcutKey(null);
+    setShortcutError("");
+  };
   const handleSettingChange = (key, value) => {
     updateSettings({ [key]: value });
   };
@@ -430,41 +494,72 @@ const SettingsPage = () => {
           </h2>
 
           <div className="space-y-3">
-            <div className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700">
-              <span className="text-gray-600 dark:text-gray-400">
-                {t("settings.start-practice")}
-              </span>
-              <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded text-sm">
-                Space
-              </kbd>
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                {editingShortcutKey
+                  ? t("settings.press-shortcut")
+                  : t("settings.shortcut-tip")}
+              </p>
+              <button
+                onClick={resetShortcuts}
+                className="text-xs px-3 py-1 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+              >
+                {t("settings.reset-shortcuts")}
+              </button>
             </div>
 
-            <div className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700">
-              <span className="text-gray-600 dark:text-gray-400">
-                {t("settings.exit-practice")}
-              </span>
-              <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded text-sm">
-                Esc
-              </kbd>
-            </div>
+            {shortcutError && (
+              <div className="text-xs text-red-600 dark:text-red-400">
+                {shortcutError}
+              </div>
+            )}
 
-            <div className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700">
-              <span className="text-gray-600 dark:text-gray-400">
-                {t("settings.restart")}
-              </span>
-              <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded text-sm">
-                Ctrl + Enter
-              </kbd>
-            </div>
+            {shortcutItems.map((item) => {
+              const value = shortcuts?.[item.key];
+              const isEditing = editingShortcutKey === item.key;
+              return (
+                <div
+                  key={item.key}
+                  className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700"
+                >
+                  <span className="text-gray-600 dark:text-gray-400">
+                    {item.label}
+                  </span>
 
-            <div className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700">
-              <span className="text-gray-600 dark:text-gray-400">
-                {t("settings.toggle-mode")}
-              </span>
-              <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded text-sm">
-                Tab
-              </kbd>
-            </div>
+                  <div className="flex items-center gap-2">
+                    <kbd
+                      className={`px-2 py-1 rounded text-sm ${
+                        isEditing
+                          ? "bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200"
+                          : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
+                      }`}
+                    >
+                      {isEditing ? t("settings.listening") : formatShortcut(value)}
+                    </kbd>
+                    <button
+                      onClick={() => {
+                        setShortcutError("");
+                        setEditingShortcutKey(item.key);
+                      }}
+                      className="text-xs px-2 py-1 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                    >
+                      {t("settings.edit-shortcut")}
+                    </button>
+                    {isEditing && (
+                      <button
+                        onClick={() => {
+                          setEditingShortcutKey(null);
+                          setShortcutError("");
+                        }}
+                        className="text-xs px-2 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                      >
+                        {t("cancel")}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>

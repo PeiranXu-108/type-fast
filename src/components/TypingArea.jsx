@@ -3,6 +3,7 @@ import { useStore } from '../store.js'
 import { calculateWPM, calculateCPM, calculateAccuracy, calculateWPMFromText, formatDuration } from '../utils.js'
 import Grade from '../modals/grade.jsx'
 import { useTranslation } from 'react-i18next'
+import { matchesShortcut } from '../utils/shortcuts.js'
 const TypingArea = () => {
   const { t } = useTranslation()
   const { currentArticle, practiceState, updatePracticeState, saveRecord, showResults, settings } = useStore()
@@ -143,16 +144,24 @@ const TypingArea = () => {
     const expectedChar = currentArticle.content[practiceState.currentIndex]
     const pressedChar = e.key
     
-    // Handle special keys
-    if (pressedChar === 'Escape') {
+    // Handle shortcuts (user configurable)
+    const shortcuts = settings?.shortcuts || {}
+
+    if (matchesShortcut(e, shortcuts.exitPractice)) {
       useStore.getState().stopPractice()
       return
     }
-    
-    if (e.ctrlKey && pressedChar === 'Enter') {
+
+    if (matchesShortcut(e, shortcuts.restartPractice)) {
       if (currentArticle) {
         useStore.getState().startPractice(currentArticle, practiceState.mode)
       }
+      return
+    }
+
+    if (matchesShortcut(e, shortcuts.toggleMode)) {
+      const newMode = practiceState.mode === 'lenient' ? 'strict' : 'lenient'
+      updatePracticeState({ mode: newMode })
       return
     }
     

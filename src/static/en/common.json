@@ -242,7 +242,14 @@
         "start-practice": "Start Practice",
         "exit-practice": "Exit Practice",
         "restart": "Restart",
-        "toggle-mode": "Toggle Mode"
+        "toggle-mode": "Toggle Mode",
+        "press-shortcut": "Press the new shortcut now (supports modifiers like Ctrl/Shift/Alt/Cmd).",
+        "shortcut-tip": "Click Edit to customize. Changes are saved automatically.",
+        "reset-shortcuts": "Reset to defaults",
+        "edit-shortcut": "Edit",
+        "listening": "Listening…",
+        "shortcut-conflict": "This shortcut is already used by another action.",
+        "shortcut-modifier-only": "Please press a non-modifier key (not just Ctrl/Shift/Alt/Cmd)."
     },
     
     
