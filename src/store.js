@@ -17,7 +17,10 @@ const DEFAULT_SETTINGS = {
     cursorStyle: 'block',
     contrastEnhance: false
   },
-  shortcuts: DEFAULT_SHORTCUTS
+  shortcuts: DEFAULT_SHORTCUTS,
+  ui: {
+    customTextAreaHeight: 128 // Default height in pixels (h-32 = 8rem = 128px)
+  }
 }
 
 // Create store with persistence
@@ -357,6 +360,11 @@ export const useStore = create(
               ...DEFAULT_SETTINGS.shortcuts,
               ...(currentState.settings?.shortcuts || {}),
               ...(persistedSettings.shortcuts || {})
+            },
+            ui: {
+              ...DEFAULT_SETTINGS.ui,
+              ...(currentState.settings?.ui || {}),
+              ...(persistedSettings.ui || {})
             }
           }
         }
