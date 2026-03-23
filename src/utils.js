@@ -19,7 +19,7 @@ export const calculateWPM = (charCount, durationMs, method = 'word-based') => {
   
   if (method === 'char-based') {
     // 5 characters = 1 word (standard typing test method)
-    return Math.round((charCount / 5) / durationMinutes)
+    return Number(((charCount / 5) / durationMinutes).toFixed(2))
   } else {
     // Word-based calculation - count actual words from the text
     // For WPM calculation, we need to count words in the completed portion
@@ -31,10 +31,10 @@ export const calculateWPM = (charCount, durationMs, method = 'word-based') => {
     
     // Handle very short durations to avoid extreme WPM values
     if (durationMinutes < 0.1) { // Less than 6 seconds
-      return Math.round(estimatedWords * 60 / (durationMs / 1000)) // Convert to per-second then scale
+      return Number((estimatedWords * 60 / (durationMs / 1000)).toFixed(2)) // Convert to per-second then scale
     }
     
-    return Math.round(estimatedWords / durationMinutes)
+    return Number((estimatedWords / durationMinutes).toFixed(2))
   }
 }
 
@@ -67,8 +67,7 @@ export const calculateWPMFromText = (text, completedChars, durationMs) => {
     wordCount = completedChars / 5
   }
 
-  // Return integer WPM for internal use; callers format as needed
-  return Math.round(wordCount / durationMinutes)
+  return Number((wordCount / durationMinutes).toFixed(2))
 }
 
 // Calculate CPM (Characters Per Minute)
@@ -76,7 +75,7 @@ export const calculateCPM = (charCount, durationMs) => {
   if (durationMs === 0) return 0
   
   const durationMinutes = durationMs / (1000 * 60)
-  return Math.round(charCount / durationMinutes)
+  return Number((charCount / durationMinutes).toFixed(2))
 }
 
 // Calculate accuracy percentage

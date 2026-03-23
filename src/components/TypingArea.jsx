@@ -25,6 +25,8 @@ const TypingArea = () => {
   
   const containerRef = useRef(null)
   const statsIntervalRef = useRef(null)
+
+  const formatMetric = (value) => Number(value || 0).toFixed(2)
   
   // Add sound refs instead
   const keyPressSound = useRef(null)
@@ -445,13 +447,13 @@ const TypingArea = () => {
       <div className="grid grid-cols-2 gap-4 rounded-lg bg-muted/50 p-3 sm:grid-cols-4">
         <div className="text-center">
           <div className="text-lg font-bold text-primary">
-            {realTimeStats.wpm}
+            {formatMetric(realTimeStats.wpm)}
           </div>
           <div className="text-xs text-muted-foreground">WPM</div>
         </div>
         <div className="text-center">
           <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
-            {realTimeStats.cpm}
+            {formatMetric(realTimeStats.cpm)}
           </div>
           <div className="text-xs text-muted-foreground">CPM</div>
         </div>
