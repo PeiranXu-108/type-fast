@@ -20,6 +20,12 @@ const DEFAULT_SETTINGS = {
   shortcuts: DEFAULT_SHORTCUTS,
   ui: {
     customTextAreaHeight: 128 // Default height in pixels (h-32 = 8rem = 128px)
+  },
+  headPoseTraining: {
+    enabled: false,
+    gracePeriodMs: 1000,
+    samplingMs: 300,
+    autoDisableOnCameraError: true
   }
 }
 
@@ -365,6 +371,11 @@ export const useStore = create(
               ...DEFAULT_SETTINGS.ui,
               ...(currentState.settings?.ui || {}),
               ...(persistedSettings.ui || {})
+            },
+            headPoseTraining: {
+              ...DEFAULT_SETTINGS.headPoseTraining,
+              ...(currentState.settings?.headPoseTraining || {}),
+              ...(persistedSettings.headPoseTraining || {})
             }
           }
         }

@@ -96,7 +96,15 @@
         "mode": "Mode",
         "status": "Status",
         "operation": "Operation",
-        "practice-area": "Practice Area"
+        "practice-area": "Practice Area",
+        "headpose-training": "Touch Typing Training",
+        "headpose-status-disabled": "Disabled",
+        "headpose-status-checking": "Checking posture",
+        "headpose-status-up": "Head up",
+        "headpose-status-down": "Head down",
+        "headpose-grace-active": "Head down detected, grace period active.",
+        "headpose-input-blocked": "Please look up. Typing is currently ignored.",
+        "headpose-camera-error": "Camera unavailable, touch typing training has been turned off."
     },
 
     "categories": {
@@ -168,7 +176,6 @@
         "practice-count-label": "Practice Count",
         "practice-records": "Practice Records",
         "records-count": "Records",
-        "recent-records": "Recent Records",
         "recent-10": "Last 10",
         "recent-20": "Last 20",
         "recent-50": "Last 50",
@@ -249,7 +256,14 @@
         "edit-shortcut": "Edit",
         "listening": "Listening…",
         "shortcut-conflict": "This shortcut is already used by another action.",
-        "shortcut-modifier-only": "Please press a non-modifier key (not just Ctrl/Shift/Alt/Cmd)."
+        "shortcut-modifier-only": "Please press a non-modifier key (not just Ctrl/Shift/Alt/Cmd).",
+        "headpose-settings": "Touch Typing Training",
+        "headpose-enable": "Enable posture gate",
+        "headpose-description": "When your head stays down, keystrokes will become invalid after the grace period.",
+        "headpose-grace-period": "Head-down grace period",
+        "headpose-grace-500": "0.5 second",
+        "headpose-grace-1000": "1.0 second",
+        "headpose-grace-1500": "1.5 seconds"
     },
     
     

@@ -92,6 +92,12 @@ const PracticeControl = () => {
                   ? t("practice-control.lenient-mode")
                   : t("practice-control.strict-mode")}
               </p>
+              <p className="text-xs text-muted-foreground">
+                {t("practice-control.headpose-training")}:{" "}
+                {settings?.headPoseTraining?.enabled
+                  ? t("practice-control.headpose-status-checking")
+                  : t("practice-control.headpose-status-disabled")}
+              </p>
             </div>
 
             <div className="text-center sm:text-left">

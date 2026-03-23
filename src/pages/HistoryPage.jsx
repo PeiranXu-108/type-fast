@@ -446,8 +446,6 @@ const HistoryPage = () => {
 
                   <div className="flex flex-wrap items-center gap-3">
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <div className="h-3 w-3 rounded bg-yellow-100 dark:bg-yellow-900/30" />
-                      <span>{t("history.recent-records")}</span>
                     </div>
                     <Select
                       value={selectedRecordRange}
@@ -501,8 +499,7 @@ const HistoryPage = () => {
                               `${selectedArticle.id}-${record.endedAt}-${index}`
                             }
                             className={cn(
-                              "border-b border-border/60 hover:bg-muted/40",
-                              index === 0 && "bg-yellow-50 dark:bg-yellow-900/20"
+                              "border-b border-border/60 hover:bg-muted/40"
                             )}
                           >
                             <td className="py-2 text-foreground">

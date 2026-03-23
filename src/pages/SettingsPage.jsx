@@ -236,6 +236,12 @@ const SettingsPage = () => {
       : t("settings.char-based")
   }
 
+  const getHeadPoseGraceLabel = (gracePeriodMs) => {
+    if (gracePeriodMs === 500) return t("settings.headpose-grace-500")
+    if (gracePeriodMs === 1500) return t("settings.headpose-grace-1500")
+    return t("settings.headpose-grace-1000")
+  }
+
   return (
     <div className="space-y-6">
       <div className="text-center">
@@ -445,6 +451,65 @@ const SettingsPage = () => {
                     handleNestedSettingChange("sounds", "completion", checked)
                   }
                 />
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <h3 className="flex items-center text-sm font-medium text-foreground">
+                <Monitor className="mr-2 h-4 w-4" />
+                {t("settings.headpose-settings")}
+              </h3>
+              <div className="flex items-center justify-between gap-4">
+                <div className="space-y-0.5">
+                  <Label htmlFor="headpose-enabled" className="font-normal">
+                    {t("settings.headpose-enable")}
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    {t("settings.headpose-description")}
+                  </p>
+                </div>
+                <Switch
+                  id="headpose-enabled"
+                  checked={Boolean(settings.headPoseTraining?.enabled)}
+                  onCheckedChange={(checked) =>
+                    handleSettingChange("headPoseTraining", {
+                      ...(settings.headPoseTraining || {}),
+                      enabled: checked,
+                    })
+                  }
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>{t("settings.headpose-grace-period")}</Label>
+                <Select
+                  value={String(settings.headPoseTraining?.gracePeriodMs || 1000)}
+                  onValueChange={(v) =>
+                    handleSettingChange("headPoseTraining", {
+                      ...(settings.headPoseTraining || {}),
+                      gracePeriodMs: Number(v),
+                    })
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue>
+                      {getHeadPoseGraceLabel(
+                        settings.headPoseTraining?.gracePeriodMs || 1000
+                      )}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="500">
+                      {t("settings.headpose-grace-500")}
+                    </SelectItem>
+                    <SelectItem value="1000">
+                      {t("settings.headpose-grace-1000")}
+                    </SelectItem>
+                    <SelectItem value="1500">
+                      {t("settings.headpose-grace-1500")}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </CardContent>

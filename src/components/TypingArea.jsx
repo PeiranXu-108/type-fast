@@ -4,6 +4,7 @@ import { calculateCPM, calculateAccuracy, calculateWPMFromText, formatDuration }
 import Grade from '../modals/grade.jsx'
 import { useTranslation } from 'react-i18next'
 import { matchesShortcut } from '../utils/shortcuts.js'
+import { HeadPoseDetector } from '../lib/headPoseDetector.js'
 import {
   Card,
   CardContent,
@@ -22,9 +23,17 @@ const TypingArea = () => {
   const [showGrade, setShowGrade] = useState(false)
   const [finalStats, setFinalStats] = useState(null)
   const [strictModeErrors, setStrictModeErrors] = useState([]) // Track errors in strict mode
+  const [headPoseStatus, setHeadPoseStatus] = useState('disabled')
+  const [headPoseError, setHeadPoseError] = useState('')
+  const [downSince, setDownSince] = useState(null)
   
   const containerRef = useRef(null)
   const statsIntervalRef = useRef(null)
+  const detectorRef = useRef(null)
+  const headPoseSettings = useMemo(
+    () => settings?.headPoseTraining || {},
+    [settings?.headPoseTraining]
+  )
 
   const formatMetric = (value) => Number(value || 0).toFixed(2)
   
@@ -95,8 +104,66 @@ const TypingArea = () => {
       containerRef.current?.focus()
       // Reset strict mode errors when starting new practice
       setStrictModeErrors([])
+      setDownSince(null)
     }
   }, [practiceState.isActive])
+
+  useEffect(() => {
+    const isEnabled = Boolean(headPoseSettings.enabled)
+    const shouldRun = practiceState.isActive && isEnabled
+
+    if (!shouldRun) {
+      if (detectorRef.current) {
+        detectorRef.current.stop()
+      }
+      setHeadPoseStatus(isEnabled ? 'idle' : 'disabled')
+      setHeadPoseError('')
+      setDownSince(null)
+      return
+    }
+
+    if (!detectorRef.current) {
+      detectorRef.current = new HeadPoseDetector({
+        samplingMs: headPoseSettings.samplingMs
+      })
+    }
+
+    const unsubscribe = detectorRef.current.subscribe((nextStatus) => {
+      if (nextStatus === 'down') {
+        setDownSince((previous) => previous ?? Date.now())
+      } else {
+        setDownSince(null)
+      }
+      setHeadPoseStatus(nextStatus)
+    })
+
+    detectorRef.current.start().catch((error) => {
+      console.warn('Head pose detector start failed:', error)
+      const autoDisable = headPoseSettings.autoDisableOnCameraError !== false
+      if (autoDisable) {
+        const currentHeadPoseSettings = useStore.getState().settings?.headPoseTraining || {}
+        useStore.getState().updateSettings({
+          headPoseTraining: {
+            ...currentHeadPoseSettings,
+            enabled: false
+          }
+        })
+      }
+      setHeadPoseStatus('disabled')
+      setHeadPoseError(t('practice-control.headpose-camera-error'))
+    })
+
+    return () => {
+      unsubscribe()
+      if (detectorRef.current) {
+        detectorRef.current.stop()
+      }
+    }
+  }, [
+    practiceState.isActive,
+    headPoseSettings,
+    t
+  ])
   
   // Handle practice completion
   useEffect(() => {
@@ -147,6 +214,18 @@ const TypingArea = () => {
     if (!practiceState.isActive || showGrade) return
     
     e.preventDefault()
+
+    const gracePeriodMs = headPoseSettings.gracePeriodMs || 1000
+    const isHeadPoseGateEnabled = Boolean(headPoseSettings.enabled)
+    const shouldBlockInput =
+      isHeadPoseGateEnabled &&
+      headPoseStatus === 'down' &&
+      downSince !== null &&
+      Date.now() - downSince >= gracePeriodMs
+
+    if (shouldBlockInput) {
+      return
+    }
     
     const expectedChar = currentArticle.content[practiceState.currentIndex]
     const pressedChar = e.key
@@ -361,7 +440,9 @@ const TypingArea = () => {
         expected: currentArticle.content[index],
         actual: 'incorrect'
       })) : practiceState.errors,
-      meta: {}
+      meta: {
+        headPoseTrainingEnabled: Boolean(settings?.headPoseTraining?.enabled)
+      }
     }
     
     saveRecord(record)
@@ -434,6 +515,19 @@ const TypingArea = () => {
   }, [currentArticle?.content])
   
   if (!currentArticle) return null
+
+  const gracePeriodMs = headPoseSettings.gracePeriodMs || 1000
+  const isHeadPoseGateEnabled = Boolean(headPoseSettings.enabled)
+  const isHeadPoseBlocked =
+    isHeadPoseGateEnabled &&
+    headPoseStatus === 'down' &&
+    downSince !== null &&
+    Date.now() - downSince >= gracePeriodMs
+  const isHeadPoseInGrace =
+    isHeadPoseGateEnabled &&
+    headPoseStatus === 'down' &&
+    downSince !== null &&
+    Date.now() - downSince < gracePeriodMs
   
   return (
     <Card>
@@ -518,6 +612,29 @@ const TypingArea = () => {
             : t('practice-control.lenient-mode-desc')
           }
         </p>
+        <p className="mb-2">
+          <strong>{t('practice-control.headpose-training')}:</strong>{' '}
+          {isHeadPoseGateEnabled
+            ? headPoseStatus === 'down'
+              ? t('practice-control.headpose-status-down')
+              : headPoseStatus === 'up'
+                ? t('practice-control.headpose-status-up')
+                : t('practice-control.headpose-status-checking')
+            : t('practice-control.headpose-status-disabled')}
+        </p>
+        {isHeadPoseGateEnabled && isHeadPoseInGrace ? (
+          <p className="mb-2 text-amber-600 dark:text-amber-400">
+            {t('practice-control.headpose-grace-active')}
+          </p>
+        ) : null}
+        {isHeadPoseGateEnabled && isHeadPoseBlocked ? (
+          <p className="mb-2 text-red-600 dark:text-red-400">
+            {t('practice-control.headpose-input-blocked')}
+          </p>
+        ) : null}
+        {headPoseError ? (
+          <p className="mb-2 text-amber-600 dark:text-amber-400">{headPoseError}</p>
+        ) : null}
         {/* <p className="mb-2">  
           <strong>{t('practice-control.status')}:</strong>
           {practiceState.isActive ? t('practice-control.in-progress') : t('practice-control.not-started')}

@@ -94,7 +94,15 @@
         "mode": "模式",
         "status": "状态",
         "operation": "操作",
-        "practice-area": "练习区域"
+        "practice-area": "练习区域",
+        "headpose-training": "盲打训练",
+        "headpose-status-disabled": "未启用",
+        "headpose-status-checking": "姿态检测中",
+        "headpose-status-up": "已抬头",
+        "headpose-status-down": "低头中",
+        "headpose-grace-active": "检测到低头，宽限期内仍可输入。",
+        "headpose-input-blocked": "请抬头，当前输入不计入。",
+        "headpose-camera-error": "摄像头不可用，已自动关闭盲打训练。"
     },
 
     "categories": {
@@ -167,7 +175,6 @@
         "practice-count-label": "练习次数",
         "practice-records": "练习记录",
         "records-count": "条记录",
-        "recent-records": "最近记录",
         "recent-10": "最近10次",
         "recent-20": "最近20次",
         "recent-50": "最近50次",
@@ -248,7 +255,14 @@
         "edit-shortcut": "编辑",
         "listening": "正在监听…",
         "shortcut-conflict": "该快捷键已被其他操作占用。",
-        "shortcut-modifier-only": "请按下一个非修饰键（不要只按 Ctrl/Shift/Alt/Cmd）。"
+        "shortcut-modifier-only": "请按下一个非修饰键（不要只按 Ctrl/Shift/Alt/Cmd）。",
+        "headpose-settings": "盲打训练",
+        "headpose-enable": "启用姿态拦截",
+        "headpose-description": "持续低头超过宽限期后，按键将不计入输入。",
+        "headpose-grace-period": "低头宽限期",
+        "headpose-grace-500": "0.5 秒",
+        "headpose-grace-1000": "1.0 秒",
+        "headpose-grace-1500": "1.5 秒"
     },
     
     
