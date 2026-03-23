@@ -1,12 +1,18 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { useStore } from '../store.js'
-import { calculateWPM, calculateCPM, calculateAccuracy, calculateWPMFromText, formatDuration } from '../utils.js'
+import { calculateCPM, calculateAccuracy, calculateWPMFromText, formatDuration } from '../utils.js'
 import Grade from '../modals/grade.jsx'
 import { useTranslation } from 'react-i18next'
 import { matchesShortcut } from '../utils/shortcuts.js'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 const TypingArea = () => {
   const { t } = useTranslation()
-  const { currentArticle, practiceState, updatePracticeState, saveRecord, showResults, settings } = useStore()
+  const { currentArticle, practiceState, updatePracticeState, saveRecord, settings } = useStore()
   const [startTime, setStartTime] = useState(null)
   const [realTimeStats, setRealTimeStats] = useState({
     wpm: 0,
@@ -76,8 +82,7 @@ const TypingArea = () => {
     // Handle other potential Unicode variations
     try {
       return char.normalize('NFKC')
-    } catch (error) {
-      // Fallback if normalize is not supported
+    } catch {
       return char
     }
   }
@@ -429,36 +434,38 @@ const TypingArea = () => {
   if (!currentArticle) return null
   
   return (
-    <div className="card p-6">
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-        {t('practice-control.practice-area')}
-      </h3>
-      
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg">
+          {t('practice-control.practice-area')}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
       {/* Real-time Stats */}
-      <div className="grid grid-cols-4 gap-4 mb-6 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
+      <div className="grid grid-cols-2 gap-4 rounded-lg bg-muted/50 p-3 sm:grid-cols-4">
         <div className="text-center">
-          <div className="text-lg font-bold text-primary-600 dark:text-primary-400">
+          <div className="text-lg font-bold text-primary">
             {realTimeStats.wpm}
           </div>
-          <div className="text-xs text-gray-500 dark:text-gray-400">WPM</div>
+          <div className="text-xs text-muted-foreground">WPM</div>
         </div>
         <div className="text-center">
           <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
             {realTimeStats.cpm}
           </div>
-          <div className="text-xs text-gray-500 dark:text-gray-400">CPM</div>
+          <div className="text-xs text-muted-foreground">CPM</div>
         </div>
         <div className="text-center">
           <div className="text-lg font-bold text-green-600 dark:text-green-400">
             {realTimeStats.accuracy}%
           </div>
-          <div className="text-xs text-gray-500 dark:text-gray-400">{t('results.accuracy')}</div>
+          <div className="text-xs text-muted-foreground">{t('results.accuracy')}</div>
         </div>
         <div className="text-center">
           <div className="text-lg font-bold text-orange-600 dark:text-orange-400">
             {practiceState.backspaces}
           </div>
-          <div className="text-xs text-gray-500 dark:text-gray-400">{t('results.backspaces')}</div>
+          <div className="text-xs text-muted-foreground">{t('results.backspaces')}</div>
         </div>
       </div>
       
@@ -467,10 +474,10 @@ const TypingArea = () => {
         ref={containerRef}
         tabIndex={0}
         onKeyDown={handleKeyDown}
-        className={`w-full p-6 border-2 rounded-lg font-mono text-lg leading-relaxed whitespace-pre-wrap overflow-auto focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all duration-200 ${
+        className={`w-full rounded-lg border-2 p-6 font-mono text-lg leading-relaxed whitespace-pre-wrap overflow-auto transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
           practiceState.isActive
-            ? 'border-primary-300 dark:border-primary-600 bg-white dark:bg-gray-800 cursor-text'
-            : 'border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 cursor-default'
+            ? 'cursor-text border-primary/40 bg-background'
+            : 'cursor-default border-border bg-muted/40'
         }`}
         style={{ 
           height: `${textDimensions.height}px`,
@@ -485,15 +492,15 @@ const TypingArea = () => {
             {renderText()}
           </div>
         ) : (
-          <div className="text-gray-500 dark:text-gray-400 text-center py-20">
+          <div className="py-20 text-center text-muted-foreground">
             <div className="mb-4">
-              <svg className="w-16 h-16 mx-auto text-gray-400 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="mx-auto h-16 w-16 text-muted-foreground/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
             <p className="text-xl mb-2">{t('click-start-practice-to-start-typing')}</p>
             <p className="text-sm">{t('after-practice-starts-you-can-start-typing-here')}</p>
-            <p className="text-xs mt-2 text-gray-400 dark:text-gray-500">
+            <p className="mt-2 text-xs text-muted-foreground/80">
               {t('supports-multiple-lines-of-text-space-key-and-newline-key-will-be-handled-correctly')}
             </p>
           </div>
@@ -501,7 +508,7 @@ const TypingArea = () => {
       </div>
       
       {/* Instructions */}
-      <div className="mt-4 text-sm text-gray-600 dark:text-gray-400">
+      <div className="text-sm text-muted-foreground">
         <p className="mb-2">
           <strong>{t('practice-control.mode')}:</strong>
           {practiceState.mode === 'strict' 
@@ -518,8 +525,8 @@ const TypingArea = () => {
           {t('practice-control.after-practice-starts-you-can-start-typing-here')}
         </p> */}
       </div>
-      
-      {/* Grade Modal */}
+      </CardContent>
+
       {showGrade && finalStats && (
         <Grade
           wpm={finalStats.wpm}
@@ -530,7 +537,7 @@ const TypingArea = () => {
           onPracticeAgain={handlePracticeAgain}
         />
       )}
-    </div>
+    </Card>
   )
 }
 

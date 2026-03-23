@@ -23,8 +23,8 @@ export default defineConfig(({ mode }) => {
           target: 'https://ark.cn-beijing.volces.com',
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api\/doubao/, '/api/v3/chat/completions'),
-          configure: (proxy, _options) => {
-            proxy.on('proxyReq', (proxyReq, req, res) => {
+          configure: (proxy) => {
+            proxy.on('proxyReq', (proxyReq) => {
               const apiKey = env.VITE_DOUBAO_API_KEY
               if (apiKey) {
                 proxyReq.setHeader('Authorization', `Bearer ${apiKey}`)
@@ -32,7 +32,7 @@ export default defineConfig(({ mode }) => {
             })
             
             // Support for SSE streaming
-            proxy.on('proxyRes', (proxyRes, req, res) => {
+            proxy.on('proxyRes', (proxyRes, _req, res) => {
               // Disable buffering for streaming responses
               if (proxyRes.headers['content-type']?.includes('text/event-stream')) {
                 delete proxyRes.headers['content-encoding']
@@ -41,7 +41,7 @@ export default defineConfig(({ mode }) => {
               }
             })
             
-            proxy.on('error', (err, req, res) => {
+            proxy.on('error', (err) => {
               console.error('Proxy error:', err.message)
             })
           },

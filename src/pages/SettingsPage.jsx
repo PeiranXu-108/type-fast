@@ -1,38 +1,66 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { useStore } from "../store.js";
-import { useTheme } from "../hooks/useTheme.js";
+import React, { useEffect, useMemo, useState } from "react"
+import { useStore } from "../store.js"
+import { useTheme } from "../hooks/useTheme.js"
 import {
   Settings,
   Palette,
   Volume2,
   Monitor,
   Download,
-  Upload,
   Trash2,
   AlertTriangle,
   Keyboard,
-} from "lucide-react";
-import { useTranslation } from "react-i18next";
+} from "lucide-react"
+import { useTranslation } from "react-i18next"
 import {
   DEFAULT_SHORTCUTS,
   eventToShortcut,
   formatShortcut,
   isModifierOnlyShortcut,
   shortcutsEqual,
-} from "../utils/shortcuts.js";
+} from "../utils/shortcuts.js"
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Separator } from "@/components/ui/separator"
+import { Switch } from "@/components/ui/switch"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 const SettingsPage = () => {
   const { settings, updateSettings, exportData, importData, clearAllData } =
-    useStore();
-  const { theme, setTheme } = useTheme();
-  const [showClearConfirm, setShowClearConfirm] = useState(false);
-  const [importFile, setImportFile] = useState(null);
-  const [importStatus, setImportStatus] = useState("");
-  const { t } = useTranslation();
-  const [editingShortcutKey, setEditingShortcutKey] = useState(null);
-  const [shortcutError, setShortcutError] = useState("");
+    useStore()
+  const { theme, setTheme } = useTheme()
+  const [showClearConfirm, setShowClearConfirm] = useState(false)
+  const [importStatus, setImportStatus] = useState("")
+  const { t } = useTranslation()
+  const [editingShortcutKey, setEditingShortcutKey] = useState(null)
+  const [shortcutError, setShortcutError] = useState("")
 
-  const shortcuts = settings?.shortcuts || DEFAULT_SHORTCUTS;
+  const shortcuts = settings?.shortcuts || DEFAULT_SHORTCUTS
 
   const shortcutItems = useMemo(
     () => [
@@ -42,29 +70,28 @@ const SettingsPage = () => {
       { key: "toggleMode", label: t("settings.toggle-mode") },
     ],
     [t]
-  );
+  )
 
   useEffect(() => {
-    if (!editingShortcutKey) return;
+    if (!editingShortcutKey) return
 
     const onKeyDown = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
+      e.preventDefault()
+      e.stopPropagation()
 
       if (isModifierOnlyShortcut(e.code)) {
-        setShortcutError(t("settings.shortcut-modifier-only"));
-        return;
+        setShortcutError(t("settings.shortcut-modifier-only"))
+        return
       }
 
-      const next = eventToShortcut(e);
-      // conflict check
+      const next = eventToShortcut(e)
       const conflict = Object.entries(shortcuts).find(([k, v]) => {
-        if (k === editingShortcutKey) return false;
-        return shortcutsEqual(v, next);
-      });
+        if (k === editingShortcutKey) return false
+        return shortcutsEqual(v, next)
+      })
       if (conflict) {
-        setShortcutError(t("settings.shortcut-conflict"));
-        return;
+        setShortcutError(t("settings.shortcut-conflict"))
+        return
       }
 
       updateSettings({
@@ -72,23 +99,24 @@ const SettingsPage = () => {
           ...shortcuts,
           [editingShortcutKey]: next,
         },
-      });
-      setEditingShortcutKey(null);
-      setShortcutError("");
-    };
+      })
+      setEditingShortcutKey(null)
+      setShortcutError("")
+    }
 
-    document.addEventListener("keydown", onKeyDown, true);
-    return () => document.removeEventListener("keydown", onKeyDown, true);
-  }, [editingShortcutKey, shortcuts, t, updateSettings]);
+    document.addEventListener("keydown", onKeyDown, true)
+    return () => document.removeEventListener("keydown", onKeyDown, true)
+  }, [editingShortcutKey, shortcuts, t, updateSettings])
 
   const resetShortcuts = () => {
-    updateSettings({ shortcuts: DEFAULT_SHORTCUTS });
-    setEditingShortcutKey(null);
-    setShortcutError("");
-  };
+    updateSettings({ shortcuts: DEFAULT_SHORTCUTS })
+    setEditingShortcutKey(null)
+    setShortcutError("")
+  }
+
   const handleSettingChange = (key, value) => {
-    updateSettings({ [key]: value });
-  };
+    updateSettings({ [key]: value })
+  }
 
   const handleNestedSettingChange = (parentKey, childKey, value) => {
     updateSettings({
@@ -96,372 +124,386 @@ const SettingsPage = () => {
         ...settings[parentKey],
         [childKey]: value,
       },
-    });
-  };
+    })
+  }
 
   const handleExport = () => {
-    exportData();
-  };
+    exportData()
+  }
 
   const handleImport = async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
+    const file = event.target.files[0]
+    if (!file) return
 
     try {
-      const text = await file.text();
-      const success = importData(text);
+      const text = await file.text()
+      const success = importData(text)
 
       if (success) {
-        setImportStatus("success");
-        setTimeout(() => setImportStatus(""), 3000);
+        setImportStatus("success")
+        setTimeout(() => setImportStatus(""), 3000)
       } else {
-        setImportStatus("error");
-        setTimeout(() => setImportStatus(""), 3000);
+        setImportStatus("error")
+        setTimeout(() => setImportStatus(""), 3000)
       }
-    } catch (error) {
-      setImportStatus("error");
-      setTimeout(() => setImportStatus(""), 3000);
+    } catch {
+      setImportStatus("error")
+      setTimeout(() => setImportStatus(""), 3000)
     }
 
-    // Reset file input
-    event.target.value = "";
-  };
+    event.target.value = ""
+  }
 
   const handleClearData = () => {
-    clearAllData();
-    setShowClearConfirm(false);
-  };
+    clearAllData()
+    setShowClearConfirm(false)
+  }
 
-  // Calculate storage size in KB
   const getStorageSize = () => {
     try {
-      let totalSize = 0;
-
-      // Calculate localStorage size
-      for (let key in localStorage) {
-        if (localStorage.hasOwnProperty(key)) {
-          const item = localStorage.getItem(key);
+      let totalSize = 0
+      for (const key in localStorage) {
+        if (Object.prototype.hasOwnProperty.call(localStorage, key)) {
+          const item = localStorage.getItem(key)
           if (item) {
-            totalSize += key.length + item.length;
+            totalSize += key.length + item.length
           }
         }
       }
-
-      // Convert to KB with 2 decimal places
-      return (totalSize / 1024).toFixed(2);
+      return (totalSize / 1024).toFixed(2)
     } catch (error) {
-      console.error("Error calculating storage size:", error);
-      return "0.00";
+      console.error("Error calculating storage size:", error)
+      return "0.00"
     }
-  };
+  }
 
   const getThemeLabel = (themeValue) => {
     switch (themeValue) {
       case "light":
-        return t("settings.light");
+        return t("settings.light")
       case "dark":
-        return t("settings.dark");
+        return t("settings.dark")
       case "system":
-        return t("settings.follow-system");
+        return t("settings.follow-system")
       default:
-        return t("settings.follow-system");
+        return t("settings.follow-system")
     }
-  };
+  }
 
   const getModeLabel = (mode) => {
-    return mode === "strict" ? t("settings.strict") : t("settings.lenient");
-  };
+    return mode === "strict" ? t("settings.strict") : t("settings.lenient")
+  }
+
+  const getFontSizeLabel = (fontSize) => {
+    switch (fontSize) {
+      case "small":
+        return t("settings.small")
+      case "large":
+        return t("settings.large")
+      case "medium":
+      default:
+        return t("settings.medium")
+    }
+  }
+
+  const getLineHeightLabel = (lineHeight) => {
+    switch (lineHeight) {
+      case "tight":
+        return t("settings.tight")
+      case "loose":
+        return t("settings.loose")
+      case "normal":
+      default:
+        return t("settings.normal")
+    }
+  }
+
+  const getCursorStyleLabel = (cursorStyle) => {
+    switch (cursorStyle) {
+      case "block":
+        return t("settings.block")
+      case "line":
+        return t("settings.line")
+      case "underline":
+      default:
+        return t("settings.underline")
+    }
+  }
 
   const getWPMCalculationLabel = (method) => {
     return method === "word-based"
       ? t("settings.word-based")
-      : t("settings.char-based");
-  };
+      : t("settings.char-based")
+  }
 
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+        <h1 className="mb-2 text-3xl font-bold text-foreground">
           {t("settings.title")}
         </h1>
-        <p className="text-gray-600 dark:text-gray-400">
-          {t("settings.subtitle")}
-        </p>
+        <p className="text-muted-foreground">{t("settings.subtitle")}</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Appearance Settings */}
-        <div className="card p-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
-            <Palette className="w-5 h-5 mr-2 text-blue-600 dark:text-blue-400" />
-            {t("settings.appearance-settings")}
-          </h2>
-
-          <div className="space-y-4">
-            {/* Theme Selection */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {t("settings.theme")}
-              </label>
-              <select
-                value={theme}
-                onChange={(e) => setTheme(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              >
-                <option value="system">{t("settings.follow-system")}</option>
-                <option value="light">{t("settings.light")}</option>
-                <option value="dark">{t("settings.dark")}</option>
-              </select>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Palette className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              {t("settings.appearance-settings")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label>{t("settings.theme")}</Label>
+              <Select value={theme} onValueChange={setTheme}>
+                <SelectTrigger className="w-full">
+                  <SelectValue>{getThemeLabel(theme)}</SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="system">
+                    {t("settings.follow-system")}
+                  </SelectItem>
+                  <SelectItem value="light">{t("settings.light")}</SelectItem>
+                  <SelectItem value="dark">{t("settings.dark")}</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
                 {t("settings.current")}: {getThemeLabel(theme)}
               </p>
             </div>
 
-            {/* Font Size */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {t("settings.font-size")}
-              </label>
-              <select
+            <div className="space-y-2">
+              <Label>{t("settings.font-size")}</Label>
+              <Select
                 value={settings.visual.fontSize}
-                onChange={(e) =>
-                  handleNestedSettingChange(
-                    "visual",
-                    "fontSize",
-                    e.target.value
-                  )
+                onValueChange={(v) =>
+                  handleNestedSettingChange("visual", "fontSize", v)
                 }
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
-                <option value="small">{t("settings.small")}</option>
-                <option value="medium">{t("settings.medium")}</option>
-                <option value="large">{t("settings.large")}</option>
-              </select>
+                <SelectTrigger className="w-full">
+                  <SelectValue>
+                    {getFontSizeLabel(settings.visual.fontSize)}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="small">{t("settings.small")}</SelectItem>
+                  <SelectItem value="medium">{t("settings.medium")}</SelectItem>
+                  <SelectItem value="large">{t("settings.large")}</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            {/* Line Height */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {t("settings.line-height")}
-              </label>
-              <select
+            <div className="space-y-2">
+              <Label>{t("settings.line-height")}</Label>
+              <Select
                 value={settings.visual.lineHeight}
-                onChange={(e) =>
-                  handleNestedSettingChange(
-                    "visual",
-                    "lineHeight",
-                    e.target.value
-                  )
+                onValueChange={(v) =>
+                  handleNestedSettingChange("visual", "lineHeight", v)
                 }
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
-                <option value="tight">{t("settings.tight")}</option>
-                <option value="normal">{t("settings.normal")}</option>
-                <option value="loose">{t("settings.loose")}</option>
-              </select>
+                <SelectTrigger className="w-full">
+                  <SelectValue>
+                    {getLineHeightLabel(settings.visual.lineHeight)}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="tight">{t("settings.tight")}</SelectItem>
+                  <SelectItem value="normal">{t("settings.normal")}</SelectItem>
+                  <SelectItem value="loose">{t("settings.loose")}</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            {/* Cursor Style */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {t("settings.cursor-style")}
-              </label>
-              <select
+            <div className="space-y-2">
+              <Label>{t("settings.cursor-style")}</Label>
+              <Select
                 value={settings.visual.cursorStyle}
-                onChange={(e) =>
-                  handleNestedSettingChange(
-                    "visual",
-                    "cursorStyle",
-                    e.target.value
-                  )
+                onValueChange={(v) =>
+                  handleNestedSettingChange("visual", "cursorStyle", v)
                 }
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
-                <option value="block">{t("settings.block")}</option>
-                <option value="line">{t("settings.line")}</option>
-                <option value="underline">{t("settings.underline")}</option>
-              </select>
+                <SelectTrigger className="w-full">
+                  <SelectValue>
+                    {getCursorStyleLabel(settings.visual.cursorStyle)}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="block">{t("settings.block")}</SelectItem>
+                  <SelectItem value="line">{t("settings.line")}</SelectItem>
+                  <SelectItem value="underline">
+                    {t("settings.underline")}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            {/* Contrast Enhancement */}
-            <div className="flex items-center justify-between">
-              <div>
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  {t("settings.contrast-enhancement")}
-                </label>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+            <div className="flex items-center justify-between gap-4">
+              <div className="space-y-0.5">
+                <Label htmlFor="contrast">{t("settings.contrast-enhancement")}</Label>
+                <p className="text-xs text-muted-foreground">
                   {t("settings.contrast-description")}
                 </p>
               </div>
-              <input
-                type="checkbox"
+              <Switch
+                id="contrast"
                 checked={settings.visual.contrastEnhance}
-                onChange={(e) =>
+                onCheckedChange={(checked) =>
                   handleNestedSettingChange(
                     "visual",
                     "contrastEnhance",
-                    e.target.checked
+                    checked
                   )
                 }
-                className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
               />
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        {/* Practice Settings */}
-        <div className="card p-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
-            <Settings className="w-5 h-5 mr-2 text-green-600 dark:text-green-400" />
-            {t("settings.practice-settings")}
-          </h2>
-
-          <div className="space-y-4">
-            {/* Default Mode */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {t("settings.default-practice-mode")}
-              </label>
-              <select
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Settings className="h-5 w-5 text-green-600 dark:text-green-400" />
+              {t("settings.practice-settings")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label>{t("settings.default-practice-mode")}</Label>
+              <Select
                 value={settings.defaultMode}
-                onChange={(e) =>
-                  handleSettingChange("defaultMode", e.target.value)
-                }
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                onValueChange={(v) => handleSettingChange("defaultMode", v)}
               >
-                <option value="lenient">{t("settings.lenient")}</option>
-                <option value="strict">{t("settings.strict")}</option>
-              </select>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                <SelectTrigger className="w-full">
+                  <SelectValue>{getModeLabel(settings.defaultMode)}</SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="lenient">
+                    {t("settings.lenient")}
+                  </SelectItem>
+                  <SelectItem value="strict">{t("settings.strict")}</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
                 {t("settings.current")}: {getModeLabel(settings.defaultMode)}
               </p>
             </div>
 
-            {/* WPM Calculation Method */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {t("settings.wpm-calculation")}
-              </label>
-              <select
+            <div className="space-y-2">
+              <Label>{t("settings.wpm-calculation")}</Label>
+              <Select
                 value={settings.wpmCalculation}
-                onChange={(e) =>
-                  handleSettingChange("wpmCalculation", e.target.value)
+                onValueChange={(v) =>
+                  handleSettingChange("wpmCalculation", v)
                 }
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
-                <option value="word-based">{t("settings.word-based")}</option>
-                <option value="char-based">{t("settings.char-based")}</option>
-              </select>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                <SelectTrigger className="w-full">
+                  <SelectValue>
+                    {getWPMCalculationLabel(settings.wpmCalculation)}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="word-based">
+                    {t("settings.word-based")}
+                  </SelectItem>
+                  <SelectItem value="char-based">
+                    {t("settings.char-based")}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
                 {t("settings.current")}:{" "}
                 {getWPMCalculationLabel(settings.wpmCalculation)}
               </p>
             </div>
 
-            {/* Sound Settings */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center">
-                <Volume2 className="w-4 h-4 mr-2" />
+              <h3 className="flex items-center text-sm font-medium text-foreground">
+                <Volume2 className="mr-2 h-4 w-4" />
                 {t("settings.sound-settings")}
               </h3>
-
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-400">
+              <div className="flex items-center justify-between gap-4">
+                <Label htmlFor="sound-key" className="font-normal">
                   {t("settings.key-press-sound")}
-                </span>
-                <input
-                  type="checkbox"
+                </Label>
+                <Switch
+                  id="sound-key"
                   checked={settings.sounds.keyPress}
-                  onChange={(e) =>
-                    handleNestedSettingChange(
-                      "sounds",
-                      "keyPress",
-                      e.target.checked
-                    )
+                  onCheckedChange={(checked) =>
+                    handleNestedSettingChange("sounds", "keyPress", checked)
                   }
-                  className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                 />
               </div>
-
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-400">
+              <div className="flex items-center justify-between gap-4">
+                <Label htmlFor="sound-done" className="font-normal">
                   {t("settings.completion-sound")}
-                </span>
-                <input
-                  type="checkbox"
+                </Label>
+                <Switch
+                  id="sound-done"
                   checked={settings.sounds.completion}
-                  onChange={(e) =>
-                    handleNestedSettingChange(
-                      "sounds",
-                      "completion",
-                      e.target.checked
-                    )
+                  onCheckedChange={(checked) =>
+                    handleNestedSettingChange("sounds", "completion", checked)
                   }
-                  className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                 />
               </div>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        {/* Data Management */}
-        <div className="card p-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
-            <Monitor className="w-5 h-5 mr-2 text-purple-600 dark:text-purple-400" />
-            {t("settings.data-management")}
-          </h2>
-
-          <div className="space-y-4">
-            {/* Export Data */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Monitor className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+              {t("settings.data-management")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
             <div>
-              <button
+              <Button
+                type="button"
+                variant="secondary"
+                className="w-full gap-2"
                 onClick={handleExport}
-                className="w-full btn-secondary flex items-center justify-center"
               >
-                <Download className="w-4 h-4 mr-2" />
+                <Download className="h-4 w-4" />
                 {t("settings.export-data")}
-              </button>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              </Button>
+              <p className="mt-1 text-xs text-muted-foreground">
                 {t("settings.export-description")}
               </p>
             </div>
 
-            {/* Storage Usage */}
-            <div>
-              <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                <div className="flex items-center">
-                  <Monitor className="w-4 h-4 mr-2 text-gray-500 dark:text-gray-400" />
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    {t("settings.local-storage-usage")}
-                  </span>
-                </div>
-                <span className="text-sm font-medium text-gray-900 dark:text-white">
-                  {getStorageSize()} KB
+            <div className="flex items-center justify-between rounded-lg bg-muted/50 p-3">
+              <div className="flex items-center gap-2">
+                <Monitor className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">
+                  {t("settings.local-storage-usage")}
                 </span>
               </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                {t("settings.storage-description")}
-              </p>
+              <span className="text-sm font-medium text-foreground">
+                {getStorageSize()} KB
+              </span>
             </div>
+            <p className="text-xs text-muted-foreground">
+              {t("settings.storage-description")}
+            </p>
 
-            {/* Import Data */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {t("settings.import-data")}
-              </label>
-              <input
+            <div className="space-y-2">
+              <Label htmlFor="import-json">{t("settings.import-data")}</Label>
+              <Input
+                id="import-json"
                 type="file"
                 accept=".json"
                 onChange={handleImport}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
               {importStatus && (
                 <p
-                  className={`text-xs mt-1 ${
+                  className={cn(
+                    "text-xs",
                     importStatus === "success"
                       ? "text-green-600 dark:text-green-400"
                       : "text-red-600 dark:text-red-400"
-                  }`}
+                  )}
                 >
                   {importStatus === "success"
                     ? t("settings.import-success")
@@ -470,134 +512,131 @@ const SettingsPage = () => {
               )}
             </div>
 
-            {/* Clear Data */}
             <div>
-              <button
+              <Button
+                type="button"
+                variant="destructive"
+                className="w-full gap-2"
                 onClick={() => setShowClearConfirm(true)}
-                className="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors duration-200 flex items-center justify-center"
               >
-                <Trash2 className="w-4 h-4 mr-2" />
+                <Trash2 className="h-4 w-4" />
                 {t("settings.clear-all-data")}
-              </button>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              </Button>
+              <p className="mt-1 text-xs text-muted-foreground">
                 {t("settings.clear-description")}
               </p>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        {/* Keyboard Shortcuts */}
-        <div className="card p-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
-            <Keyboard className="w-5 h-5 mr-2 text-gray-600 dark:text-gray-400" />
-            {t("settings.keyboard-shortcuts")}
-          </h2>
-
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                {editingShortcutKey
-                  ? t("settings.press-shortcut")
-                  : t("settings.shortcut-tip")}
-              </p>
-              <button
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Keyboard className="h-5 w-5 text-muted-foreground" />
+              {t("settings.keyboard-shortcuts")}
+            </CardTitle>
+            <CardDescription>
+              {editingShortcutKey
+                ? t("settings.press-shortcut")
+                : t("settings.shortcut-tip")}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex justify-end">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
                 onClick={resetShortcuts}
-                className="text-xs px-3 py-1 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
               >
                 {t("settings.reset-shortcuts")}
-              </button>
+              </Button>
             </div>
 
             {shortcutError && (
-              <div className="text-xs text-red-600 dark:text-red-400">
-                {shortcutError}
-              </div>
+              <p className="text-xs text-destructive">{shortcutError}</p>
             )}
 
-            {shortcutItems.map((item) => {
-              const value = shortcuts?.[item.key];
-              const isEditing = editingShortcutKey === item.key;
+            {shortcutItems.map((item, index) => {
+              const value = shortcuts?.[item.key]
+              const isEditing = editingShortcutKey === item.key
               return (
-                <div
-                  key={item.key}
-                  className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700"
-                >
-                  <span className="text-gray-600 dark:text-gray-400">
-                    {item.label}
-                  </span>
-
-                  <div className="flex items-center gap-2">
-                    <kbd
-                      className={`px-2 py-1 rounded text-sm ${
-                        isEditing
-                          ? "bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200"
-                          : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
-                      }`}
-                    >
-                      {isEditing ? t("settings.listening") : formatShortcut(value)}
-                    </kbd>
-                    <button
-                      onClick={() => {
-                        setShortcutError("");
-                        setEditingShortcutKey(item.key);
-                      }}
-                      className="text-xs px-2 py-1 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-                    >
-                      {t("settings.edit-shortcut")}
-                    </button>
-                    {isEditing && (
-                      <button
-                        onClick={() => {
-                          setEditingShortcutKey(null);
-                          setShortcutError("");
-                        }}
-                        className="text-xs px-2 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                <div key={item.key}>
+                  <div className="flex items-center justify-between gap-2 py-2">
+                    <span className="text-sm text-muted-foreground">
+                      {item.label}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <kbd
+                        className={cn(
+                          "rounded px-2 py-1 text-sm",
+                          isEditing
+                            ? "bg-primary/15 text-primary"
+                            : "bg-muted text-foreground"
+                        )}
                       >
-                        {t("cancel")}
-                      </button>
-                    )}
+                        {isEditing
+                          ? t("settings.listening")
+                          : formatShortcut(value)}
+                      </kbd>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setShortcutError("")
+                          setEditingShortcutKey(item.key)
+                        }}
+                      >
+                        {t("settings.edit-shortcut")}
+                      </Button>
+                      {isEditing && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setEditingShortcutKey(null)
+                            setShortcutError("")
+                          }}
+                        >
+                          {t("cancel")}
+                        </Button>
+                      )}
+                    </div>
                   </div>
+                  {index < shortcutItems.length - 1 ? <Separator /> : null}
                 </div>
-              );
+              )
             })}
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Clear Data Confirmation Modal */}
-      {showClearConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md mx-4">
-            <div className="flex items-center mb-4">
-              <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400 mr-3" />
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                {t("settings.confirm-clear-data")}
-              </h3>
-            </div>
-
-            <p className="text-gray-600 dark:text-gray-400 mb-6">
+      <AlertDialog open={showClearConfirm} onOpenChange={setShowClearConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-6 w-6 text-destructive" />
+              {t("settings.confirm-clear-data")}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
               {t("settings.clear-data-warning")}
-            </p>
-
-            <div className="flex space-x-3">
-              <button
-                onClick={() => setShowClearConfirm(false)}
-                className="flex-1 btn-secondary"
-              >
-                {t("cancel")}
-              </button>
-              <button
-                onClick={handleClearData}
-                className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors duration-200"
-              >
-                {t("settings.confirm-clear")}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={handleClearData}
+            >
+              {t("settings.confirm-clear")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
-  );
-};
+  )
+}
 
-export default SettingsPage;
+export default SettingsPage

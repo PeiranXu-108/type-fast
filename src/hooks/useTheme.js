@@ -12,7 +12,9 @@ export const useTheme = () => {
     const applyTheme = () => {
       const root = document.documentElement
       const { theme } = settings
-      
+
+      root.classList.add('theme')
+
       // Remove existing theme classes
       root.classList.remove('light', 'dark')
       

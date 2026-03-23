@@ -1,113 +1,147 @@
-import React from "react";
-import { useTranslation } from "react-i18next";
+import React, { useMemo } from "react"
+import { useTranslation } from "react-i18next"
+import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts"
+
 import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
+} from "@/components/ui/chart"
+
+const COLORS = {
+  wpm: "#3b82f6",
+  cpm: "#10b981",
+  accuracy: "#f59e0b",
+}
 
 const PracticeChart = ({ records }) => {
-  const { t } = useTranslation();
-  // Prepare chart data, sorted by time
-  const chartData = records
-    .sort((a, b) => new Date(a.endedAt) - new Date(b.endedAt))
-    .map((record, index) => ({
-      session: index + 1,
-      date: new Date(record.endedAt).toLocaleDateString(),
-      wpm: Math.round(record.wpm),
-      cpm: record.cpm,
-      accuracy: Math.round(record.accuracy * 100 * 100) / 100, 
-    }));
+  const { t } = useTranslation()
 
-  const CustomTooltip = ({ active, payload, label }) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-white dark:bg-gray-800 p-3 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-            {t("history.the")} {label} {t("history.session")}
-          </p>
-          {payload.map((entry, index) => (
-            <p
-              key={index}
-              className="text-sm"
-              style={{ color: entry.color }}
-            >
-              {entry.name}: {entry.value}
-              {entry.dataKey === "accuracy" ? "%" : ""}
-            </p>
-          ))}
-        </div>
-      );
-    }
-    return null;
-  };
+  const chartData = useMemo(
+    () =>
+      [...records]
+        .sort((a, b) => new Date(a.endedAt) - new Date(b.endedAt))
+        .map((record, index) => ({
+          session: index + 1,
+          wpm: Math.round(record.wpm),
+          cpm: record.cpm,
+          accuracy: Math.round(record.accuracy * 100 * 100) / 100,
+        })),
+    [records]
+  )
+
+  const chartConfig = useMemo(
+    () => ({
+      wpm: {
+        label: "WPM",
+        color: COLORS.wpm,
+      },
+      cpm: {
+        label: "CPM",
+        color: COLORS.cpm,
+      },
+      accuracy: {
+        label: t("history.accuracy"),
+        color: COLORS.accuracy,
+      },
+    }),
+    [t]
+  )
 
   return (
-    <div className="w-full h-80">
-      <ResponsiveContainer width="100%" height="100%">
+    <div className="h-80 w-full">
+      <ChartContainer config={chartConfig} className="h-full w-full !aspect-auto">
         <LineChart
           data={chartData}
           margin={{
-            top: 5,
-            right: 30,
-            left: 20,
-            bottom: 5,
+            top: 8,
+            left: 12,
+            right: 12,
+            bottom: 8,
           }}
         >
-          <CartesianGrid 
-            strokeDasharray="3 3" 
-            className="opacity-30"
-            stroke="currentColor"
-          />
-          <XAxis 
+          <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-border/50" />
+          <XAxis
             dataKey="session"
-            stroke="currentColor"
-            className="text-gray-600 dark:text-gray-400"
-            tick={{ fontSize: 12 }}
+            tickLine={false}
+            axisLine={false}
+            tickMargin={8}
+            tickFormatter={(value) => String(value)}
+            className="text-xs"
           />
-          <YAxis 
-            stroke="currentColor"
-            className="text-gray-600 dark:text-gray-400"
-            tick={{ fontSize: 12 }}
+          <YAxis
+            tickLine={false}
+            axisLine={false}
+            tickMargin={8}
+            className="text-xs text-muted-foreground"
           />
-          <Tooltip content={<CustomTooltip />} />
-          <Legend />
+          <ChartTooltip
+            cursor={false}
+            content={
+              <ChartTooltipContent
+                labelFormatter={(label) =>
+                  `${t("history.the")} ${label} ${t("history.session")}`
+                }
+                formatter={(value, _name, item) => {
+                  const suffix = item?.dataKey === "accuracy" ? "%" : ""
+                  return (
+                    <div className="flex w-full flex-wrap items-center gap-2">
+                      <div
+                        className="h-2.5 w-2.5 shrink-0 rounded-[2px]"
+                        style={{
+                          backgroundColor:
+                            COLORS[item?.dataKey] ?? item?.color,
+                        }}
+                      />
+                      <div className="flex flex-1 justify-between leading-none">
+                        <span className="text-muted-foreground">
+                          {chartConfig[item?.dataKey]?.label ?? item?.name}
+                        </span>
+                        <span className="font-mono font-medium text-foreground tabular-nums">
+                          {value}
+                          {suffix}
+                        </span>
+                      </div>
+                    </div>
+                  )
+                }}
+              />
+            }
+          />
+          <ChartLegend content={<ChartLegendContent />} />
           <Line
-            type="monotone"
-            dataKey="wpm"
-            stroke="#3b82f6"
-            strokeWidth={2}
-            dot={{ fill: "#3b82f6", strokeWidth: 2, r: 4 }}
-            activeDot={{ r: 6, stroke: "#3b82f6", strokeWidth: 2 }}
             name="WPM"
+            dataKey="wpm"
+            type="monotone"
+            stroke="var(--color-wpm)"
+            strokeWidth={2}
+            dot={false}
+            activeDot={{ r: 4, strokeWidth: 0 }}
           />
           <Line
-            type="monotone"
-            dataKey="cpm"
-            stroke="#10b981"
-            strokeWidth={2}
-            dot={{ fill: "#10b981", strokeWidth: 2, r: 4 }}
-            activeDot={{ r: 6, stroke: "#10b981", strokeWidth: 2 }}
             name="CPM"
+            dataKey="cpm"
+            type="monotone"
+            stroke="var(--color-cpm)"
+            strokeWidth={2}
+            dot={false}
+            activeDot={{ r: 4, strokeWidth: 0 }}
           />
           <Line
-            type="monotone"
-            dataKey="accuracy"
-            stroke="#f59e0b"
-            strokeWidth={2}
-            dot={{ fill: "#f59e0b", strokeWidth: 2, r: 4 }}
-            activeDot={{ r: 6, stroke: "#f59e0b", strokeWidth: 2 }}
             name={t("history.accuracy")}
+            dataKey="accuracy"
+            type="monotone"
+            stroke="var(--color-accuracy)"
+            strokeWidth={2}
+            dot={false}
+            activeDot={{ r: 4, strokeWidth: 0 }}
           />
         </LineChart>
-      </ResponsiveContainer>
+      </ChartContainer>
     </div>
-  );
-};
+  )
+}
 
-export default PracticeChart;
+export default PracticeChart

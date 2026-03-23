@@ -29,7 +29,7 @@ app.use(
     pathRewrite: {
       '^/api/doubao': '/api/v3/chat/completions',
     },
-    onProxyReq: (proxyReq, req, res) => {
+    onProxyReq: (proxyReq) => {
       const apiKey = process.env.VITE_DOUBAO_API_KEY || process.env.DOUBAO_API_KEY
       if (apiKey) {
         proxyReq.setHeader('Authorization', `Bearer ${apiKey}`)

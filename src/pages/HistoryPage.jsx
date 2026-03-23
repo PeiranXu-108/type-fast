@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from "react";
-import { useStore } from "../store.js";
-import { formatDuration, formatWPM } from "../utils.js";
+import React, { useState, useMemo } from "react"
+import { useStore } from "../store.js"
+import { formatDuration, formatWPM } from "../utils.js"
 import {
   BarChart3,
   TrendingUp,
@@ -8,11 +8,36 @@ import {
   Target,
   Trash2,
   Play,
-} from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import Confirm from "../modals/confirm.jsx";
-import { useTranslation } from "react-i18next";
-import PracticeChart from "../components/PracticeChart.jsx";
+} from "lucide-react"
+import { useNavigate } from "react-router-dom"
+import Confirm from "../modals/confirm.jsx"
+import { useTranslation } from "react-i18next"
+import PracticeChart from "../components/PracticeChart.jsx"
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 const HistoryPage = () => {
   const { t } = useTranslation();
@@ -83,6 +108,20 @@ const HistoryPage = () => {
         return [...articleRecords].reverse();
       default:
         return articleRecords.slice(-20).reverse();
+    }
+  };
+
+  const getRecordRangeLabel = (range) => {
+    switch (range) {
+      case "recent10":
+        return t("history.recent-10");
+      case "recent20":
+        return t("history.recent-20");
+      case "recent50":
+        return t("history.recent-50");
+      case "all":
+      default:
+        return t("history.all-records");
     }
   };
 
@@ -168,32 +207,32 @@ const HistoryPage = () => {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+        <h1 className="mb-2 text-3xl font-bold text-foreground">
           {t("history.title")}
         </h1>
-        <p className="text-gray-600 dark:text-gray-400">
-          {t("history.subtitle")}
-        </p>
+        <p className="text-muted-foreground">{t("history.subtitle")}</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Articles List */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-1">
-          <div
-            className="card p-4"
-            style={{ minHeight: "500px", maxHeight: "1300px", height: "100%" }}
+          <Card
+            className="flex h-full flex-col"
+            style={{ minHeight: "500px", maxHeight: "1300px" }}
           >
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
-                <Calendar className="w-5 h-5 mr-2 text-primary-600 dark:text-primary-400" />
-                {t("history.article-list")}
-              </h2>
-              <span className="text-sm text-gray-500 dark:text-gray-400">
-                {articlesUnique.length} {t("history.articles-count")}
-              </span>
-            </div>
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Calendar className="h-5 w-5 text-primary" />
+                  {t("history.article-list")}
+                </CardTitle>
+                <span className="text-sm text-muted-foreground">
+                  {articlesUnique.length} {t("history.articles-count")}
+                </span>
+              </div>
+            </CardHeader>
+            <CardContent className="flex-1 overflow-hidden pt-0">
 
-            <div className="space-y-3 max-h-[1000px] overflow-y-auto">
+            <div className="max-h-[1000px] space-y-3 overflow-y-auto">
               {articlesUnique.length > 0 ? (
                 getSortedArticles(articlesUnique).map((article) => {
                   const stats = getArticleStats(article.id);
@@ -202,17 +241,26 @@ const HistoryPage = () => {
                   return (
                     <div
                       key={article.id}
+                      role="button"
+                      tabIndex={0}
                       onClick={() => handleArticleSelect(article)}
-                      className={`p-3 rounded-lg cursor-pointer transition-all duration-200 ${
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault()
+                          handleArticleSelect(article)
+                        }
+                      }}
+                      className={cn(
+                        "cursor-pointer rounded-lg p-3 transition-all duration-200",
                         isSelected
-                          ? "bg-primary-100 dark:bg-primary-900 border-2 border-primary-300 dark:border-primary-700"
-                          : "bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700"
-                      }`}
+                          ? "border-2 border-primary/40 bg-primary/10"
+                          : "bg-muted/50 hover:bg-muted"
+                      )}
                     >
-                      <h3 className="font-medium text-gray-900 dark:text-white mb-1">
+                      <h3 className="mb-1 font-medium text-foreground">
                         {article.title}
                       </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                      <p className="mb-2 text-sm text-muted-foreground">
                         {article.wordCount} {t("history.words-count")} •{" "}
                         {article.charCount} {t("history.chars-count")}
                       </p>
@@ -220,7 +268,7 @@ const HistoryPage = () => {
                       {stats && (
                         <div className="space-y-1">
                           <div className="items-center text-sm">
-                            <span className="text-gray-500 dark:text-gray-400">
+                            <span className="text-muted-foreground">
                               {t("history.best-wpm")}:{" "}
                             </span>
                             <span
@@ -232,15 +280,15 @@ const HistoryPage = () => {
                             </span>
                           </div>
                           <div className="items-center text-sm">
-                            <span className="text-gray-500 dark:text-gray-400">
+                            <span className="text-muted-foreground">
                               {t("history.practice-count")}:{" "}
                             </span>
-                            <span className="font-semibold text-gray-700 dark:text-gray-300">
+                            <span className="font-semibold text-foreground">
                               {stats.practiceCount}
                             </span>
                           </div>
                           {stats.lastPractice && (
-                            <div className="text-sm text-gray-500 dark:text-gray-400">
+                            <div className="text-sm text-muted-foreground">
                               {t("history.recent")}{" "}
                               {new Date(
                                 stats.lastPractice.endedAt
@@ -250,39 +298,45 @@ const HistoryPage = () => {
                         </div>
                       )}
 
-                      <div className="flex gap-3 mt-3">
-                        <button
+                      <div className="mt-3 flex gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 border-destructive/30 text-destructive hover:bg-destructive/10"
                           onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteRecords(article);
+                            e.stopPropagation()
+                            handleDeleteRecords(article)
                           }}
-                          className="flex-1 btn-secondary text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/20"
                         >
-                          <Trash2 className="w-4 h-4 mr-2" />
+                          <Trash2 className="mr-2 h-4 w-4" />
                           {t("history.delete-records")}
-                        </button>
-                        <button
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          className="flex-1"
                           onClick={(e) => {
-                            e.stopPropagation();
-                            handlePracticeAgain(article);
+                            e.stopPropagation()
+                            handlePracticeAgain(article)
                           }}
-                          className="flex-1 btn-primary"
                         >
-                          <Play className="w-4 h-4 mr-2" />
+                          <Play className="mr-2 h-4 w-4" />
                           {t("history.practice-again")}
-                        </button>
+                        </Button>
                       </div>
                     </div>
                   );
                 })
               ) : (
-                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                <div className="py-8 text-center text-muted-foreground">
                   <p>{t("history.no-practice-records")}</p>
                   <p className="text-sm">{t("history.start-practicing")}</p>
                 </div>
               )}
             </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Records and Stats */}
@@ -290,15 +344,16 @@ const HistoryPage = () => {
           {selectedArticle ? (
             <div className="space-y-6">
               {/* Article Stats Summary */}
-              <div className="card p-4">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
-                  <TrendingUp className="w-5 h-5 mr-2 text-green-600 dark:text-green-400" />
-                  {t("history.stats-overview")} {selectedArticle.title}
-                </h2>
-
-                {/* Article Content Display */}
-                <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                  <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <TrendingUp className="h-5 w-5 text-green-600 dark:text-green-400" />
+                    {t("history.stats-overview")} {selectedArticle.title}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                <div className="rounded-lg bg-muted/50 p-4">
+                  <div className="whitespace-pre-wrap text-sm leading-relaxed text-foreground">
                     {selectedArticle.content}
                   </div>
                 </div>
@@ -307,7 +362,7 @@ const HistoryPage = () => {
                   const stats = getArticleStats(selectedArticle.id);
                   if (!stats)
                     return (
-                      <p className="text-gray-500 dark:text-gray-400">
+                      <p className="text-muted-foreground">
                         {t("history.no-practice-records")}
                       </p>
                     );
@@ -352,78 +407,87 @@ const HistoryPage = () => {
                     </div>
                   );
                 })()}
-              </div>
+                </CardContent>
+              </Card>
 
-              {/* Practice Chart - Only show if practice count >= 2 */}
               {(() => {
                 const stats = getArticleStats(selectedArticle.id);
                 if (!stats || stats.practiceCount < 2) return null;
 
                 return (
-                  <div className="card p-4">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
-                      <TrendingUp className="w-5 h-5 mr-2 text-blue-600 dark:text-blue-400" />
-                      {t("history.practice-trend")}
-                    </h3>
-                    <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-lg">
+                        <TrendingUp className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                        {t("history.practice-trend")}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                    <div className="rounded-lg bg-muted/50 p-4">
                       <PracticeChart records={getArticleRecords(selectedArticle.id)} />
                     </div>
-                  </div>
+                    </CardContent>
+                  </Card>
                 );
               })()}
 
-              {/* Records Table */}
-              <div className="card p-4">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-3">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
-                      <BarChart3 className="w-5 h-5 mr-2 text-blue-600 dark:text-blue-400" />
+              <Card>
+                <CardHeader className="flex flex-col gap-4 space-y-0 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <BarChart3 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                       {t("history.practice-records")}
-                    </h3>
-                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                    </CardTitle>
+                    <span className="text-sm text-muted-foreground">
                       ({getFilteredRecords(selectedArticle.id).length}{" "}
                       {t("history.records-count")})
                     </span>
                   </div>
 
-                  <div className="flex items-center space-x-3">
-                    <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
-                      <div className="w-3 h-3 bg-yellow-100 dark:bg-yellow-900/20 rounded"></div>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <div className="h-3 w-3 rounded bg-yellow-100 dark:bg-yellow-900/30" />
                       <span>{t("history.recent-records")}</span>
                     </div>
-                    <select
+                    <Select
                       value={selectedRecordRange}
-                      onChange={(e) => setSelectedRecordRange(e.target.value)}
-                      className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                      onValueChange={setSelectedRecordRange}
                     >
-                      <option value="recent10">{t("history.recent-10")}</option>
-                      <option value="recent20">{t("history.recent-20")}</option>
-                      <option value="recent50">{t("history.recent-50")}</option>
-                      <option value="all">{t("history.all-records")}</option>
-                    </select>
+                      <SelectTrigger className="w-[140px]" size="sm">
+                        <SelectValue>
+                          {getRecordRangeLabel(selectedRecordRange)}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="recent10">{t("history.recent-10")}</SelectItem>
+                        <SelectItem value="recent20">{t("history.recent-20")}</SelectItem>
+                        <SelectItem value="recent50">{t("history.recent-50")}</SelectItem>
+                        <SelectItem value="all">{t("history.all-records")}</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                </div>
-
-                <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
+                </CardHeader>
+                <CardContent className="pt-0">
+                <div className="max-h-[500px] overflow-x-auto overflow-y-auto">
                   <table className="w-full text-sm">
-                    <thead className="sticky top-0 bg-white dark:bg-gray-800 z-10">
-                      <tr className="border-b border-gray-200 dark:border-gray-700">
-                        <th className="text-left py-2 text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800">
+                    <thead className="sticky top-0 z-10 bg-card">
+                      <tr className="border-b border-border">
+                        <th className="bg-card py-2 text-left text-muted-foreground">
                           {t("history.date")}
                         </th>
-                        <th className="text-left py-2 text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800">
+                        <th className="bg-card py-2 text-left text-muted-foreground">
                           WPM
                         </th>
-                        <th className="text-left py-2 text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800">
+                        <th className="bg-card py-2 text-left text-muted-foreground">
                           CPM
                         </th>
-                        <th className="text-left py-2 text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800">
+                        <th className="bg-card py-2 text-left text-muted-foreground">
                           {t("history.accuracy")}
                         </th>
-                        <th className="text-left py-2 text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800">
+                        <th className="bg-card py-2 text-left text-muted-foreground">
                           {t("history.duration")}
                         </th>
-                        <th className="text-left py-2 text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800">
+                        <th className="bg-card py-2 text-left text-muted-foreground">
                           {t("history.mode")}
                         </th>
                       </tr>
@@ -436,13 +500,12 @@ const HistoryPage = () => {
                               record.id ??
                               `${selectedArticle.id}-${record.endedAt}-${index}`
                             }
-                            className={`border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 ${
-                              index === 0
-                                ? "bg-yellow-50 dark:bg-yellow-900/20"
-                                : ""
-                            }`}
+                            className={cn(
+                              "border-b border-border/60 hover:bg-muted/40",
+                              index === 0 && "bg-yellow-50 dark:bg-yellow-900/20"
+                            )}
                           >
-                            <td className="py-2 text-gray-700 dark:text-gray-300">
+                            <td className="py-2 text-foreground">
                               {new Date(record.endedAt).toLocaleDateString()}
                             </td>
                             <td
@@ -452,7 +515,7 @@ const HistoryPage = () => {
                             >
                               {formatWPM(record.wpm)}
                             </td>
-                            <td className="py-2 text-gray-700 dark:text-gray-300">
+                            <td className="py-2 text-foreground">
                               {record.cpm}
                             </td>
                             <td
@@ -462,10 +525,10 @@ const HistoryPage = () => {
                             >
                               {Number(record.accuracy * 100).toFixed(2)}%
                             </td>
-                            <td className="py-2 text-gray-700 dark:text-gray-300">
+                            <td className="py-2 text-foreground">
                               {formatDuration(record.durationMs)}
                             </td>
-                            <td className="py-2 text-gray-700 dark:text-gray-300">
+                            <td className="py-2 text-foreground">
                               <span
                                 className={`px-2 py-1 rounded-full text-xs ${
                                   record.mode === "strict"
@@ -486,74 +549,66 @@ const HistoryPage = () => {
                 </div>
 
                 {getFilteredRecords(selectedArticle.id).length === 0 && (
-                  <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                  <div className="py-8 text-center text-muted-foreground">
                     <p>{t("history.no-practice-records")}</p>
                   </div>
                 )}
-              </div>
+                </CardContent>
+              </Card>
             </div>
           ) : (
-            <div className="card p-8 text-center">
-              <Target className="w-16 h-16 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+            <Card className="p-8 text-center">
+              <CardContent className="pt-8">
+              <Target className="mx-auto mb-4 h-16 w-16 text-muted-foreground" />
+              <h3 className="mb-2 text-lg font-semibold text-foreground">
                 {t("history.select-article")}
               </h3>
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-muted-foreground">
                 {t("history.select-article-desc")}
               </p>
-            </div>
+              </CardContent>
+            </Card>
           )}
         </div>
       </div>
 
-      {/* Delete Records Confirmation Modal */}
-      {confirmingDelete && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
-            <div className="p-6">
-              <div className="flex items-center mb-4">
-                <div className="flex-shrink-0">
-                  <div className="w-10 h-10 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center">
-                    <Trash2 className="w-5 h-5 text-red-600 dark:text-red-400" />
-                  </div>
-                </div>
-                <div className="ml-3">
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                    {t("history.confirm-delete-records")}
-                  </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {t("history.delete-records-irreversible")}
-                  </p>
-                </div>
-              </div>
-
-              <p className="text-gray-700 dark:text-gray-300 mb-6">
-                {t("history.delete-records-confirmation")}{" "}
-                <span className="font-semibold">
-                  "{confirmingDelete.title}"
-                </span>{" "}
-                {t("history.delete-records-irreversible")}
-              </p>
-
-              <div className="flex items-center justify-end space-x-3">
-                <button
-                  onClick={handleDeleteCancel}
-                  className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg transition-colors duration-200"
-                >
-                  {t("delete.cancel")}
-                </button>
-                <button
-                  onClick={handleDeleteConfirm}
-                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 flex items-center space-x-2"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  <span>{t("delete.delete")}</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <AlertDialog
+        open={!!confirmingDelete}
+        onOpenChange={(open) => {
+          if (!open) handleDeleteCancel()
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-destructive/10">
+                <Trash2 className="h-5 w-5 text-destructive" />
+              </span>
+              {t("history.confirm-delete-records")}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("history.delete-records-irreversible")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {confirmingDelete && (
+            <p className="text-sm text-foreground">
+              {t("history.delete-records-confirmation")}{" "}
+              <span className="font-semibold">&quot;{confirmingDelete.title}&quot;</span>{" "}
+              {t("history.delete-records-irreversible")}
+            </p>
+          )}
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("delete.cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={handleDeleteConfirm}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              {t("delete.delete")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Practice Confirmation Modal */}
       {confirmingPractice && (

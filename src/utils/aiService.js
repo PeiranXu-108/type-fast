@@ -115,7 +115,7 @@ async function handleStreamResponse(response, onChunk, onComplete) {
   let buffer = ''
 
   try {
-    while (true) {
+    for (;;) {
       const { done, value } = await reader.read()
       
       if (done) {

@@ -1,15 +1,49 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useStore } from "../store.js";
-import { generateSampleArticles } from "../utils.js";
+import {
+  generateSampleArticles,
+  countWords,
+  countCharacters,
+} from "../utils.js"
 import TextInputCard from "../components/TextInputCard.jsx";
 import PracticeControl from "../components/PracticeControl.jsx";
 import TypingArea from "../components/TypingArea.jsx";
 import ResultsPanel from "../components/ResultsPanel.jsx";
-import { Edit3, Trash2, X, Check, Plus, Sparkles, Loader2 } from "lucide-react";
+import { Trash2, X, Check, Plus, Sparkles, Loader2 } from "lucide-react"
 import Confirm from "../modals/confirm.jsx";
 import { TextCardsGrid } from "../cards/textCards.jsx";
 import { useTranslation } from "react-i18next";
-import { generateTextWithDoubao, isApiKeyConfigured } from "../utils/aiService.js";
+import { generateTextWithDoubao, isApiKeyConfigured } from "../utils/aiService.js"
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+
 const PracticePage = () => {
   const { t } = useTranslation()
   const {
@@ -24,7 +58,6 @@ const PracticePage = () => {
     updateCustomArticle,
     deleteCustomArticle,
     setCurrentArticle,
-    showResults,
   } = useStore();
 
   const [activeTab, setActiveTab] = useState("custom");
@@ -97,11 +130,6 @@ const PracticePage = () => {
     }
   }, [editingArticle, deletingArticle, confirmingArticle, addingArticle]);
 
-  const handleStartPractice = (article, mode) => {
-    setCurrentArticle(article);
-    useStore.getState().startPractice(article, mode);
-  };
-
   const handleCustomTextSubmit = () => {
     if (customText.trim()) {
       const article = addArticle("", customText.trim());
@@ -119,6 +147,24 @@ const PracticePage = () => {
     setConfirmingArticle(article);
   };
 
+  const getCategoryLabel = (category) => {
+    switch (category) {
+      case "technology":
+        return t("categories.technology");
+      case "literature":
+        return t("categories.literature");
+      case "news":
+        return t("categories.news");
+      case "business":
+        return t("categories.business");
+      case "science":
+        return t("categories.science");
+      case "custom":
+      default:
+        return t("categories.custom");
+    }
+  };
+
   // Edit and delete handlers
   const handleEditClick = (e, article) => {
     e.stopPropagation();
@@ -132,51 +178,10 @@ const PracticePage = () => {
     setDeletingArticle(article);
   };
 
-  const handleEditSave = () => {
-    if (editTitle.trim() && editContent.trim()) {
-      const updatedArticles = sampleArticles.map((article) =>
-        article.id === editingArticle.id
-          ? { ...article, title: editTitle.trim(), content: editContent.trim() }
-          : article
-      );
-      setSampleArticles(updatedArticles);
-
-      // Also update the store if this article is current
-      if (currentArticle && currentArticle.id === editingArticle.id) {
-        const updatedArticle = {
-          ...currentArticle,
-          title: editTitle.trim(),
-          content: editContent.trim(),
-        };
-        setCurrentArticle(updatedArticle);
-      }
-
-      setEditingArticle(null);
-      setEditTitle("");
-      setEditContent("");
-    }
-  };
-
   const handleEditCancel = () => {
     setEditingArticle(null);
     setEditTitle("");
     setEditContent("");
-  };
-
-  const handleDeleteConfirm = () => {
-    if (deletingArticle) {
-      const updatedArticles = sampleArticles.filter(
-        (article) => article.id !== deletingArticle.id
-      );
-      setSampleArticles(updatedArticles);
-
-      // Also remove from store if this article is current
-      if (currentArticle && currentArticle.id === deletingArticle.id) {
-        setCurrentArticle(null);
-      }
-
-      setDeletingArticle(null);
-    }
   };
 
   const handleDeleteCancel = () => {
@@ -408,33 +413,31 @@ const PracticePage = () => {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-          {t('practice.title')}
+        <h1 className="mb-2 text-3xl font-bold text-foreground">
+          {t("practice.title")}
         </h1>
-        <p className="text-gray-600 dark:text-gray-400">
-          {t('practice.subtitle')}
-        </p>
+        <p className="text-muted-foreground">{t("practice.subtitle")}</p>
       </div>
 
-      {/* Text Source Selection */}
-      <div className="card p-6">
-        <div className="flex flex-wrap gap-2 mb-6">
-          {["custom", "samples", "recent"].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
-                activeTab === tab
-                  ? "bg-primary-600 text-white"
-                  : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
-              }`}
-            >
-              {tab === "custom" && t('practice.custom-text')}
-              {tab === "samples" && t('practice.material-library')}
-              {tab === "recent" && t('practice.recent-usage')}
-            </button>
-          ))}
-        </div>
+      <Card>
+        <CardHeader className="pb-2">
+          <div className="flex flex-wrap gap-2">
+            {["custom", "samples", "recent"].map((tab) => (
+              <Button
+                key={tab}
+                type="button"
+                variant={activeTab === tab ? "default" : "secondary"}
+                size="sm"
+                onClick={() => setActiveTab(tab)}
+              >
+                {tab === "custom" && t("practice.custom-text")}
+                {tab === "samples" && t("practice.material-library")}
+                {tab === "recent" && t("practice.recent-usage")}
+              </Button>
+            ))}
+          </div>
+        </CardHeader>
+        <CardContent>
 
         {/* Custom Text Tab */}
         {activeTab === "custom" && (
@@ -486,179 +489,185 @@ const PracticePage = () => {
                 const lastRecord = records[records.length - 1];
 
                 return (
-                  <div
+                  <Card
                     key={article.id}
-                    className="card p-4 hover:shadow-lg transition-shadow duration-200 cursor-pointer"
+                    className="cursor-pointer transition-shadow hover:shadow-md"
                     onClick={() => handleRecentArticleSelect(article)}
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-semibold text-gray-900 dark:text-white">
+                    <CardContent className="pt-6">
+                    <div className="mb-2 flex items-center justify-between">
+                      <h3 className="font-semibold text-foreground">
                         {article.title}
                       </h3>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center gap-2">
                         {bestRecord && (
-                          <span className="bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 px-2 py-1 rounded-full text-xs">
-                            {t('best')}: {bestRecord.wpm} WPM
+                          <span className="rounded-full bg-yellow-100 px-2 py-1 text-xs text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-200">
+                            {t("best")}: {bestRecord.wpm} WPM
                           </span>
-                        )}  
+                        )}
                         {lastRecord && (
-                          <span className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full text-xs">
-                            {t('recent')}: {lastRecord.wpm} WPM
+                          <span className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800 dark:bg-blue-900/40 dark:text-blue-200">
+                            {t("recent")}: {lastRecord.wpm} WPM
                           </span>
                         )}
                       </div>
                     </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                    <p className="mb-2 text-sm text-muted-foreground">
                       {article.content.substring(0, 100)}...
                     </p>
-                    <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-                      <span>{article.wordCount} {t('word')}</span>
-                      <span>{t('practice.practice')} {records.length} {t('practice.times')}</span>
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span>
+                        {article.wordCount} {t("word")}
+                      </span>
+                      <span>
+                        {t("practice.practice")} {records.length}{" "}
+                        {t("practice.times")}
+                      </span>
                       <span>
                         {new Date(article.createdAt).toLocaleDateString()}
                       </span>
                     </div>
-                  </div>
-                );
+                    </CardContent>
+                  </Card>
+                )
               })
             ) : (
-              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                <p>{t('practice.no-practice-records')}</p>
-                <p className="text-sm">{t('practice.start-practicing')}</p>
+              <div className="py-8 text-center text-muted-foreground">
+                <p>{t("practice.no-practice-records")}</p>
+                <p className="text-sm">{t("practice.start-practicing")}</p>
               </div>
             )}
           </div>
         )}
-      </div>
+        </CardContent>
+      </Card>
 
-      {/* Edit Modal */}
-      {editingArticle && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                {t('practice.edit-article')}
-              </h3>
-              <button
-                onClick={handleEditCancel}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
-              >
-                <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-              </button>
+      <Dialog
+        open={!!editingArticle}
+        onOpenChange={(open) => {
+          if (!open) handleEditCancel()
+        }}
+      >
+        <DialogContent
+          showCloseButton={false}
+          className="flex max-h-[90vh] max-w-2xl flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl"
+        >
+          <div className="flex items-center justify-between border-b border-border px-6 py-4">
+            <DialogTitle className="text-lg">{t("practice.edit-article")}</DialogTitle>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              onClick={handleEditCancel}
+              aria-label={t("cancel")}
+            >
+              <X className="size-5" />
+            </Button>
+          </div>
+          <div className="space-y-4 overflow-y-auto px-6 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-title">{t("practice.title-label")}</Label>
+              <Input
+                id="edit-title"
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+                placeholder={t("practice.title-placeholder")}
+              />
             </div>
-
-            <div className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {t('practice.title-label')}
-                </label>
-                <input
-                  type="text"
-                  value={editTitle}
-                  onChange={(e) => setEditTitle(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  placeholder={t('practice.title-placeholder')}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {t('category')}
-                </label>
-                <select
-                  value={newArticleCategory}
-                  onChange={(e) => setNewArticleCategory(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                >
-                  <option value="custom">{t('categories.custom')}</option>
-                  <option value="technology">{t('categories.technology')}</option>
-                  <option value="literature">{t('categories.literature')}</option>
-                  <option value="news">{t('categories.news')}</option>
-                  <option value="business">{t('categories.business')}</option>
-                  <option value="science">{t('categories.science')}</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {t('content')}
-                </label>
-                <textarea
-                  value={editContent}
-                  onChange={(e) => setEditContent(e.target.value)}
-                  rows={8}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none"
-                  placeholder={t('practice.enter-article-content')}
-                />
-              </div>
+            <div className="space-y-2">
+              <Label>{t("category")}</Label>
+              <Select
+                value={newArticleCategory}
+                onValueChange={setNewArticleCategory}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue>{getCategoryLabel(newArticleCategory)}</SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="custom">{t("categories.custom")}</SelectItem>
+                  <SelectItem value="technology">
+                    {t("categories.technology")}
+                  </SelectItem>
+                  <SelectItem value="literature">
+                    {t("categories.literature")}
+                  </SelectItem>
+                  <SelectItem value="news">{t("categories.news")}</SelectItem>
+                  <SelectItem value="business">
+                    {t("categories.business")}
+                  </SelectItem>
+                  <SelectItem value="science">{t("categories.science")}</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-
-            <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200 dark:border-gray-700">
-              <button
-                onClick={handleEditCancel}
-                className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg transition-colors duration-200"
-              >
-                {t('cancel')}
-              </button>
-              <button
-                onClick={handleCustomArticleEditSave}
-                disabled={!editTitle.trim() || !editContent.trim()}
-                className="px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-200 flex items-center space-x-2"
-              >
-                <Check className="w-4 h-4" />
-                <span>{t('save')}</span>
-              </button>
+            <div className="space-y-2">
+              <Label htmlFor="edit-content">{t("content")}</Label>
+              <Textarea
+                id="edit-content"
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                rows={8}
+                className="resize-none"
+                placeholder={t("practice.enter-article-content")}
+              />
             </div>
           </div>
-        </div>
-      )}
+          <DialogFooter className="border-t border-border px-6 py-4 sm:justify-end">
+            <Button type="button" variant="outline" onClick={handleEditCancel}>
+              {t("cancel")}
+            </Button>
+            <Button
+              type="button"
+              disabled={!editTitle.trim() || !editContent.trim()}
+              onClick={handleCustomArticleEditSave}
+              className="gap-2"
+            >
+              <Check className="size-4" />
+              {t("save")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-      {/* Delete Confirmation Modal */}
-      {deletingArticle && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
-            <div className="p-6">
-              <div className="flex items-center mb-4">
-                <div className="flex-shrink-0">
-                  <div className="w-10 h-10 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center">
-                    <Trash2 className="w-5 h-5 text-red-600 dark:text-red-400" />
-                  </div>
-                </div>
-                <div className="ml-3">
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                    {t('practice.confirm-delete')}
-                  </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {t('practice.delete-irreversible')}
-                  </p>
-                </div>
-              </div>
-
-              <p className="text-gray-700 dark:text-gray-300 mb-6">
-                {t('practice.delete-confirmation')}
-                <span className="font-semibold">{' '}"{deletingArticle.title}"{' '}</span>
-                {t('practice.delete-article')}
-              </p>
-
-              <div className="flex items-center justify-end space-x-3">
-                <button
-                  onClick={handleDeleteCancel}
-                  className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg transition-colors duration-200"
-                >
-                    {t('cancel')}
-                </button>
-                <button
-                  onClick={handleCustomArticleDeleteConfirm}
-                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 flex items-center space-x-2"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  <span>{t('text-cards.delete')}</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <AlertDialog
+        open={!!deletingArticle}
+        onOpenChange={(open) => {
+          if (!open) handleDeleteCancel()
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-destructive/10">
+                <Trash2 className="h-5 w-5 text-destructive" />
+              </span>
+              {t("practice.confirm-delete")}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("practice.delete-irreversible")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {deletingArticle && (
+            <p className="text-sm text-foreground">
+              {t("practice.delete-confirmation")}
+              <span className="font-semibold">
+                {" "}
+                &quot;{deletingArticle.title}&quot;{" "}
+              </span>
+              {t("practice.delete-article")}
+            </p>
+          )}
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={handleCustomArticleDeleteConfirm}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              {t("text-cards.delete")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Practice Confirmation Modal */}
       {confirmingArticle && (
@@ -669,49 +678,71 @@ const PracticePage = () => {
         />
       )}
 
-      {/* Add New Article Modal */}
-      {addingArticle && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                {t('practice.add-new-material')}
-              </h3>
-              <button
-                onClick={handleAddArticleCancel}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
-              >
-                <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-              </button>
-            </div>
+      <Dialog
+        open={addingArticle}
+        onOpenChange={(open) => {
+          if (!open) handleAddArticleCancel()
+        }}
+      >
+        <DialogContent
+          showCloseButton={false}
+          className="flex h-[min(90vh,700px)] max-w-2xl flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl"
+        >
+          <div className="flex items-center justify-between border-b border-border px-6 py-4">
+            <DialogTitle className="text-lg">
+              {t("practice.add-new-material")}
+            </DialogTitle>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              onClick={handleAddArticleCancel}
+              aria-label={t("cancel")}
+            >
+              <X className="size-5" />
+            </Button>
+          </div>
 
-            <div className="flex-1 overflow-y-auto">
-              {/* Tab Switcher */}
-              <div className="flex border-b border-gray-200 dark:border-gray-700 px-6 pt-4">
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+            <div className="border-b border-border px-6 py-3">
+              <div
+                className="inline-flex h-10 w-full max-w-md items-center rounded-full bg-muted p-1 text-muted-foreground sm:w-auto"
+                role="tablist"
+                aria-label={t("practice.add-new-material")}
+              >
                 <button
-                  onClick={() => setAddMode("manual")}
-                  className={`px-4 py-2 font-medium transition-colors duration-200 border-b-2 ${
+                  type="button"
+                  role="tab"
+                  aria-selected={addMode === "manual"}
+                  className={cn(
+                    "inline-flex flex-1 items-center justify-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium transition-all sm:flex-initial",
                     addMode === "manual"
-                      ? "border-primary-600 text-primary-600 dark:text-primary-400"
-                      : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-                  }`}
+                      ? "bg-background text-foreground shadow-sm ring-1 ring-border/60"
+                      : "hover:text-foreground"
+                  )}
+                  onClick={() => setAddMode("manual")}
                 >
-                  {t('practice.manual-input')}
+                  {t("practice.manual-input")}
                 </button>
                 <button
-                  onClick={() => setAddMode("ai")}
-                  className={`px-4 py-2 font-medium transition-colors duration-200 border-b-2 flex items-center space-x-2 ${
+                  type="button"
+                  role="tab"
+                  aria-selected={addMode === "ai"}
+                  className={cn(
+                    "inline-flex flex-1 items-center justify-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium transition-all sm:flex-initial",
                     addMode === "ai"
-                      ? "border-primary-600 text-primary-600 dark:text-primary-400"
-                      : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-                  }`}
+                      ? "bg-background text-foreground shadow-sm ring-1 ring-border/60"
+                      : "hover:text-foreground"
+                  )}
+                  onClick={() => setAddMode("ai")}
                 >
-                  <Sparkles className="w-4 h-4" />
-                  <span>{t('practice.ai-generate')}</span>
+                  <Sparkles className="size-3.5 shrink-0" />
+                  {t("practice.ai-generate")}
                 </button>
               </div>
+            </div>
 
-              <div className="p-6 space-y-4">
+            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-6">
                 {/* AI Generation Mode */}
                 {addMode === "ai" && (
                   <div className="space-y-4">
@@ -728,40 +759,42 @@ const PracticePage = () => {
                       </p>
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        {t('practice.ai-topic')} <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
+                    <div className="space-y-2">
+                      <Label htmlFor="ai-topic">
+                        {t("practice.ai-topic")}{" "}
+                        <span className="text-destructive">*</span>
+                      </Label>
+                      <Input
+                        id="ai-topic"
                         value={aiTopic}
                         onChange={(e) => {
-                          setAiTopic(e.target.value);
-                          setAiError("");
+                          setAiTopic(e.target.value)
+                          setAiError("")
                         }}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                        placeholder={t('practice.ai-topic-placeholder')}
+                        placeholder={t("practice.ai-topic-placeholder")}
                         disabled={isGenerating}
                       />
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        {t('practice.ai-word-count')}
-                      </label>
-                      <select
-                        value={aiWordCount}
-                        onChange={(e) => setAiWordCount(parseInt(e.target.value))}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    <div className="space-y-2">
+                      <Label>{t("practice.ai-word-count")}</Label>
+                      <Select
+                        value={String(aiWordCount)}
+                        onValueChange={(v) => setAiWordCount(parseInt(v, 10))}
                         disabled={isGenerating}
                       >
-                        <option value={30}>30 {t('word')}</option>
-                        <option value={50}>50 {t('word')}</option>
-                        <option value={100}>100 {t('word')}</option>
-                        <option value={120}>120 {t('word')}</option>
-                        <option value={250}>250 {t('word')}</option>
-                        <option value={500}>500 {t('word')}</option>
-                      </select>
+                        <SelectTrigger className="w-full">
+                          <SelectValue>{`${aiWordCount} ${t("word")}`}</SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="30">30 {t("word")}</SelectItem>
+                          <SelectItem value="50">50 {t("word")}</SelectItem>
+                          <SelectItem value="100">100 {t("word")}</SelectItem>
+                          <SelectItem value="120">120 {t("word")}</SelectItem>
+                          <SelectItem value="250">250 {t("word")}</SelectItem>
+                          <SelectItem value="500">500 {t("word")}</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     {aiError && (
@@ -770,23 +803,28 @@ const PracticePage = () => {
                       </div>
                     )}
 
-                    <button
+                    <Button
+                      type="button"
+                      className="w-full bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600 disabled:opacity-50"
                       onClick={handleAiGenerate}
-                      disabled={isGenerating || !aiTopic.trim() || !isApiKeyConfigured()}
-                      className="w-full px-4 py-2 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2"
+                      disabled={
+                        isGenerating ||
+                        !aiTopic.trim() ||
+                        !isApiKeyConfigured()
+                      }
                     >
                       {isGenerating ? (
                         <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          <span>{t('practice.ai-generating')}</span>
+                          <Loader2 className="mr-2 size-4 animate-spin" />
+                          {t("practice.ai-generating")}
                         </>
                       ) : (
                         <>
-                          <Sparkles className="w-4 h-4" />
-                          <span>{t('practice.ai-generate-button')}</span>
+                          <Sparkles className="mr-2 size-4" />
+                          {t("practice.ai-generate-button")}
                         </>
                       )}
-                    </button>
+                    </Button>
 
                     {/* Streaming content display with typewriter effect */}
                     {isStreaming && streamingContent && (
@@ -816,12 +854,14 @@ const PracticePage = () => {
                               {t('practice.use-ai-generated')}
                             </p>
                           </div>
-                          <button
+                          <Button
+                            type="button"
+                            variant="link"
+                            className="h-auto p-0 text-sm"
                             onClick={() => setAddMode("manual")}
-                            className="text-sm text-primary-600 dark:text-primary-400 hover:underline"
                           >
-                            {t('practice.manual-input')}
-                          </button>
+                            {t("practice.manual-input")}
+                          </Button>
                         </div>
                         <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 max-h-60 overflow-y-auto border border-gray-200 dark:border-gray-700">
                           <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap leading-relaxed">
@@ -842,74 +882,82 @@ const PracticePage = () => {
 
                 {/* Manual Input Mode */}
                 {addMode === "manual" && (
-                  <>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        {t('practice.title-label')}
-                      </label>
-                      <input
-                        type="text"
+                  <div className="flex min-h-0 flex-1 flex-col gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="new-title">{t("practice.title-label")}</Label>
+                      <Input
+                        id="new-title"
                         value={newArticleTitle}
                         onChange={(e) => setNewArticleTitle(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                        placeholder={t('practice.title-placeholder')}
+                        placeholder={t("practice.title-placeholder")}
                       />
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        {t('practice.category')}
-                      </label>
-                      <select
+                    <div className="space-y-2">
+                      <Label>{t("practice.category")}</Label>
+                      <Select
                         value={newArticleCategory}
-                        onChange={(e) => setNewArticleCategory(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        onValueChange={setNewArticleCategory}
                       >
-                        <option value="custom">{t('categories.custom')}</option>
-                        <option value="technology">{t('categories.technology')}</option>
-                        <option value="literature">{t('categories.literature')}</option>
-                        <option value="news">{t('categories.news')}</option>
-                        <option value="business">{t('categories.business')}</option>
-                        <option value="science">{t('categories.science')}</option>
-                      </select>
+                        <SelectTrigger className="w-full">
+                          <SelectValue>{getCategoryLabel(newArticleCategory)}</SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="custom">
+                            {t("categories.custom")}
+                          </SelectItem>
+                          <SelectItem value="technology">
+                            {t("categories.technology")}
+                          </SelectItem>
+                          <SelectItem value="literature">
+                            {t("categories.literature")}
+                          </SelectItem>
+                          <SelectItem value="news">{t("categories.news")}</SelectItem>
+                          <SelectItem value="business">
+                            {t("categories.business")}
+                          </SelectItem>
+                          <SelectItem value="science">
+                            {t("categories.science")}
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        {t('practice.content')}
-                      </label>
-                      <textarea
+                    <div className="flex min-h-0 flex-1 flex-col gap-2">
+                      <Label htmlFor="new-content">{t("practice.content")}</Label>
+                      <Textarea
+                        id="new-content"
                         value={newArticleContent}
                         onChange={(e) => setNewArticleContent(e.target.value)}
-                        rows={8}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none"
-                        placeholder={t('practice.content-placeholder')}
+                        className="min-h-[220px] flex-1 resize-none"
+                        placeholder={t("practice.content-placeholder")}
                       />
+                      <p className="text-right text-xs text-muted-foreground">
+                        {countWords(newArticleContent)} {t("word")} ·{" "}
+                        {countCharacters(newArticleContent)} {t("char")}
+                      </p>
                     </div>
-                  </>
+                  </div>
                 )}
-              </div>
-            </div>
-
-            <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200 dark:border-gray-700">
-              <button
-                onClick={handleAddArticleCancel}
-                className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg transition-colors duration-200"
-              >
-                {t('cancel')}
-              </button>
-              <button
-                onClick={handleAddArticleSave}
-                disabled={!newArticleTitle.trim() || !newArticleContent.trim()}
-                className="px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-200 flex items-center space-x-2"
-              >
-                <Plus className="w-4 h-4" />
-                <span>{t('practice.create-material')}</span> 
-              </button>
             </div>
           </div>
-        </div>
-      )}
+
+          <DialogFooter className="!mx-0 !mb-0 shrink-0 gap-3 border-t border-border bg-muted/50 px-6 py-5 sm:flex-row sm:justify-end">
+            <Button type="button" variant="outline" onClick={handleAddArticleCancel}>
+              {t("cancel")}
+            </Button>
+            <Button
+              type="button"
+              disabled={!newArticleTitle.trim() || !newArticleContent.trim()}
+              onClick={handleAddArticleSave}
+              className="gap-2"
+            >
+              <Plus className="size-4" />
+              {t("practice.create-material")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

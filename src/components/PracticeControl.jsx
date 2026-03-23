@@ -1,26 +1,35 @@
-import React, { useState, useEffect } from 'react'
-import { Play, Pause, RotateCcw, Settings } from 'lucide-react'
-import { useStore } from '../store.js'
-import { formatDuration } from '../utils.js'
-import { useTranslation } from 'react-i18next'
-import { formatShortcut } from '../utils/shortcuts.js'
+import React, { useState, useEffect } from "react"
+import { Play, RotateCcw } from "lucide-react"
+import { useStore } from "../store.js"
+import { formatDuration } from "../utils.js"
+import { useTranslation } from "react-i18next"
+import { formatShortcut } from "../utils/shortcuts.js"
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+
 const PracticeControl = () => {
   const { t } = useTranslation()
-  const { currentArticle, practiceState, settings, updatePracticeState, stopPractice } = useStore()
+  const {
+    currentArticle,
+    practiceState,
+    settings,
+    updatePracticeState,
+    stopPractice,
+  } = useStore()
   const [elapsedTime, setElapsedTime] = useState(0)
   const [timer, setTimer] = useState(null)
-  
-  // Timer effect
+
   useEffect(() => {
     if (practiceState.isActive) {
       const interval = setInterval(() => {
         const now = Date.now()
         const actualElapsed = now - practiceState.startTime
         setElapsedTime(actualElapsed)
-      }, 100) // reduce update frequency to ease re-renders
-      
+      }, 100)
+
       setTimer(interval)
-      
+
       return () => clearInterval(interval)
     } else {
       if (timer) {
@@ -29,151 +38,171 @@ const PracticeControl = () => {
       }
     }
   }, [practiceState.isActive, practiceState.startTime])
-  
-  // Stop timer when practice is completed
+
   useEffect(() => {
-    if (practiceState.currentIndex >= currentArticle?.content.length && practiceState.isActive) {
-      // Practice is completed, stop the timer
+    if (
+      practiceState.currentIndex >= currentArticle?.content.length &&
+      practiceState.isActive
+    ) {
       if (timer) {
         clearInterval(timer)
         setTimer(null)
       }
     }
   }, [practiceState.currentIndex, currentArticle, practiceState.isActive, timer])
-  
+
   const handleStart = () => {
     if (currentArticle) {
       setElapsedTime(0)
       useStore.getState().startPractice(currentArticle, practiceState.mode)
     }
   }
-  
+
   const handleRestart = () => {
     if (currentArticle) {
       setElapsedTime(0)
       useStore.getState().startPractice(currentArticle, practiceState.mode)
     }
   }
-  
+
   const handleModeToggle = () => {
-    const newMode = practiceState.mode === 'lenient' ? 'strict' : 'lenient'
+    const newMode = practiceState.mode === "lenient" ? "strict" : "lenient"
     updatePracticeState({ mode: newMode })
   }
-  
+
   const handleStop = () => {
     stopPractice()
     setElapsedTime(0)
   }
-  
+
   if (!currentArticle) return null
-  
+
   return (
-    <div className="card p-4 sticky top-20 z-40 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm">
-      <div className="flex items-center justify-between">
-        {/* Left side - Article info and timer */}
-        <div className="flex items-center space-x-6">
-          <div>
-            <h3 className="font-semibold text-gray-900 dark:text-white">
-              {currentArticle.title}
-            </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              {currentArticle.wordCount} {t('word')} • {practiceState.mode === 'lenient' ? t('practice-control.lenient-mode') : t('practice-control.strict-mode')}
-            </p>
-          </div>
-          
-          <div className="text-center">
-            <div className="text-2xl font-mono font-bold text-primary-600 dark:text-primary-400">
-              {formatDuration(elapsedTime)}
+    <Card className="sticky top-20 z-40 bg-card/95 backdrop-blur-sm">
+      <CardContent className="space-y-4 pt-6">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
+            <div>
+              <h3 className="font-semibold text-foreground">
+                {currentArticle.title}
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                {currentArticle.wordCount} {t("word")} •{" "}
+                {practiceState.mode === "lenient"
+                  ? t("practice-control.lenient-mode")
+                  : t("practice-control.strict-mode")}
+              </p>
             </div>
-            <div className="text-xs text-gray-500 dark:text-gray-400">
-              {t('results.elapsed-time')}
+
+            <div className="text-center sm:text-left">
+              <div className="font-mono text-2xl font-bold text-primary">
+                {formatDuration(elapsedTime)}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {t("results.elapsed-time")}
+              </div>
             </div>
           </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className={cn(
+                "h-9",
+                practiceState.mode === "strict"
+                  ? "border-red-200 bg-red-50 text-red-800 hover:bg-red-100 dark:border-red-900 dark:bg-red-950 dark:text-red-200 dark:hover:bg-red-900"
+                  : "border-green-200 bg-green-50 text-green-800 hover:bg-green-100 dark:border-green-900 dark:bg-green-950 dark:text-green-200 dark:hover:bg-green-900"
+              )}
+              onClick={handleModeToggle}
+              title={
+                practiceState.mode === "strict"
+                  ? t("practice-control.strict-mode-description")
+                  : t("practice-control.lenient-mode-description")
+              }
+            >
+              {practiceState.mode === "strict"
+                ? t("practice-control.strict")
+                : t("practice-control.lenient")}
+            </Button>
+
+            <Button
+              type="button"
+              size="sm"
+              className="h-9 gap-1.5 px-4"
+              disabled={practiceState.isActive}
+              onClick={handleStart}
+            >
+              <Play className="size-4" />
+              {practiceState.isActive
+                ? t("practice-control.practicing")
+                : t("practice-control.restart")}
+            </Button>
+
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              className="h-9 gap-1.5"
+              onClick={handleRestart}
+              title={t("restart-practice")}
+            >
+              <RotateCcw className="size-4" />
+              {t("practice-control.restart")}
+            </Button>
+
+            <Button
+              type="button"
+              variant="destructive"
+              size="sm"
+              className="h-9"
+              onClick={handleStop}
+              title={t("practice-control.stop-practice")}
+            >
+              {t("practice-control.exit")}
+            </Button>
+          </div>
         </div>
-        
-        {/* Right side - Control buttons */}
-        <div className="flex items-center space-x-3 h-10">
-          {/* Mode toggle */}
-          <button
-            onClick={handleModeToggle}
-            className={`px-3 py-2 rounded-lg font-medium text-sm transition-colors duration-200 h-10 flex items-center justify-center ${
-              practiceState.mode === 'strict'
-                ? 'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300'
-                : 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300'
-            }`}
-            title={practiceState.mode === 'strict' ? t('practice-control.strict-mode-description') : t('practice-control.lenient-mode-description')}
-          >
-            {practiceState.mode === 'strict' ? t('practice-control.strict') : t('practice-control.lenient')}
-          </button>
-          
-          {/* Start button */}
-          <button
-            onClick={handleStart}
-            disabled={practiceState.isActive}
-            className="btn-primary px-6 py-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-          >
-            {practiceState.isActive ? (
-              <>
-                <Play className="w-4 h-4 mr-2" />
-                {t('practice-control.practicing')}
-              </>
-            ) : (
-              <>
-                <Play className="w-4 h-4 mr-2" />
-                {t('practice-control.restart')}
-              </>
-            )}
-          </button>
-          
-          {/* Restart button */}
-          <button
-            onClick={handleRestart}
-            className="btn-secondary flex items-center justify-center"
-            title={t('restart-practice')}
-          >
-            <RotateCcw className="w-4 h-4 mr-2" />
-            {t('practice-control.restart')}
-          </button>
-          
-          {/* Stop button */}
-          <button
-            onClick={handleStop}
-            className="px-4 py-2 bg-red-200 dark:bg-red-500 hover:bg-red-300 dark:hover:bg-red-400 text-red-600 dark:text-red-300 font-medium rounded-lg transition-colors duration-200 h-10 flex items-center justify-center"
-            title={t('practice-control.stop-practice')}
-          >
-            {t('practice-control.exit')}
-          </button>
+
+        <div>
+          <div className="mb-1 flex items-center justify-between text-sm text-muted-foreground">
+            <span>{t("practice-control.progress")}</span>
+            <span>
+              {Math.round(
+                (practiceState.currentIndex / currentArticle.content.length) *
+                  100
+              )}
+              %
+            </span>
+          </div>
+          <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+            <div
+              className="h-2 rounded-full bg-primary transition-all duration-300 ease-out"
+              style={{
+                width: `${(practiceState.currentIndex / currentArticle.content.length) * 100}%`,
+              }}
+            />
+          </div>
         </div>
-      </div>
-      
-      {/* Progress bar */}
-      <div className="mt-4">
-        <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 mb-1">
-          <span>{t('practice-control.progress')}</span>
-          <span>{Math.round((practiceState.currentIndex / currentArticle.content.length) * 100)}%</span>
+
+        <div className="text-xs text-muted-foreground">
+          <span>{t("practice-control.keyboard-shortcuts")}</span>
+          <span className="mx-2">
+            {formatShortcut(settings?.shortcuts?.startPractice) ||
+              t("practice-control.space-start")}
+          </span>
+          <span className="mx-2">
+            {formatShortcut(settings?.shortcuts?.exitPractice) ||
+              t("practice-control.esc-exit")}
+          </span>
+          <span className="mx-2">
+            {formatShortcut(settings?.shortcuts?.restartPractice) ||
+              t("practice-control.ctrl-enter-restart")}
+          </span>
         </div>
-        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-          <div
-            className="bg-primary-600 h-2 rounded-full transition-all duration-300 ease-out"
-            style={{ width: `${(practiceState.currentIndex / currentArticle.content.length) * 100}%` }}
-          />
-        </div>
-      </div>
-      
-      {/* Keyboard shortcuts info */}
-      <div className="mt-3 text-xs text-gray-500 dark:text-gray-400">
-        <span>{t('practice-control.keyboard-shortcuts')}</span>
-        <span className="mx-2">
-          {formatShortcut(settings?.shortcuts?.startPractice) || t('practice-control.space-start')}
-        </span>
-        <span className="mx-2">
-          {formatShortcut(settings?.shortcuts?.exitPractice) || t('practice-control.esc-exit')}
-        </span>
-        <span className="mx-2">
-          {formatShortcut(settings?.shortcuts?.restartPractice) || t('practice-control.ctrl-enter-restart')}
-        </span>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   )
 }
 
