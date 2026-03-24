@@ -3,49 +3,57 @@ import { useStore } from '../store.js'
 
 export const useTheme = () => {
   const { settings, updateSettings } = useStore()
-  
-  const setTheme = (theme) => {
-    updateSettings({ theme })
+  const theme = settings.theme
+  const themeColor = settings.visual?.themeColor ?? 'blue'
+
+  const setTheme = (next) => {
+    updateSettings({ theme: next })
   }
-  
+
   useEffect(() => {
     const applyTheme = () => {
       const root = document.documentElement
-      const { theme } = settings
 
       root.classList.add('theme')
 
       // Remove existing theme classes
       root.classList.remove('light', 'dark')
-      
+
       if (theme === 'system') {
-        // Check system preference
-        const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+        const systemTheme = window.matchMedia('(prefers-color-scheme: dark)')
+          .matches
+          ? 'dark'
+          : 'light'
         root.classList.add(systemTheme)
       } else {
         root.classList.add(theme)
       }
+
+      if (themeColor === 'blue') {
+        delete root.dataset.themeColor
+      } else {
+        root.dataset.themeColor = themeColor
+      }
     }
-    
+
     applyTheme()
-    
-    // Listen for system theme changes
+
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
     const handleChange = () => {
-      if (settings.theme === 'system') {
+      if (theme === 'system') {
         applyTheme()
       }
     }
-    
+
     mediaQuery.addEventListener('change', handleChange)
-    
+
     return () => {
       mediaQuery.removeEventListener('change', handleChange)
     }
-  }, [settings.theme])
+  }, [theme, themeColor])
   
   return {
-    theme: settings.theme,
+    theme,
     setTheme
   }
 }

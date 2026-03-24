@@ -50,6 +50,40 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 
+const THEME_COLOR_VALUES = [
+  "blue",
+  "green",
+  "orange",
+  "rose",
+  "violet",
+  "amber",
+  "teal",
+  "slate",
+]
+
+/** OKLCH matches light-mode --primary in index.css for each data-theme-color */
+const THEME_COLOR_SWATCH = {
+  blue: "oklch(0.55 0.19 252)",
+  green: "oklch(0.55 0.19 145)",
+  orange: "oklch(0.55 0.19 65)",
+  rose: "oklch(0.55 0.19 12)",
+  violet: "oklch(0.55 0.19 285)",
+  amber: "oklch(0.55 0.19 80)",
+  teal: "oklch(0.55 0.19 190)",
+  slate: "oklch(0.4 0.03 264)",
+}
+
+function ThemeColorSwatch({ colorId }) {
+  const fill = THEME_COLOR_SWATCH[colorId] ?? THEME_COLOR_SWATCH.blue
+  return (
+    <span
+      className="size-4 shrink-0 rounded-sm border border-border/70 shadow-sm"
+      style={{ backgroundColor: fill }}
+      aria-hidden
+    />
+  )
+}
+
 const SettingsPage = () => {
   const { settings, updateSettings, exportData, importData, clearAllData } =
     useStore()
@@ -230,6 +264,9 @@ const SettingsPage = () => {
     }
   }
 
+  const getThemeColorLabel = (colorId) =>
+    t(`settings.theme-color-${colorId}`)
+
   const getWPMCalculationLabel = (method) => {
     return method === "word-based"
       ? t("settings.word-based")
@@ -255,7 +292,7 @@ const SettingsPage = () => {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
-              <Palette className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              <Palette className="h-5 w-5 text-primary" />
               {t("settings.appearance-settings")}
             </CardTitle>
           </CardHeader>
@@ -277,6 +314,43 @@ const SettingsPage = () => {
               <p className="text-xs text-muted-foreground">
                 {t("settings.current")}: {getThemeLabel(theme)}
               </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label>{t("settings.theme-color")}</Label>
+              <Select
+                value={settings.visual.themeColor ?? "blue"}
+                onValueChange={(v) =>
+                  handleNestedSettingChange("visual", "themeColor", v)
+                }
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue>
+                    <span className="flex min-w-0 flex-1 items-center gap-2">
+                      <span className="min-w-0 flex-1 truncate text-left">
+                        {getThemeColorLabel(
+                          settings.visual.themeColor ?? "blue"
+                        )}
+                      </span>
+                      <ThemeColorSwatch
+                        colorId={settings.visual.themeColor ?? "blue"}
+                      />
+                    </span>
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {THEME_COLOR_VALUES.map((id) => (
+                    <SelectItem key={id} value={id}>
+                      <span className="flex min-w-0 flex-1 items-center gap-2">
+                        <span className="min-w-0 flex-1 truncate">
+                          {getThemeColorLabel(id)}
+                        </span>
+                        <ThemeColorSwatch colorId={id} />
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
@@ -344,21 +418,6 @@ const SettingsPage = () => {
               </Select>
             </div>
 
-            <div className="flex items-center justify-between gap-4">
-              <div className="space-y-0.5">
-              </div>
-              <Switch
-                id="contrast"
-                checked={settings.visual.contrastEnhance}
-                onCheckedChange={(checked) =>
-                  handleNestedSettingChange(
-                    "visual",
-                    "contrastEnhance",
-                    checked
-                  )
-                }
-              />
-            </div>
           </CardContent>
         </Card>
 

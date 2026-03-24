@@ -830,7 +830,7 @@ const PracticePage = () => {
                     {isStreaming && streamingContent && (
                       <div className="mt-4 animate-fadeIn">
                         <div className="flex items-center mb-2">
-                          <Loader2 className="w-4 h-4 animate-spin text-primary-600 dark:text-primary-400 mr-2" />
+                          <Loader2 className="w-4 h-4 animate-spin text-primary mr-2" />
                           <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
                             {t('practice.ai-generating')}...
                           </p>
@@ -838,7 +838,7 @@ const PracticePage = () => {
                         <div className="bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4 max-h-60 overflow-y-auto relative">
                           <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
                             {streamingContent}
-                            <span className="inline-block w-0.5 h-4 bg-primary-600 dark:bg-primary-400 ml-0.5 animate-pulse"></span>
+                            <span className="inline-block w-0.5 h-4 bg-primary ml-0.5 animate-pulse"></span>
                           </p>
                         </div>
                       </div>

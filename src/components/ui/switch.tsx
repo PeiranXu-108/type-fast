@@ -23,7 +23,7 @@ function Switch({
       nativeButton
       render={<button type="button" />}
       className={cn(
-        "peer relative inline-flex shrink-0 cursor-pointer items-center overflow-hidden rounded-full border border-gray-400 bg-gray-300 transition-all outline-none after:absolute after:-inset-x-3 after:-inset-y-2 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 data-[checked]:border-primary-600 data-[checked]:bg-primary-600 data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:data-[checked]:border-primary-400 dark:data-[checked]:bg-primary-400 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
+        "peer relative inline-flex shrink-0 cursor-pointer items-center overflow-hidden rounded-full border border-gray-400 bg-gray-300 transition-all outline-none after:absolute after:-inset-x-3 after:-inset-y-2 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 data-[checked]:border-primary data-[checked]:bg-primary data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
         rootSizeClasses,
         className
       )}

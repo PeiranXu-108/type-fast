@@ -52,7 +52,8 @@ export const Settings = {
     fontSize: 'medium', // 'small' | 'medium' | 'large'
     lineHeight: 'normal', // 'tight' | 'normal' | 'loose'
     cursorStyle: 'block', // 'block' | 'line' | 'underline'
-    contrastEnhance: false
+    contrastEnhance: false,
+    themeColor: 'blue' // 'blue' | 'green' | 'orange' | 'rose' | 'violet' | 'amber' | 'teal' | 'slate'
   }
 }
 

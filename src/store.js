@@ -15,7 +15,8 @@ const DEFAULT_SETTINGS = {
     fontSize: 'medium',
     lineHeight: 'normal',
     cursorStyle: 'block',
-    contrastEnhance: false
+    contrastEnhance: false,
+    themeColor: 'blue'
   },
   shortcuts: DEFAULT_SHORTCUTS,
   ui: {
