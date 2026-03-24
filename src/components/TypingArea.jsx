@@ -476,7 +476,7 @@ const TypingArea = () => {
         className += isError ? ' typing-error' : ' typing-correct'
       } else if (index === practiceState.currentIndex) {
         // Current character
-        className += ' typing-current'
+        className += ` cursor-style-${settings?.visual?.cursorStyle || 'block'}`
       }
       
       // Handle line breaks and spaces

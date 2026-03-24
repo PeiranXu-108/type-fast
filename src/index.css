@@ -244,11 +244,6 @@
     @apply text-error-600 dark:text-error-400 underline decoration-error-500;
   }
 
-  .typing-current {
-    @apply text-primary px-0.5 rounded;
-    background-color: color-mix(in oklch, var(--primary) 15%, transparent);
-  }
-
   .line-clamp-3 {
     display: -webkit-box;
     -webkit-line-clamp: 3;
@@ -263,6 +258,59 @@
   }
 }
 
+/* Cursor styles moved outside of @layer so they are never purged */
+.cursor-style-block {
+  @apply text-primary px-0.5 rounded;
+  background-color: color-mix(in oklch, var(--primary) 20%, transparent);
+  animation: blink 1s infinite;
+}
+
+.cursor-style-line {
+  @apply px-0.5 relative;
+}
+.cursor-style-line::before {
+  content: '';
+  @apply absolute left-0 top-[10%] bottom-[10%] w-[2px] bg-primary;
+  animation: blink 1s infinite;
+}
+
+.cursor-style-underline {
+  @apply px-0.5 relative;
+}
+.cursor-style-underline::after {
+  content: '';
+  @apply absolute left-0 right-0 bottom-0 h-[2px] bg-primary;
+  animation: blink 1s infinite;
+}
+
+.cursor-style-glow-block {
+  @apply text-primary px-0.5 rounded relative;
+  background-color: color-mix(in oklch, var(--primary) 25%, transparent);
+  box-shadow: 0 0 10px 0px color-mix(in oklch, var(--primary) 50%, transparent);
+  animation: blink 1s infinite;
+}
+
+.cursor-style-glow-line {
+  @apply px-0.5 relative;
+}
+.cursor-style-glow-line::before {
+  content: '';
+  @apply absolute left-0 top-[10%] bottom-[10%] w-[2px] bg-primary;
+  box-shadow: 0 0 8px 1px var(--primary);
+  animation: blink 1s infinite;
+}
+
+.cursor-style-pulse-block {
+  @apply text-primary px-0.5 rounded relative;
+  background-color: color-mix(in oklch, var(--primary) 20%, transparent);
+}
+.cursor-style-pulse-block::after {
+  content: '';
+  @apply absolute inset-0 rounded bg-primary;
+  opacity: 0.4;
+  animation: cursor-pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;
@@ -272,6 +320,12 @@
 @keyframes blink {
   0%, 50% { opacity: 1; }
   51%, 100% { opacity: 0; }
+}
+
+@keyframes cursor-pulse {
+  0% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.2); opacity: 0; }
+  100% { transform: scale(1); opacity: 0; }
 }
 
 @keyframes fadeIn {

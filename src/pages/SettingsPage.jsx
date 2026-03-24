@@ -80,6 +80,25 @@ const FONT_FAMILY_STYLE = {
   caveat: "'Caveat', cursive",
 }
 
+const CURSOR_STYLES = [
+  "block",
+  "line",
+  "underline",
+  "glow-block",
+  "glow-line",
+  "pulse-block",
+]
+
+function CursorPreview({ styleId }) {
+  return (
+    <span className="flex items-center justify-center w-6 h-6 mr-2 bg-muted/30 rounded-md shrink-0 overflow-hidden">
+      <span className={`inline-block leading-none cursor-style-${styleId}`}>
+        &nbsp;
+      </span>
+    </span>
+  )
+}
+
 /** OKLCH matches light-mode --primary in index.css for each data-theme-color */
 const THEME_COLOR_SWATCH = {
   blue: "oklch(0.55 0.19 252)",
@@ -269,6 +288,12 @@ const SettingsPage = () => {
         return t("settings.block")
       case "line":
         return t("settings.line")
+      case "glow-block":
+        return t("settings.glow-block")
+      case "glow-line":
+        return t("settings.glow-line")
+      case "pulse-block":
+        return t("settings.pulse-block")
       case "underline":
       default:
         return t("settings.underline")
@@ -444,6 +469,9 @@ const SettingsPage = () => {
 
             <div className="space-y-2">
               <Label>{t("settings.cursor-style")}</Label>
+              <p className="text-xs text-muted-foreground">
+                {t("settings.cursor-style-description")}
+              </p>
               <Select
                 value={settings.visual.cursorStyle}
                 onValueChange={(v) =>
@@ -451,16 +479,20 @@ const SettingsPage = () => {
                 }
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue>
-                    {getCursorStyleLabel(settings.visual.cursorStyle)}
-                  </SelectValue>
+                  <div className="flex items-center gap-2">
+                    <CursorPreview styleId={settings.visual.cursorStyle ?? "block"} />
+                    <SelectValue />
+                  </div>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="block">{t("settings.block")}</SelectItem>
-                  <SelectItem value="line">{t("settings.line")}</SelectItem>
-                  <SelectItem value="underline">
-                    {t("settings.underline")}
-                  </SelectItem>
+                  {CURSOR_STYLES.map((style) => (
+                    <SelectItem key={style} value={style}>
+                      <span className="flex items-center gap-2">
+                        <CursorPreview styleId={style} />
+                        <span>{getCursorStyleLabel(style)}</span>
+                      </span>
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
