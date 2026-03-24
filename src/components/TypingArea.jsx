@@ -528,6 +528,13 @@ const TypingArea = () => {
     headPoseStatus === 'down' &&
     downSince !== null &&
     Date.now() - downSince < gracePeriodMs
+  const fontSizeClass = {
+    xs: 'text-base',
+    small: 'text-lg',
+    medium: 'text-xl',
+    large: 'text-2xl',
+    xl: 'text-3xl'
+  }[settings?.visual?.fontSize || 'medium'] || 'text-xl'
   
   return (
     <Card>
@@ -570,7 +577,7 @@ const TypingArea = () => {
         ref={containerRef}
         tabIndex={0}
         onKeyDown={handleKeyDown}
-        className={`w-full rounded-lg border-2 p-6 font-mono text-lg leading-relaxed whitespace-pre-wrap overflow-auto transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+        className={`w-full rounded-lg border-2 p-6 font-mono ${fontSizeClass} leading-relaxed whitespace-pre-wrap overflow-auto transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
           practiceState.isActive
             ? 'cursor-text border-primary/40 bg-background'
             : 'cursor-default border-border bg-muted/40'

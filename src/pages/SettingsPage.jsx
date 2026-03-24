@@ -61,6 +61,8 @@ const THEME_COLOR_VALUES = [
   "slate",
 ]
 
+const FONT_SIZE_VALUES = ["xs", "small", "medium", "large", "xl"]
+
 /** OKLCH matches light-mode --primary in index.css for each data-theme-color */
 const THEME_COLOR_SWATCH = {
   blue: "oklch(0.55 0.19 252)",
@@ -230,25 +232,17 @@ const SettingsPage = () => {
 
   const getFontSizeLabel = (fontSize) => {
     switch (fontSize) {
+      case "xs":
+        return t("settings.extra-small")
       case "small":
         return t("settings.small")
       case "large":
         return t("settings.large")
+      case "xl":
+        return t("settings.extra-large")
       case "medium":
       default:
         return t("settings.medium")
-    }
-  }
-
-  const getLineHeightLabel = (lineHeight) => {
-    switch (lineHeight) {
-      case "tight":
-        return t("settings.tight")
-      case "loose":
-        return t("settings.loose")
-      case "normal":
-      default:
-        return t("settings.normal")
     }
   }
 
@@ -355,44 +349,35 @@ const SettingsPage = () => {
 
             <div className="space-y-2">
               <Label>{t("settings.font-size")}</Label>
-              <Select
-                value={settings.visual.fontSize}
-                onValueChange={(v) =>
-                  handleNestedSettingChange("visual", "fontSize", v)
-                }
+              <p className="text-xs text-muted-foreground">
+                {t("settings.font-size-description")}
+              </p>
+              <div
+                data-slot="button-group"
+                className="flex w-full rounded-lg"
               >
-                <SelectTrigger className="w-full">
-                  <SelectValue>
-                    {getFontSizeLabel(settings.visual.fontSize)}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="small">{t("settings.small")}</SelectItem>
-                  <SelectItem value="medium">{t("settings.medium")}</SelectItem>
-                  <SelectItem value="large">{t("settings.large")}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>{t("settings.line-height")}</Label>
-              <Select
-                value={settings.visual.lineHeight}
-                onValueChange={(v) =>
-                  handleNestedSettingChange("visual", "lineHeight", v)
-                }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue>
-                    {getLineHeightLabel(settings.visual.lineHeight)}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="tight">{t("settings.tight")}</SelectItem>
-                  <SelectItem value="normal">{t("settings.normal")}</SelectItem>
-                  <SelectItem value="loose">{t("settings.loose")}</SelectItem>
-                </SelectContent>
-              </Select>
+                {FONT_SIZE_VALUES.map((size) => {
+                  const active = (settings.visual.fontSize ?? "medium") === size
+                  return (
+                    <Button
+                      key={size}
+                      type="button"
+                      size="sm"
+                      variant={active ? "default" : "outline"}
+                      aria-pressed={active}
+                      className={cn(
+                        "flex-1 rounded-none border-l-0 first:rounded-l-lg first:border-l last:rounded-r-lg",
+                        active && "relative z-10"
+                      )}
+                      onClick={() =>
+                        handleNestedSettingChange("visual", "fontSize", size)
+                      }
+                    >
+                      {getFontSizeLabel(size)}
+                    </Button>
+                  )
+                })}
+              </div>
             </div>
 
             <div className="space-y-2">

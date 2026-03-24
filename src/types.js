@@ -49,7 +49,7 @@ export const Settings = {
     completion: true
   },
   visual: {
-    fontSize: 'medium', // 'small' | 'medium' | 'large'
+    fontSize: 'medium', // 'xs' | 'small' | 'medium' | 'large' | 'xl'
     lineHeight: 'normal', // 'tight' | 'normal' | 'loose'
     cursorStyle: 'block', // 'block' | 'line' | 'underline'
     contrastEnhance: false,
