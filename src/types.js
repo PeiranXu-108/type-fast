@@ -50,6 +50,7 @@ export const Settings = {
   },
   visual: {
     fontSize: 'medium', // 'xs' | 'small' | 'medium' | 'large' | 'xl'
+    fontFamily: 'jetbrains-mono', // 'jetbrains-mono' | 'fira-code' | 'source-code-pro' | 'ibm-plex-mono' | 'pacifico' | 'caveat'
     lineHeight: 'normal', // 'tight' | 'normal' | 'loose'
     cursorStyle: 'block', // 'block' | 'line' | 'underline'
     contrastEnhance: false,

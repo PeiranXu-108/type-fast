@@ -468,7 +468,7 @@ const TypingArea = () => {
     const chars = content.split('')
     
     return chars.map((char, index) => {
-      let className = 'font-mono inline-block'
+      let className = 'inline-block'
       
       if (index < practiceState.currentIndex) {
         // Already typed
@@ -528,6 +528,14 @@ const TypingArea = () => {
     headPoseStatus === 'down' &&
     downSince !== null &&
     Date.now() - downSince < gracePeriodMs
+  const fontFamily = {
+    'jetbrains-mono': "'JetBrains Mono', monospace",
+    'fira-code': "'Fira Code', monospace",
+    'source-code-pro': "'Source Code Pro', monospace",
+    'ibm-plex-mono': "'IBM Plex Mono', monospace",
+    pacifico: "'Pacifico', cursive",
+    caveat: "'Caveat', cursive"
+  }[settings?.visual?.fontFamily || 'jetbrains-mono'] || "'JetBrains Mono', monospace"
   const fontSizeClass = {
     xs: 'text-base',
     small: 'text-lg',
@@ -577,12 +585,13 @@ const TypingArea = () => {
         ref={containerRef}
         tabIndex={0}
         onKeyDown={handleKeyDown}
-        className={`w-full rounded-lg border-2 p-6 font-mono ${fontSizeClass} leading-relaxed whitespace-pre-wrap overflow-auto transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+        className={`w-full rounded-lg border-2 p-6 ${fontSizeClass} leading-relaxed whitespace-pre-wrap overflow-auto transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
           practiceState.isActive
             ? 'cursor-text border-primary/40 bg-background'
             : 'cursor-default border-border bg-muted/40'
         }`}
         style={{ 
+          fontFamily,
           height: `${textDimensions.height}px`,
           maxHeight: '800px',
           width: '100%',

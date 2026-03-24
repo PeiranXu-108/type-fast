@@ -13,6 +13,7 @@ const DEFAULT_SETTINGS = {
   },
   visual: {
     fontSize: 'medium',
+    fontFamily: 'jetbrains-mono',
     lineHeight: 'normal',
     cursorStyle: 'block',
     contrastEnhance: false,

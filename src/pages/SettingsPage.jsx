@@ -62,6 +62,23 @@ const THEME_COLOR_VALUES = [
 ]
 
 const FONT_SIZE_VALUES = ["xs", "small", "medium", "large", "xl"]
+const FONT_FAMILY_VALUES = [
+  "jetbrains-mono",
+  "fira-code",
+  "source-code-pro",
+  "ibm-plex-mono",
+  "pacifico",
+  "caveat",
+]
+
+const FONT_FAMILY_STYLE = {
+  "jetbrains-mono": "'JetBrains Mono', monospace",
+  "fira-code": "'Fira Code', monospace",
+  "source-code-pro": "'Source Code Pro', monospace",
+  "ibm-plex-mono": "'IBM Plex Mono', monospace",
+  pacifico: "'Pacifico', cursive",
+  caveat: "'Caveat', cursive",
+}
 
 /** OKLCH matches light-mode --primary in index.css for each data-theme-color */
 const THEME_COLOR_SWATCH = {
@@ -260,6 +277,8 @@ const SettingsPage = () => {
 
   const getThemeColorLabel = (colorId) =>
     t(`settings.theme-color-${colorId}`)
+  const getFontFamilyLabel = (fontFamilyId) =>
+    t(`settings.font-family-${fontFamilyId}`)
 
   const getWPMCalculationLabel = (method) => {
     return method === "word-based"
@@ -340,6 +359,49 @@ const SettingsPage = () => {
                           {getThemeColorLabel(id)}
                         </span>
                         <ThemeColorSwatch colorId={id} />
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>{t("settings.font-family")}</Label>
+              <p className="text-xs text-muted-foreground">
+                {t("settings.font-style-description")}
+              </p>
+              <Select
+                value={settings.visual.fontFamily ?? "jetbrains-mono"}
+                onValueChange={(v) =>
+                  handleNestedSettingChange("visual", "fontFamily", v)
+                }
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue>
+                    <span
+                      className="truncate text-left"
+                      style={{
+                        fontFamily:
+                          FONT_FAMILY_STYLE[
+                            settings.visual.fontFamily ?? "jetbrains-mono"
+                          ],
+                      }}
+                    >
+                      {getFontFamilyLabel(
+                        settings.visual.fontFamily ?? "jetbrains-mono"
+                      )}
+                    </span>
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {FONT_FAMILY_VALUES.map((id) => (
+                    <SelectItem key={id} value={id}>
+                      <span
+                        className="truncate"
+                        style={{ fontFamily: FONT_FAMILY_STYLE[id] }}
+                      >
+                        {getFontFamilyLabel(id)}
                       </span>
                     </SelectItem>
                   ))}
