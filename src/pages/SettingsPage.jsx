@@ -346,10 +346,6 @@ const SettingsPage = () => {
 
             <div className="flex items-center justify-between gap-4">
               <div className="space-y-0.5">
-                <Label htmlFor="contrast">{t("settings.contrast-enhancement")}</Label>
-                <p className="text-xs text-muted-foreground">
-                  {t("settings.contrast-description")}
-                </p>
               </div>
               <Switch
                 id="contrast"
