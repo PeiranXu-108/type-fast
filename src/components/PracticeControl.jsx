@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from "react"
-import { Play, RotateCcw } from "lucide-react"
+import React, { useState, useEffect, useRef } from "react"
+import { RotateCcw } from "lucide-react"
 import { useStore } from "../store.js"
 import { formatDuration } from "../utils.js"
 import { useTranslation } from "react-i18next"
-import { formatShortcut } from "../utils/shortcuts.js"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -18,23 +17,24 @@ const PracticeControl = () => {
     stopPractice,
   } = useStore()
   const [elapsedTime, setElapsedTime] = useState(0)
-  const [timer, setTimer] = useState(null)
+  const timerRef = useRef(null)
 
   useEffect(() => {
-    if (practiceState.isActive) {
+    if (practiceState.isActive && practiceState.startTime > 0) {
       const interval = setInterval(() => {
         const now = Date.now()
         const actualElapsed = now - practiceState.startTime
         setElapsedTime(actualElapsed)
       }, 100)
 
-      setTimer(interval)
+      timerRef.current = interval
 
       return () => clearInterval(interval)
     } else {
-      if (timer) {
-        clearInterval(timer)
-        setTimer(null)
+      setElapsedTime(0)
+      if (timerRef.current) {
+        clearInterval(timerRef.current)
+        timerRef.current = null
       }
     }
   }, [practiceState.isActive, practiceState.startTime])
@@ -44,19 +44,12 @@ const PracticeControl = () => {
       practiceState.currentIndex >= currentArticle?.content.length &&
       practiceState.isActive
     ) {
-      if (timer) {
-        clearInterval(timer)
-        setTimer(null)
+      if (timerRef.current) {
+        clearInterval(timerRef.current)
+        timerRef.current = null
       }
     }
-  }, [practiceState.currentIndex, currentArticle, practiceState.isActive, timer])
-
-  const handleStart = () => {
-    if (currentArticle) {
-      setElapsedTime(0)
-      useStore.getState().startPractice(currentArticle, practiceState.mode)
-    }
-  }
+  }, [practiceState.currentIndex, currentArticle, practiceState.isActive])
 
   const handleRestart = () => {
     if (currentArticle) {
@@ -135,19 +128,6 @@ const PracticeControl = () => {
 
             <Button
               type="button"
-              size="sm"
-              className="h-9 gap-1.5 px-4"
-              disabled={practiceState.isActive}
-              onClick={handleStart}
-            >
-              <Play className="size-4" />
-              {practiceState.isActive
-                ? t("practice-control.practicing")
-                : t("practice-control.restart")}
-            </Button>
-
-            <Button
-              type="button"
               variant="secondary"
               size="sm"
               className="h-9 gap-1.5"
@@ -190,22 +170,6 @@ const PracticeControl = () => {
               }}
             />
           </div>
-        </div>
-
-        <div className="text-xs text-muted-foreground">
-          <span>{t("practice-control.keyboard-shortcuts")}</span>
-          <span className="mx-2">
-            {formatShortcut(settings?.shortcuts?.startPractice) ||
-              t("practice-control.space-start")}
-          </span>
-          <span className="mx-2">
-            {formatShortcut(settings?.shortcuts?.exitPractice) ||
-              t("practice-control.esc-exit")}
-          </span>
-          <span className="mx-2">
-            {formatShortcut(settings?.shortcuts?.restartPractice) ||
-              t("practice-control.ctrl-enter-restart")}
-          </span>
         </div>
       </CardContent>
     </Card>

@@ -152,7 +152,7 @@ export const useStore = create(
           practiceState: {
             isActive: true,
             currentIndex: 0,
-            startTime: Date.now(),
+            startTime: 0,
             mode: practiceMode,
             errors: [],
             backspaces: 0,

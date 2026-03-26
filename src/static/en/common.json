@@ -291,5 +291,29 @@
         "practice-completed": "Practice Completed!",
         "return": "Return",
         "practice-again": "Practice Again"
+    },
+
+    "landing": {
+        "title": "Type Fast",
+        "badge": "Free & Open Source",
+        "subtitle_1": "Master your typing speed...",
+        "subtitle_2": "Practice makes perfect...",
+        "subtitle_3": "Track every improvement...",
+        "description": "An elegant typing practice tool to boost your speed and accuracy",
+        "get_started": "Get Started Now",
+        "features_title": "Why Type Fast",
+        "features_subtitle": "Thoughtfully designed features to help you type faster and smarter",
+        "feature_speed": "Real-time Speed Tracking",
+        "feature_speed_desc": "Live WPM & CPM monitoring that precisely records your speed changes and progress over every session",
+        "feature_accuracy": "Accuracy Deep Analysis",
+        "feature_accuracy_desc": "Detailed error statistics and historical comparison charts to identify weak spots and keep improving",
+        "feature_modes": "Flexible Practice Modes",
+        "feature_modes_desc": "Switch freely between strict and lenient modes with a built-in material library and custom text support",
+        "feature_ai": "AI Text Generation",
+        "feature_ai_desc": "Generate fresh practice passages from a topic and target word count whenever you need new material",
+        "feature_custom": "Custom Practice",
+        "feature_custom_desc": "Paste or edit any text freely to build a training flow that matches your own goals and rhythm",
+        "feature_headpose": "Touch Typing Training",
+        "feature_headpose_desc": "Use posture-aware training to reduce looking down and gradually build a real touch-typing habit"
     }
 }

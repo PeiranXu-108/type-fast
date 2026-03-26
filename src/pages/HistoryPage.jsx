@@ -143,7 +143,7 @@ const HistoryPage = () => {
   };
 
   const handlePracticeConfirm = (article) => {
-    navigate("/");
+    navigate("/practice");
     startPractice(article);
     setConfirmingPractice(null);
   };

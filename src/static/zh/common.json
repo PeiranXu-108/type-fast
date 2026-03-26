@@ -300,5 +300,29 @@
         "delete-records-article": "的所有练习记录吗？",
         "cancel": "取消",
         "delete": "删除"
+    },
+
+    "landing": {
+        "title": "Type Fast",
+        "badge": "开源免费打字练习",
+        "subtitle_1": "掌握你的打字速度...",
+        "subtitle_2": "熟能生巧，日积月累...",
+        "subtitle_3": "追踪你的每一次进步...",
+        "description": "一款优雅的英文打字练习工具，帮助你提升打字速度与准确率",
+        "get_started": "立即开始",
+        "features_title": "为什么选择 Type Fast",
+        "features_subtitle": "精心设计的功能，助你高效提升打字水平",
+        "feature_speed": "实时速度追踪",
+        "feature_speed_desc": "WPM / CPM 实时监测，精准记录每一次练习的速度变化与进步轨迹",
+        "feature_accuracy": "准确率深度分析",
+        "feature_accuracy_desc": "详细的错误统计与历史对比图表，帮助你发现薄弱环节并持续精进",
+        "feature_modes": "灵活的练习模式",
+        "feature_modes_desc": "严格与宽容模式自由切换，支持素材库与自定义文本，适配不同训练需求",
+        "feature_ai": "AI 文本生成",
+        "feature_ai_desc": "输入主题与字数即可快速生成练习内容，持续获得新鲜、贴合目标的打字素材",
+        "feature_custom": "自定义练习",
+        "feature_custom_desc": "自由粘贴或编辑任意文本，打造最适合自己的训练内容与节奏",
+        "feature_headpose": "盲打训练",
+        "feature_headpose_desc": "结合抬头姿态检测，减少低头依赖，帮助你逐步建立真正的盲打习惯"
     }
 }

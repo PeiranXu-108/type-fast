@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react'
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { useStore } from '../store.js'
 import { calculateCPM, calculateAccuracy, calculateWPMFromText, formatDuration } from '../utils.js'
 import Grade from '../modals/grade.jsx'
@@ -14,7 +14,6 @@ import {
 const TypingArea = () => {
   const { t } = useTranslation()
   const { currentArticle, practiceState, updatePracticeState, saveRecord, settings } = useStore()
-  const [startTime, setStartTime] = useState(null)
   const [realTimeStats, setRealTimeStats] = useState({
     wpm: 0,
     cpm: 0,
@@ -36,6 +35,7 @@ const TypingArea = () => {
   )
 
   const formatMetric = (value) => Number(value || 0).toFixed(2)
+  const practiceStartTime = practiceState.startTime || 0
   
   // Add sound refs instead
   const keyPressSound = useRef(null)
@@ -165,20 +165,12 @@ const TypingArea = () => {
     t
   ])
   
-  // Handle practice completion
-  useEffect(() => {
-    
-    if (practiceState.currentIndex >= currentArticle?.content.length) {
-      handlePracticeComplete()
-    }
-  }, [practiceState.currentIndex, currentArticle])
-  
   // Real-time stats calculation
   useEffect(() => {
-    if (practiceState.isActive && startTime) {
+    if (practiceState.isActive && practiceStartTime > 0) {
       statsIntervalRef.current = setInterval(() => {
         const now = Date.now()
-        const elapsed = now - startTime
+        const elapsed = now - practiceStartTime
         
         if (elapsed > 0) {
           // Use the new WPM calculation function that properly counts words
@@ -208,7 +200,16 @@ const TypingArea = () => {
         }
       }
     }
-  }, [practiceState.isActive, startTime, practiceState.currentIndex, practiceState.keystrokes, currentArticle, strictModeErrors])
+  }, [
+    practiceState.isActive,
+    practiceStartTime,
+    practiceState.currentIndex,
+    practiceState.keystrokes,
+    practiceState.mode,
+    practiceState.errors.length,
+    currentArticle,
+    strictModeErrors,
+  ])
   
   const handleKeyDown = (e) => {
     if (!practiceState.isActive || showGrade) return
@@ -270,6 +271,9 @@ const TypingArea = () => {
     
     // Handle regular character input (including space and other characters)
     if (pressedChar.length === 1) {
+      const startedAt = practiceStartTime || Date.now()
+      const startTimeUpdate = practiceStartTime > 0 ? {} : { startTime: startedAt }
+
       // Normalize characters for comparison to handle various edge cases
       const normalizedPressedChar = normalizeChar(pressedChar)
       const normalizedExpectedChar = normalizeChar(expectedChar)
@@ -277,6 +281,7 @@ const TypingArea = () => {
       if (normalizedPressedChar === normalizedExpectedChar) {
         // Correct character
         updatePracticeState({
+          ...startTimeUpdate,
           currentIndex: practiceState.currentIndex + 1,
           keystrokes: practiceState.keystrokes + 1
         })
@@ -287,11 +292,6 @@ const TypingArea = () => {
             keyPressSound.current.currentTime = 0 // Reset to start
             keyPressSound.current.play().catch(() => {}) // Handle autoplay restrictions
           }
-        }
-        
-        // Start timer on first correct input
-        if (!startTime) {
-          setStartTime(Date.now())
         }
       } else if (practiceState.mode === 'lenient') {
         // Lenient mode - allow errors but track them
@@ -314,6 +314,7 @@ const TypingArea = () => {
         }
         
         updatePracticeState({
+          ...startTimeUpdate,
           currentIndex: practiceState.currentIndex + 1,
           errors: [...practiceState.errors, error],
           keystrokes: practiceState.keystrokes + 1
@@ -326,16 +327,13 @@ const TypingArea = () => {
             keyPressSound.current.play().catch(() => {}) // Handle autoplay restrictions
           }
         }
-        
-        if (!startTime) {
-          setStartTime(Date.now())
-        }
       } else if (practiceState.mode === 'strict') {
         // Strict mode - mark error and prevent progression until corrected
         setStrictModeErrors(prev => [...prev, practiceState.currentIndex])
         // Don't increment currentIndex, don't add to errors array
         // Just track the keystroke
         updatePracticeState({
+          ...startTimeUpdate,
           keystrokes: practiceState.keystrokes + 1
         })
         
@@ -345,10 +343,6 @@ const TypingArea = () => {
             keyPressSound.current.currentTime = 0 // Reset to start
             keyPressSound.current.play().catch(() => {}) // Handle autoplay restrictions
           }
-        }
-        
-        if (!startTime) {
-          setStartTime(Date.now())
         }
       }
     }
@@ -368,7 +362,6 @@ const TypingArea = () => {
       keystrokes: 0
     })
     
-    setStartTime(null)
     setRealTimeStats({ wpm: 0, cpm: 0, accuracy: 100 })
     setStrictModeErrors([]) // Reset strict mode errors
   }
@@ -387,7 +380,6 @@ const TypingArea = () => {
       keystrokes: 0
     })
     
-    setStartTime(null)
     setRealTimeStats({ wpm: 0, cpm: 0, accuracy: 100 })
     setStrictModeErrors([]) // Reset strict mode errors
     
@@ -396,9 +388,10 @@ const TypingArea = () => {
     }
   }
   
-  const handlePracticeComplete = () => {
+  const handlePracticeComplete = useCallback(() => {
     const endTime = Date.now()
-    const totalTime = endTime - startTime
+    const startedAt = practiceStartTime || endTime
+    const totalTime = Math.max(endTime - startedAt, 0)
     
     // Play completion sound if enabled
     if (settings.sounds.completion) {
@@ -428,7 +421,7 @@ const TypingArea = () => {
     
     const record = {
       durationMs: totalTime,
-      startedAt: startTime,
+      startedAt,
       endedAt: endTime,
       wpm: finalWpm,
       cpm: realTimeStats.cpm,
@@ -459,7 +452,26 @@ const TypingArea = () => {
     
     // Don't reset practice state immediately - let the grade modal show first
     // We'll reset it when user clicks return or practice again
-  }
+  }, [
+    currentArticle,
+    practiceStartTime,
+    practiceState.currentIndex,
+    practiceState.errors,
+    practiceState.backspaces,
+    practiceState.keystrokes,
+    practiceState.mode,
+    realTimeStats.cpm,
+    saveRecord,
+    settings,
+    strictModeErrors,
+  ])
+
+  // Handle practice completion
+  useEffect(() => {
+    if (practiceState.currentIndex >= currentArticle?.content.length) {
+      handlePracticeComplete()
+    }
+  }, [practiceState.currentIndex, currentArticle, handlePracticeComplete])
   
   const renderText = () => {
     if (!currentArticle) return null
@@ -512,7 +524,7 @@ const TypingArea = () => {
     const estimatedHeight = Math.max(400, Math.min(800, lines * lineHeight + baseHeight))
 
     return { lines, maxLineLength, height: estimatedHeight }
-  }, [currentArticle?.content])
+  }, [currentArticle])
   
   if (!currentArticle) return null
 

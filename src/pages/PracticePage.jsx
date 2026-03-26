@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { useLocation, useNavigate } from "react-router-dom"
 import { useStore } from "../store.js";
 import {
   generateSampleArticles,
@@ -46,6 +47,8 @@ import {
 
 const PracticePage = () => {
   const { t } = useTranslation()
+  const location = useLocation()
+  const navigate = useNavigate()
   const {
     articles,
     customArticles,
@@ -99,7 +102,7 @@ const PracticePage = () => {
       });
       setSamplesInitialized(true);
     }
-  }, [articles.length, samplesInitialized]);
+  }, [addArticle, articles.length, sampleArticles, samplesInitialized]);
 
   // Reset samplesInitialized when articles become empty (e.g., after clearAllData)
   useEffect(() => {
@@ -107,6 +110,24 @@ const PracticePage = () => {
       setSamplesInitialized(false);
     }
   }, [articles.length]);
+
+  useEffect(() => {
+    if (!location.state?.autoStartRandomSample || practiceState.isActive) return
+    if (sampleArticles.length === 0) return
+
+    const randomArticle =
+      sampleArticles[Math.floor(Math.random() * sampleArticles.length)]
+
+    setCurrentArticle(randomArticle)
+    useStore.getState().startPractice(randomArticle)
+    navigate("/practice", { replace: true })
+  }, [
+    location.state,
+    navigate,
+    practiceState.isActive,
+    sampleArticles,
+    setCurrentArticle,
+  ])
 
   // Keyboard shortcuts for modals
   useEffect(() => {

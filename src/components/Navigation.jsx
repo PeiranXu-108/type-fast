@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react"
-import { Link, NavLink } from "react-router-dom"
+import { Link, NavLink, useLocation } from "react-router-dom"
 import { Sun, Moon, Languages, Github, Menu } from "lucide-react"
 import { useTheme } from "../hooks/useTheme.js"
 import { useStore } from "../store.js"
@@ -14,13 +14,15 @@ const Navigation = () => {
   const { t, i18n } = useTranslation()
   const [language, setLanguage] = useState(i18n.language || "zh")
   const [mobileOpen, setMobileOpen] = useState(false)
+  const location = useLocation()
+  const isLanding = location.pathname === "/"
 
   useEffect(() => {
     setLanguage(i18n.language || "zh")
   }, [i18n.language])
 
   const navItems = [
-    { path: "/", label: t("navigation.practice"), tab: "practice" },
+    { path: "/practice", label: t("navigation.practice"), tab: "practice" },
     { path: "/history", label: t("navigation.history"), tab: "history" },
     { path: "/settings", label: t("navigation.settings"), tab: "settings" },
   ]
@@ -55,7 +57,14 @@ const Navigation = () => {
     )
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+    <nav
+      className={cn(
+        "top-0 z-50 transition-all duration-300",
+        isLanding
+          ? "absolute left-0 right-0 bg-transparent"
+          : "sticky border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80"
+      )}
+    >
       <div className="container mx-auto max-w-7xl px-4">
         <div className="flex h-16 items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
@@ -65,18 +74,20 @@ const Navigation = () => {
             <span className="text-xl font-bold text-foreground">Type Fast</span>
           </Link>
 
-          <div className="hidden items-center gap-1 md:flex">
-            {navItems.map((item) => (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                onClick={() => handleNavClick(item.tab)}
-                className={navLinkClass}
-              >
-                {item.label}
-              </NavLink>
-            ))}
-          </div>
+          {!isLanding && (
+            <div className="hidden items-center gap-1 md:flex">
+              {navItems.map((item) => (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => handleNavClick(item.tab)}
+                  className={navLinkClass}
+                >
+                  {item.label}
+                </NavLink>
+              ))}
+            </div>
+          )}
 
           <div className="flex items-center gap-1">
             <Button
@@ -122,42 +133,44 @@ const Navigation = () => {
               <Github className="size-5" />
             </Button>
 
-            <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-              <SheetTrigger
-                className="md:hidden"
-                render={
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    aria-label="Open menu"
-                  />
-                }
-              >
-                <Menu className="size-6" />
-              </SheetTrigger>
-              <SheetContent side="right" className="w-[min(100%,20rem)]">
-                <nav className="mt-2 flex flex-col gap-1">
-                  {navItems.map((item) => (
-                    <NavLink
-                      key={item.path}
-                      to={item.path}
-                      onClick={() => handleNavClick(item.tab)}
-                      className={({ isActive }) =>
-                        cn(
-                          "rounded-lg px-4 py-3 text-sm font-medium",
-                          isActive
-                            ? "bg-primary/10 text-primary"
-                            : "text-muted-foreground hover:bg-muted"
-                        )
-                      }
-                    >
-                      {item.label}
-                    </NavLink>
-                  ))}
-                </nav>
-              </SheetContent>
-            </Sheet>
+            {!isLanding && (
+              <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+                <SheetTrigger
+                  className="md:hidden"
+                  render={
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      aria-label="Open menu"
+                    />
+                  }
+                >
+                  <Menu className="size-6" />
+                </SheetTrigger>
+                <SheetContent side="right" className="w-[min(100%,20rem)]">
+                  <nav className="mt-2 flex flex-col gap-1">
+                    {navItems.map((item) => (
+                      <NavLink
+                        key={item.path}
+                        to={item.path}
+                        onClick={() => handleNavClick(item.tab)}
+                        className={({ isActive }) =>
+                          cn(
+                            "rounded-lg px-4 py-3 text-sm font-medium",
+                            isActive
+                              ? "bg-primary/10 text-primary"
+                              : "text-muted-foreground hover:bg-muted"
+                          )
+                        }
+                      >
+                        {item.label}
+                      </NavLink>
+                    ))}
+                  </nav>
+                </SheetContent>
+              </Sheet>
+            )}
           </div>
         </div>
       </div>

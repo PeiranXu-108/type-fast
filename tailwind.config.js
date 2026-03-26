@@ -113,9 +113,54 @@ export default {
           900: "#7f1d1d",
         },
       },
+      keyframes: {
+        "landing-float": {
+          "0%, 100%": { transform: "translateY(0) rotate(0deg)" },
+          "50%": { transform: "translateY(-18px) rotate(3deg)" },
+        },
+        "landing-float-delayed": {
+          "0%, 100%": { transform: "translateY(0) rotate(0deg)" },
+          "50%": { transform: "translateY(-14px) rotate(-2.5deg)" },
+        },
+        "landing-float-slow": {
+          "0%, 100%": { transform: "translateY(0) rotate(0deg)" },
+          "50%": { transform: "translateY(-10px) rotate(1.5deg)" },
+        },
+        "landing-drift": {
+          "0%, 100%": { transform: "translate(0, 0) scale(1)" },
+          "33%": { transform: "translate(30px, -20px) scale(1.05)" },
+          "66%": { transform: "translate(-20px, 15px) scale(0.95)" },
+        },
+        "landing-drift-reverse": {
+          "0%, 100%": { transform: "translate(0, 0) scale(1)" },
+          "33%": { transform: "translate(-25px, 20px) scale(0.95)" },
+          "66%": { transform: "translate(15px, -25px) scale(1.08)" },
+        },
+        "landing-drift-slow": {
+          "0%, 100%": { transform: "translate(0, 0) scale(1)" },
+          "50%": { transform: "translate(20px, -10px) scale(1.03)" },
+        },
+        "landing-cursor": {
+          "0%, 45%": { opacity: "1" },
+          "50%, 95%": { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
+        "landing-scroll-dot": {
+          "0%": { opacity: "1", transform: "translateY(0)" },
+          "100%": { opacity: "0", transform: "translateY(6px)" },
+        },
+      },
       animation: {
         "pulse-slow": "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
         "bounce-slow": "bounce 2s infinite",
+        "landing-float": "landing-float 6s ease-in-out infinite",
+        "landing-float-delayed": "landing-float-delayed 7s ease-in-out infinite",
+        "landing-float-slow": "landing-float-slow 9s ease-in-out infinite",
+        "landing-drift": "landing-drift 12s ease-in-out infinite",
+        "landing-drift-reverse": "landing-drift-reverse 14s ease-in-out infinite",
+        "landing-drift-slow": "landing-drift-slow 18s ease-in-out infinite",
+        "landing-cursor": "landing-cursor 1s step-end infinite",
+        "landing-scroll-dot": "landing-scroll-dot 1.5s ease-in-out infinite",
       },
     },
   },
