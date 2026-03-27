@@ -93,6 +93,27 @@ const PracticePage = () => {
   const [aiError, setAiError] = useState("");
   const [streamingContent, setStreamingContent] = useState(""); // For streaming content display
   const [isStreaming, setIsStreaming] = useState(false); // Track streaming state
+  const [isMobileDevice, setIsMobileDevice] = useState(false);
+
+  useEffect(() => {
+    const detectMobileDevice = () => {
+      const mobileUserAgentRegex =
+        /Android|iPhone|iPad|iPod|Windows Phone|webOS|BlackBerry|Opera Mini|IEMobile/i;
+      const isMobileUserAgent = mobileUserAgentRegex.test(navigator.userAgent);
+      const isSmallTouchScreen =
+        window.matchMedia("(max-width: 768px)").matches &&
+        navigator.maxTouchPoints > 0;
+
+      setIsMobileDevice(isMobileUserAgent || isSmallTouchScreen);
+    };
+
+    detectMobileDevice();
+    window.addEventListener("resize", detectMobileDevice);
+
+    return () => {
+      window.removeEventListener("resize", detectMobileDevice);
+    };
+  }, []);
 
   // Initialize with sample articles if no articles exist
   useEffect(() => {
@@ -420,6 +441,14 @@ const PracticePage = () => {
 
     return sorted.slice(0, 5)
   }, [articles, records])
+
+  if (isMobileDevice) {
+    return (
+      <div className="py-20 text-center text-lg font-medium text-muted-foreground">
+        {t("practice.mobile-not-supported")}
+      </div>
+    );
+  }
 
   if (practiceState.isActive && currentArticle) {
     return (

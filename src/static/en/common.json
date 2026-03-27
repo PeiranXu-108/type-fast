@@ -71,7 +71,8 @@
         "delete-article": "?",
         "practice-confirmation": "Ready to start practice",
         "ready-to-practice": "?",
-        "enter-article-content": "Enter article content"
+        "enter-article-content": "Enter article content",
+        "mobile-not-supported": "Type Fast does not support practice on mobile devices yet"
 
     },
     

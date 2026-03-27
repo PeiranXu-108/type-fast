@@ -70,7 +70,8 @@
         "delete-article": "吗？",
         "practice-confirmation": "准备好开始练习",
         "ready-to-practice": "了吗？",
-        "enter-article-content": "输入文章内容"
+        "enter-article-content": "输入文章内容",
+        "mobile-not-supported": "typefast暂不支持移动端设备练习"
     },
     
     "practice-control": {
