@@ -41,7 +41,7 @@ export const PracticeState = {
 
 // Settings interface
 export const Settings = {
-  theme: 'system', // 'light' | 'dark' | 'system'
+  theme: 'system', // 'light' | 'dark' | 'system' | 'eye-care'
   wpmCalculation: 'word-based', // 'char-based' | 'word-based'
   defaultMode: 'lenient', // 'lenient' | 'strict'
   sounds: {

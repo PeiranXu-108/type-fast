@@ -17,9 +17,11 @@ export const useTheme = () => {
       root.classList.add('theme')
 
       // Remove existing theme classes
-      root.classList.remove('light', 'dark')
+      root.classList.remove('light', 'dark', 'eye-care')
 
-      if (theme === 'system') {
+      if (theme === 'eye-care') {
+        root.classList.add('light', 'eye-care')
+      } else if (theme === 'system') {
         const systemTheme = window.matchMedia('(prefers-color-scheme: dark)')
           .matches
           ? 'dark'

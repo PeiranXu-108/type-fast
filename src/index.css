@@ -100,6 +100,31 @@
     --sidebar-ring: oklch(0.556 0 0);
   }
 
+  /* Warm paper / eye-care: light text on beige-cream background */
+  html.theme.light.eye-care {
+    --background: oklch(0.965 0.028 92);
+    --foreground: oklch(0.24 0.03 78);
+    --card: oklch(0.99 0.018 92);
+    --card-foreground: oklch(0.24 0.03 78);
+    --popover: oklch(0.99 0.018 92);
+    --popover-foreground: oklch(0.24 0.03 78);
+    --secondary: oklch(0.94 0.035 92);
+    --secondary-foreground: oklch(0.28 0.03 78);
+    --muted: oklch(0.935 0.038 92);
+    --muted-foreground: oklch(0.48 0.04 78);
+    --accent: oklch(0.93 0.04 92);
+    --accent-foreground: oklch(0.28 0.03 78);
+    --border: oklch(0.89 0.045 88);
+    --input: oklch(0.89 0.045 88);
+    --ring: oklch(0.72 0.06 88);
+    --sidebar: oklch(0.975 0.02 92);
+    --sidebar-foreground: oklch(0.24 0.03 78);
+    --sidebar-accent: oklch(0.94 0.035 92);
+    --sidebar-accent-foreground: oklch(0.28 0.03 78);
+    --sidebar-border: oklch(0.89 0.045 88);
+    --sidebar-ring: oklch(0.72 0.06 88);
+  }
+
   html.theme.light[data-theme-color="green"] {
     --primary: oklch(0.55 0.19 145);
     --primary-foreground: oklch(0.985 0 0);

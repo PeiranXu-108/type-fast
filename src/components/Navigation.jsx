@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react"
 import { Link, NavLink, useLocation } from "react-router-dom"
-import { Sun, Moon, Languages, Github, Menu } from "lucide-react"
+import { Sun, Moon, Eye, Languages, Github, Menu } from "lucide-react"
 import { useTheme } from "../hooks/useTheme.js"
 import { useStore } from "../store.js"
 import { useTranslation } from "react-i18next"
@@ -34,17 +34,20 @@ const Navigation = () => {
 
   const getThemeIcon = () => {
     switch (theme) {
-      default:
-        return <Sun className="size-5" />
       case "dark":
         return <Moon className="size-5" />
+      case "eye-care":
+        return <Eye className="size-5" />
+      default:
+        return <Sun className="size-5" />
     }
   }
 
   const cycleTheme = () => {
-    const themes = ["dark", "light"]
+    const themes = ["light", "eye-care", "dark", "system"]
     const currentIndex = themes.indexOf(theme)
-    const nextIndex = (currentIndex + 1) % themes.length
+    const nextIndex =
+      currentIndex === -1 ? 0 : (currentIndex + 1) % themes.length
     setTheme(themes[nextIndex])
   }
 
@@ -97,10 +100,14 @@ const Navigation = () => {
               onClick={cycleTheme}
               title={
                 theme === "system"
-                  ? "跟随系统"
+                  ? t("settings.follow-system")
                   : theme === "light"
-                    ? "浅色"
-                    : "深色"
+                    ? t("settings.light")
+                    : theme === "eye-care"
+                      ? t("settings.eye-care")
+                      : theme === "dark"
+                        ? t("settings.dark")
+                        : t("settings.follow-system")
               }
             >
               {getThemeIcon()}

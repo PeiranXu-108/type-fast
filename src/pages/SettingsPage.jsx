@@ -553,6 +553,8 @@ const SettingsPage = () => {
         return t("settings.light")
       case "dark":
         return t("settings.dark")
+      case "eye-care":
+        return t("settings.eye-care")
       case "system":
         return t("settings.follow-system")
       default:
@@ -645,6 +647,7 @@ const SettingsPage = () => {
                   </SelectItem>
                   <SelectItem value="light">{t("settings.light")}</SelectItem>
                   <SelectItem value="dark">{t("settings.dark")}</SelectItem>
+                  <SelectItem value="eye-care">{t("settings.eye-care")}</SelectItem>
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">
