@@ -1,6 +1,7 @@
-import React, { useEffect, useMemo, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useStore } from "../store.js"
 import { useTheme } from "../hooks/useTheme.js"
+import { HeadPoseDetector } from "../lib/headPoseDetector.js"
 import {
   Settings,
   Palette,
@@ -21,6 +22,7 @@ import {
 } from "../utils/shortcuts.js"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { Spinner } from "@/components/ui/spinner"
 import {
   Card,
   CardContent,
@@ -49,6 +51,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 const THEME_COLOR_VALUES = [
   "blue",
@@ -122,6 +132,271 @@ function ThemeColorSwatch({ colorId }) {
   )
 }
 
+const EMPTY_HEADPOSE_DEBUG_STATE = {
+  status: "unknown",
+  scores: {
+    down: 0,
+    forward: 0,
+    up: 0,
+  },
+  predictions: [],
+  isCameraReady: false,
+  isModelReady: false,
+  lastUpdatedAt: null,
+  error: "",
+}
+
+function HeadPoseScoreRow({ label, score, toneClass }) {
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center justify-between gap-3 text-sm">
+        <span className="text-foreground">{label}</span>
+        <span className="font-mono text-muted-foreground">
+          {(score * 100).toFixed(1)}%
+        </span>
+      </div>
+      <div className="h-2 overflow-hidden rounded-full bg-muted">
+        <div
+          className={cn("h-full rounded-full transition-all duration-200", toneClass)}
+          style={{ width: `${Math.max(0, Math.min(score * 100, 100))}%` }}
+        />
+      </div>
+    </div>
+  )
+}
+
+function HeadPoseDebugDialog({
+  open,
+  onOpenChange,
+  samplingMs,
+  onDetectorUnavailable,
+  t,
+}) {
+  const detectorRef = useRef(null)
+  const previewRef = useRef(null)
+  const attachedPreviewRef = useRef(null)
+  const [debugState, setDebugState] = useState(EMPTY_HEADPOSE_DEBUG_STATE)
+  const [isStarting, setIsStarting] = useState(false)
+
+  const attachPreviewStream = useCallback(async () => {
+    const previewEl = previewRef.current
+    const stream = detectorRef.current?.getStream()
+
+    if (!previewEl || !stream) return
+
+    attachedPreviewRef.current = previewEl
+
+    if (previewEl.srcObject !== stream) {
+      previewEl.srcObject = stream
+    }
+
+    try {
+      await previewEl.play()
+    } catch {
+      // Some browsers require a user gesture before play() resolves.
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!open) {
+      setIsStarting(false)
+      setDebugState(EMPTY_HEADPOSE_DEBUG_STATE)
+      return
+    }
+
+    let isDisposed = false
+    const detector = new HeadPoseDetector({ samplingMs })
+    detectorRef.current = detector
+    setIsStarting(true)
+    setDebugState(EMPTY_HEADPOSE_DEBUG_STATE)
+
+    const unsubscribeStatus = detector.subscribe((status) => {
+      if (!isDisposed) {
+        setDebugState((previous) => ({ ...previous, status }))
+      }
+    })
+
+    const unsubscribeDebug = detector.subscribeDebug((nextState) => {
+      if (!isDisposed) {
+        setDebugState(nextState)
+      }
+    })
+
+    detector
+      .start()
+      .then(async () => {
+        if (isDisposed) return
+        await attachPreviewStream()
+      })
+      .catch((error) => {
+        if (isDisposed) return
+        console.warn("Head pose debug preview failed:", error)
+        setDebugState((previous) => ({
+          ...previous,
+          error: t("settings.headpose-debug-error"),
+          status: "unknown",
+        }))
+        onDetectorUnavailable()
+      })
+      .finally(() => {
+        if (!isDisposed) {
+          setIsStarting(false)
+        }
+      })
+
+    return () => {
+      isDisposed = true
+      unsubscribeStatus()
+      unsubscribeDebug()
+
+      const previewEl = attachedPreviewRef.current
+      if (previewEl) {
+        previewEl.pause?.()
+        previewEl.srcObject = null
+      }
+
+      detector.stop()
+      detectorRef.current = null
+      attachedPreviewRef.current = null
+    }
+  }, [attachPreviewStream, open, onDetectorUnavailable, samplingMs, t])
+
+  useEffect(() => {
+    if (!open || !debugState.isCameraReady) return
+    attachPreviewStream()
+  }, [attachPreviewStream, debugState.isCameraReady, open])
+
+  const statusLabel =
+    debugState.status === "down"
+      ? t("practice-control.headpose-status-down")
+      : debugState.status === "no-face"
+        ? t("practice-control.headpose-status-no-face")
+      : debugState.status === "up"
+        ? t("practice-control.headpose-status-up")
+        : t("practice-control.headpose-status-checking")
+
+  const statusTextClass =
+    debugState.status === "down"
+      ? "text-red-600 dark:text-red-400"
+      : debugState.status === "up"
+        ? "text-emerald-600 dark:text-emerald-400"
+        : debugState.status === "no-face"
+          ? "text-amber-600 dark:text-amber-400"
+          : "text-muted-foreground"
+
+  const cameraStatusLoading = !debugState.isCameraReady && isStarting
+  const modelStatusLoading = !debugState.isModelReady && isStarting
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-[calc(100%-2rem)] sm:max-w-4xl">
+        <DialogHeader>
+          <DialogTitle>{t("settings.headpose-debug-title")}</DialogTitle>
+          <DialogDescription>
+            {t("settings.headpose-debug-description")}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="grid items-stretch gap-4 md:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+          <div className="flex h-full">
+            <div className="min-h-[320px] w-full overflow-hidden rounded-xl border bg-black">
+              <video
+                ref={previewRef}
+                autoPlay
+                muted
+                playsInline
+                className="h-full w-full object-cover [transform:scaleX(-1)]"
+              />
+            </div>
+          </div>
+
+          <div className="flex h-full flex-col gap-4">
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="rounded-lg border bg-muted/40 p-3">
+                <div className="text-xs text-muted-foreground">
+                  {t("settings.headpose-debug-current-status")}
+                </div>
+                <div className={cn("mt-1 text-sm font-semibold", statusTextClass)}>
+                  {statusLabel}
+                </div>
+              </div>
+              <div className="rounded-lg border bg-muted/40 p-3">
+                <div className="text-xs text-muted-foreground">
+                  {t("settings.headpose-debug-camera")}
+                </div>
+                <div className="mt-1 flex items-center gap-2 text-sm font-medium text-foreground">
+                  {cameraStatusLoading ? <Spinner className="size-3.5" /> : null}
+                  <span>
+                    {debugState.isCameraReady
+                      ? t("settings.headpose-debug-ready")
+                      : isStarting
+                        ? t("settings.headpose-debug-loading")
+                        : t("settings.headpose-debug-waiting")}
+                  </span>
+                </div>
+              </div>
+              <div className="rounded-lg border bg-muted/40 p-3">
+                <div className="text-xs text-muted-foreground">
+                  {t("settings.headpose-debug-model")}
+                </div>
+                <div className="mt-1 flex items-center gap-2 text-sm font-medium text-foreground">
+                  {modelStatusLoading ? <Spinner className="size-3.5" /> : null}
+                  <span>
+                    {debugState.isModelReady
+                      ? t("settings.headpose-debug-ready")
+                      : isStarting
+                        ? t("settings.headpose-debug-loading")
+                        : t("settings.headpose-debug-waiting")}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex-1 space-y-3 rounded-xl border p-4">
+              <div>
+                <div className="text-sm font-medium text-foreground">
+                  {t("settings.headpose-debug-scores")}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {t("settings.headpose-debug-score-description")}
+                </div>
+              </div>
+
+              <HeadPoseScoreRow
+                label={t("settings.headpose-debug-score-down")}
+                score={debugState.scores.down}
+                toneClass="bg-red-500"
+              />
+              <HeadPoseScoreRow
+                label={t("settings.headpose-debug-score-forward")}
+                score={debugState.scores.forward}
+                toneClass="bg-amber-500"
+              />
+              <HeadPoseScoreRow
+                label={t("settings.headpose-debug-score-up")}
+                score={debugState.scores.up}
+                toneClass="bg-emerald-500"
+              />
+            </div>
+
+            {debugState.error ? (
+              <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+                {debugState.error}
+              </div>
+            ) : null}
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            {t("settings.headpose-debug-close")}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 const SettingsPage = () => {
   const { settings, updateSettings, exportData, importData, clearAllData } =
     useStore()
@@ -131,6 +406,7 @@ const SettingsPage = () => {
   const { t } = useTranslation()
   const [editingShortcutKey, setEditingShortcutKey] = useState(null)
   const [shortcutError, setShortcutError] = useState("")
+  const [isHeadPoseDialogOpen, setIsHeadPoseDialogOpen] = useState(false)
 
   const shortcuts = settings?.shortcuts || DEFAULT_SHORTCUTS
 
@@ -198,6 +474,28 @@ const SettingsPage = () => {
       },
     })
   }
+
+  const handleHeadPoseEnabledChange = useCallback(
+    (checked) => {
+      updateSettings({
+        headPoseTraining: {
+          ...(settings.headPoseTraining || {}),
+          enabled: checked,
+        },
+      })
+      setIsHeadPoseDialogOpen(checked)
+    },
+    [settings.headPoseTraining, updateSettings]
+  )
+
+  const handleHeadPoseDetectorUnavailable = useCallback(() => {
+    updateSettings({
+      headPoseTraining: {
+        ...(settings.headPoseTraining || {}),
+        enabled: false,
+      },
+    })
+  }, [settings.headPoseTraining, updateSettings])
 
   const handleExport = () => {
     exportData()
@@ -605,14 +903,22 @@ const SettingsPage = () => {
                 <Switch
                   id="headpose-enabled"
                   checked={Boolean(settings.headPoseTraining?.enabled)}
-                  onCheckedChange={(checked) =>
-                    handleSettingChange("headPoseTraining", {
-                      ...(settings.headPoseTraining || {}),
-                      enabled: checked,
-                    })
-                  }
+                  onCheckedChange={handleHeadPoseEnabledChange}
                 />
               </div>
+
+              {settings.headPoseTraining?.enabled ? (
+                <div className="flex justify-end">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsHeadPoseDialogOpen(true)}
+                  >
+                    {t("settings.headpose-debug-open")}
+                  </Button>
+                </div>
+              ) : null}
 
               <div className="space-y-2">
                 <Label>{t("settings.headpose-grace-period")}</Label>
@@ -811,6 +1117,14 @@ const SettingsPage = () => {
           </CardContent>
         </Card>
       </div>
+
+      <HeadPoseDebugDialog
+        open={isHeadPoseDialogOpen}
+        onOpenChange={setIsHeadPoseDialogOpen}
+        samplingMs={settings.headPoseTraining?.samplingMs || 300}
+        onDetectorUnavailable={handleHeadPoseDetectorUnavailable}
+        t={t}
+      />
 
       <AlertDialog open={showClearConfirm} onOpenChange={setShowClearConfirm}>
         <AlertDialogContent>

@@ -186,6 +186,7 @@
         "mode": "模式",
         "strict": "严格",
         "lenient": "宽容",
+        "touch-typing": "盲打",
         "select-article": "选择文章查看历史",
         "select-article-desc": "从左侧列表中选择一篇文章来查看其练习历史和统计数据",
         "confirm-delete-records": "确认删除记录",
@@ -283,7 +284,24 @@
         "headpose-grace-period": "低头宽限期",
         "headpose-grace-500": "0.5 秒",
         "headpose-grace-1000": "1.0 秒",
-        "headpose-grace-1500": "1.5 秒"
+        "headpose-grace-1500": "1.5 秒",
+        "headpose-debug-open": "打开调试面板",
+        "headpose-debug-title": "姿态检测调试面板",
+        "headpose-debug-description": "图像由浏览器本地识别，不会上传到任何服务器。",
+        "headpose-debug-tip": "画面为镜像预览，分数越高表示该分类越接近当前画面。",
+        "headpose-debug-current-status": "当前判断",
+        "headpose-debug-camera": "摄像头",
+        "headpose-debug-model": "模型",
+        "headpose-debug-ready": "已就绪",
+        "headpose-debug-loading": "加载中",
+        "headpose-debug-waiting": "等待中",
+        "headpose-debug-scores": "三类分数",
+        "headpose-debug-score-description": "用于比较“低头 / 平视 / 抬头”三个候选类别的实时置信度。",
+        "headpose-debug-score-down": "低头看键盘",
+        "headpose-debug-score-forward": "平视前方",
+        "headpose-debug-score-up": "抬头",
+        "headpose-debug-close": "关闭调试面板",
+        "headpose-debug-error": "摄像头或模型初始化失败，已自动关闭姿态拦截。"
     },
     
     

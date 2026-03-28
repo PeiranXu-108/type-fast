@@ -29,6 +29,7 @@ const TypingArea = () => {
   const containerRef = useRef(null)
   const statsIntervalRef = useRef(null)
   const detectorRef = useRef(null)
+  const completionHandledRef = useRef(false)
   const headPoseSettings = useMemo(
     () => settings?.headPoseTraining || {},
     [settings?.headPoseTraining]
@@ -105,8 +106,11 @@ const TypingArea = () => {
       // Reset strict mode errors when starting new practice
       setStrictModeErrors([])
       setDownSince(null)
+      if (practiceState.currentIndex === 0) {
+        completionHandledRef.current = false
+      }
     }
-  }, [practiceState.isActive])
+  }, [practiceState.currentIndex, practiceState.isActive])
 
   useEffect(() => {
     const isEnabled = Boolean(headPoseSettings.enabled)
@@ -167,47 +171,60 @@ const TypingArea = () => {
   
   // Real-time stats calculation
   useEffect(() => {
-    if (practiceState.isActive && practiceStartTime > 0) {
-      statsIntervalRef.current = setInterval(() => {
-        const now = Date.now()
-        const elapsed = now - practiceStartTime
-        
-        if (elapsed > 0) {
-          // Use the new WPM calculation function that properly counts words
-          const wpm = calculateWPMFromText(currentArticle.content, practiceState.currentIndex, elapsed)
-          const cpm = calculateCPM(practiceState.currentIndex, elapsed)
-          
-          // Calculate accuracy based on mode
-          let accuracy
-          if (practiceState.mode === 'strict') {
-            // In strict mode, accuracy is based on highlighted errors
-            const totalTyped = practiceState.currentIndex + strictModeErrors.length
-            const correctChars = practiceState.currentIndex
-            accuracy = totalTyped > 0 ? Math.round((correctChars / totalTyped) * 100) : 100
-          } else {
-            // In lenient mode, use the original calculation
-            const correctChars = practiceState.currentIndex - practiceState.errors.length
-            accuracy = calculateAccuracy(correctChars, practiceState.keystrokes)
-          }
-          
-          setRealTimeStats({ wpm, cpm, accuracy })
-        }
-      }, 100)
+    if (
+      !practiceState.isActive ||
+      practiceStartTime <= 0 ||
+      !currentArticle ||
+      showGrade
+    ) {
+      if (statsIntervalRef.current) {
+        clearInterval(statsIntervalRef.current)
+        statsIntervalRef.current = null
+      }
+      return
+    }
+
+    statsIntervalRef.current = setInterval(() => {
+      const now = Date.now()
+      const elapsed = now - practiceStartTime
       
-      return () => {
-        if (statsIntervalRef.current) {
-          clearInterval(statsIntervalRef.current)
+      if (elapsed > 0) {
+        // Use the new WPM calculation function that properly counts words
+        const wpm = calculateWPMFromText(currentArticle.content, practiceState.currentIndex, elapsed)
+        const cpm = calculateCPM(practiceState.currentIndex, elapsed)
+        
+        // Calculate accuracy based on mode
+        let accuracy
+        if (practiceState.mode === 'strict') {
+          // In strict mode, accuracy is based on highlighted errors
+          const totalTyped = practiceState.currentIndex + strictModeErrors.length
+          const correctChars = practiceState.currentIndex
+          accuracy = totalTyped > 0 ? Math.round((correctChars / totalTyped) * 100) : 100
+        } else {
+          // In lenient mode, use the original calculation
+          const correctChars = practiceState.currentIndex - practiceState.errors.length
+          accuracy = calculateAccuracy(correctChars, practiceState.keystrokes)
         }
+        
+        setRealTimeStats({ wpm, cpm, accuracy })
+      }
+    }, 100)
+    
+    return () => {
+      if (statsIntervalRef.current) {
+        clearInterval(statsIntervalRef.current)
+        statsIntervalRef.current = null
       }
     }
   }, [
+    currentArticle,
     practiceState.isActive,
     practiceStartTime,
     practiceState.currentIndex,
     practiceState.keystrokes,
     practiceState.mode,
     practiceState.errors.length,
-    currentArticle,
+    showGrade,
     strictModeErrors,
   ])
   
@@ -349,6 +366,7 @@ const TypingArea = () => {
   }
   
   const handleReturn = () => {
+    completionHandledRef.current = false
     setShowGrade(false)
     setFinalStats(null)
     
@@ -367,6 +385,7 @@ const TypingArea = () => {
   }
   
   const handlePracticeAgain = () => {
+    completionHandledRef.current = false
     setShowGrade(false)
     setFinalStats(null)
     
@@ -389,6 +408,14 @@ const TypingArea = () => {
   }
   
   const handlePracticeComplete = useCallback(() => {
+    if (completionHandledRef.current || !currentArticle) return
+    completionHandledRef.current = true
+
+    if (statsIntervalRef.current) {
+      clearInterval(statsIntervalRef.current)
+      statsIntervalRef.current = null
+    }
+
     const endTime = Date.now()
     const startedAt = practiceStartTime || endTime
     const totalTime = Math.max(endTime - startedAt, 0)
@@ -403,6 +430,7 @@ const TypingArea = () => {
 
     // Calculate final WPM using the same function for consistency
     const finalWpm = calculateWPMFromText(currentArticle.content, practiceState.currentIndex, totalTime)
+    const finalCpm = calculateCPM(practiceState.currentIndex, totalTime)
     
     // Calculate final accuracy based on mode
     let finalAccuracy
@@ -424,7 +452,7 @@ const TypingArea = () => {
       startedAt,
       endedAt: endTime,
       wpm: finalWpm,
-      cpm: realTimeStats.cpm,
+      cpm: finalCpm,
       accuracy: finalAccuracy / 100,
       totalKeystrokes: practiceState.keystrokes,
       backspaces: practiceState.backspaces,
@@ -439,11 +467,17 @@ const TypingArea = () => {
     }
     
     saveRecord(record)
+
+    setRealTimeStats({
+      wpm: finalWpm,
+      cpm: finalCpm,
+      accuracy: finalAccuracy
+    })
     
     // Set final stats and show grade modal FIRST
     setFinalStats({
       wpm: finalWpm,
-      cpm: realTimeStats.cpm,
+      cpm: finalCpm,
       duration: formatDuration(totalTime),
       accuracy: finalAccuracy
     })
@@ -460,7 +494,6 @@ const TypingArea = () => {
     practiceState.backspaces,
     practiceState.keystrokes,
     practiceState.mode,
-    realTimeStats.cpm,
     saveRecord,
     settings,
     strictModeErrors,
@@ -468,7 +501,11 @@ const TypingArea = () => {
 
   // Handle practice completion
   useEffect(() => {
-    if (practiceState.currentIndex >= currentArticle?.content.length) {
+    if (
+      currentArticle &&
+      !completionHandledRef.current &&
+      practiceState.currentIndex >= currentArticle.content.length
+    ) {
       handlePracticeComplete()
     }
   }, [practiceState.currentIndex, currentArticle, handlePracticeComplete])
@@ -597,9 +634,11 @@ const TypingArea = () => {
         ref={containerRef}
         tabIndex={0}
         onKeyDown={handleKeyDown}
-        className={`w-full rounded-lg border-2 p-6 ${fontSizeClass} leading-relaxed whitespace-pre-wrap overflow-auto transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+        className={`relative w-full rounded-lg border-2 p-6 ${fontSizeClass} leading-relaxed whitespace-pre-wrap overflow-auto transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
           practiceState.isActive
-            ? 'cursor-text border-primary/40 bg-background'
+            ? isHeadPoseBlocked
+              ? 'cursor-not-allowed border-red-500/50 bg-background'
+              : 'cursor-text border-primary/40 bg-background'
             : 'cursor-default border-border bg-muted/40'
         }`}
         style={{ 
@@ -629,6 +668,19 @@ const TypingArea = () => {
             </p>
           </div>
         )}
+
+        {isHeadPoseBlocked ? (
+          <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-background/70 backdrop-blur-[1px]">
+            <div className="max-w-md rounded-xl border border-red-500/30 bg-background/95 px-6 py-4 text-center shadow-lg">
+              <p className="text-lg font-semibold text-red-600 dark:text-red-400">
+                {t('practice-control.headpose-input-blocked')}
+              </p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {t('practice-control.headpose-status-up')}
+              </p>
+            </div>
+          </div>
+        ) : null}
       </div>
       
       {/* Instructions */}

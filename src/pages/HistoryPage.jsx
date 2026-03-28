@@ -526,17 +526,24 @@ const HistoryPage = () => {
                               {formatDuration(record.durationMs)}
                             </td>
                             <td className="py-2 text-foreground">
-                              <span
-                                className={`px-2 py-1 rounded-full text-xs ${
-                                  record.mode === "strict"
-                                    ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-                                    : "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                                }`}
-                              >
-                                {record.mode === "strict"
-                                  ? t("history.strict")
-                                  : t("history.lenient")}
-                              </span>
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span
+                                  className={`rounded-full px-2 py-1 text-xs ${
+                                    record.mode === "strict"
+                                      ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                                      : "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                                  }`}
+                                >
+                                  {record.mode === "strict"
+                                    ? t("history.strict")
+                                    : t("history.lenient")}
+                                </span>
+                                {record.meta?.headPoseTrainingEnabled ? (
+                                  <span className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                    {t("history.touch-typing")}
+                                  </span>
+                                ) : null}
+                              </div>
                             </td>
                           </tr>
                         )

@@ -187,6 +187,7 @@
         "mode": "Mode",
         "strict": "Strict",
         "lenient": "Lenient",
+        "touch-typing": "Touch Typing",
         "select-article": "Select an article to view history",
         "select-article-desc": "Choose an article from the left to view its history and statistics",
         "confirm-delete-records": "Confirm Delete Records",
@@ -284,7 +285,24 @@
         "headpose-grace-period": "Head-down grace period",
         "headpose-grace-500": "0.5 second",
         "headpose-grace-1000": "1.0 second",
-        "headpose-grace-1500": "1.5 seconds"
+        "headpose-grace-1500": "1.5 seconds",
+        "headpose-debug-open": "Open debug panel",
+        "headpose-debug-title": "Posture Detection Debug Panel",
+        "headpose-debug-description": "Note that the image is recognized locally by the browser and will not be uploaded to any server.",
+        "headpose-debug-tip": "The preview is mirrored. Higher scores mean the current frame is closer to that candidate label.",
+        "headpose-debug-current-status": "Current status",
+        "headpose-debug-camera": "Camera",
+        "headpose-debug-model": "Model",
+        "headpose-debug-ready": "Ready",
+        "headpose-debug-loading": "Loading",
+        "headpose-debug-waiting": "Waiting",
+        "headpose-debug-scores": "Three scores",
+        "headpose-debug-score-description": "Compare the real-time confidence of the three candidate classes: down / forward / up.",
+        "headpose-debug-score-down": "Looking down at keyboard",
+        "headpose-debug-score-forward": "Looking straight ahead",
+        "headpose-debug-score-up": "Looking up",
+        "headpose-debug-close": "Close debug panel",
+        "headpose-debug-error": "Camera or model initialization failed, so posture gating has been turned off."
     },
     
     

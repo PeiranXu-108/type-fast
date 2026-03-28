@@ -10,11 +10,18 @@ const HEAD_POSE_CANDIDATES = [
   "a person looking up"
 ]
 
+const EMPTY_SCORES = {
+  down: 0,
+  forward: 0,
+  up: 0
+}
+
 export class HeadPoseDetector {
   constructor(options = {}) {
     this.options = { ...DEFAULT_OPTIONS, ...options }
     this.status = "unknown"
     this.listeners = new Set()
+    this.debugListeners = new Set()
     this.stream = null
     this.videoEl = null
     this.canvasEl = null
@@ -22,7 +29,21 @@ export class HeadPoseDetector {
     this.timer = null
     this.pipeline = null
     this.isStarting = false
+    this.isDetecting = false
     this.downFrames = 0
+    this.debugState = this.createDebugState()
+  }
+
+  createDebugState() {
+    return {
+      status: this.status,
+      scores: { ...EMPTY_SCORES },
+      predictions: [],
+      isCameraReady: false,
+      isModelReady: false,
+      lastUpdatedAt: null,
+      error: ""
+    }
   }
 
   subscribe(cb) {
@@ -31,13 +52,52 @@ export class HeadPoseDetector {
     return () => this.listeners.delete(cb)
   }
 
+  subscribeDebug(cb) {
+    this.debugListeners.add(cb)
+    cb(this.debugState)
+    return () => this.debugListeners.delete(cb)
+  }
+
   getStatus() {
     return this.status
   }
 
-  setStatus(nextStatus) {
-    if (this.status === nextStatus) return
+  getStream() {
+    return this.stream
+  }
+
+  getDebugState() {
+    return this.debugState
+  }
+
+  emitDebugState() {
+    this.debugListeners.forEach((cb) => {
+      try {
+        cb(this.debugState)
+      } catch {
+        // Keep detector alive if a debug listener throws.
+      }
+    })
+  }
+
+  setStatus(nextStatus, debugPatch = null) {
+    const didStatusChange = this.status !== nextStatus
     this.status = nextStatus
+
+    if (debugPatch || this.debugState.status !== nextStatus) {
+      this.debugState = {
+        ...this.debugState,
+        ...(debugPatch || {}),
+        status: nextStatus,
+        scores: debugPatch?.scores
+          ? { ...EMPTY_SCORES, ...debugPatch.scores }
+          : this.debugState.scores
+      }
+      this.emitDebugState()
+    }
+
+    if (!didStatusChange) return
+
     this.listeners.forEach((cb) => {
       try {
         cb(nextStatus)
@@ -79,6 +139,10 @@ export class HeadPoseDetector {
         },
         audio: false
       })
+      this.setStatus(this.status, {
+        isCameraReady: true,
+        error: ""
+      })
 
       this.videoEl = document.createElement("video")
       this.videoEl.srcObject = this.stream
@@ -88,11 +152,19 @@ export class HeadPoseDetector {
 
       // Load model after permission is granted to avoid silent waiting.
       await this.ensurePipeline()
+      this.setStatus(this.status, {
+        isModelReady: true,
+        error: ""
+      })
 
       this.canvasEl = document.createElement("canvas")
       this.canvasEl.width = 224
       this.canvasEl.height = 224
       this.ctx = this.canvasEl.getContext("2d")
+
+      await this.detectOnce().catch(() => {
+        this.setStatus("unknown")
+      })
 
       this.timer = window.setInterval(() => {
         this.detectOnce().catch(() => {
@@ -108,30 +180,73 @@ export class HeadPoseDetector {
   }
 
   async detectOnce() {
-    if (!this.pipeline || !this.videoEl || !this.ctx || this.videoEl.readyState < 2) return
-
-    this.ctx.drawImage(this.videoEl, 0, 0, this.canvasEl.width, this.canvasEl.height)
-    const predictions = await this.pipeline(this.canvasEl, HEAD_POSE_CANDIDATES)
-
-    const byLabel = new Map(predictions.map((item) => [item.label, item.score]))
-    const downScore = byLabel.get(HEAD_POSE_CANDIDATES[0]) || 0
-    const upScore = byLabel.get(HEAD_POSE_CANDIDATES[1]) || 0
-    const aboveScore = byLabel.get(HEAD_POSE_CANDIDATES[2]) || 0
-
-    const downWins =
-      downScore > upScore + this.options.confidenceMargin &&
-      downScore > aboveScore + this.options.confidenceMargin
-
-    if (downWins) {
-      this.downFrames += 1
-      if (this.downFrames >= this.options.consecutiveDownFrames) {
-        this.setStatus("down")
-      }
+    if (
+      this.isDetecting ||
+      !this.pipeline ||
+      !this.videoEl ||
+      !this.ctx ||
+      this.videoEl.readyState < 2
+    ) {
       return
     }
 
-    this.downFrames = 0
-    this.setStatus("up")
+    this.isDetecting = true
+
+    try {
+      this.ctx.drawImage(this.videoEl, 0, 0, this.canvasEl.width, this.canvasEl.height)
+      const predictions = await this.pipeline(this.canvasEl, HEAD_POSE_CANDIDATES)
+
+      const byLabel = new Map(predictions.map((item) => [item.label, item.score]))
+      const downScore = byLabel.get(HEAD_POSE_CANDIDATES[0]) || 0
+      const forwardScore = byLabel.get(HEAD_POSE_CANDIDATES[1]) || 0
+      const upScore = byLabel.get(HEAD_POSE_CANDIDATES[2]) || 0
+
+      const downWins =
+        downScore > forwardScore + this.options.confidenceMargin &&
+        downScore > upScore + this.options.confidenceMargin
+
+      const nextScores = {
+        down: downScore,
+        forward: forwardScore,
+        up: upScore
+      }
+
+      if (downWins) {
+        this.downFrames += 1
+        if (this.downFrames >= this.options.consecutiveDownFrames) {
+          this.setStatus("down", {
+            scores: nextScores,
+            predictions,
+            isCameraReady: true,
+            isModelReady: true,
+            lastUpdatedAt: Date.now(),
+            error: ""
+          })
+        } else {
+          this.setStatus(this.status, {
+            scores: nextScores,
+            predictions,
+            isCameraReady: true,
+            isModelReady: true,
+            lastUpdatedAt: Date.now(),
+            error: ""
+          })
+        }
+        return
+      }
+
+      this.downFrames = 0
+      this.setStatus("up", {
+        scores: nextScores,
+        predictions,
+        isCameraReady: true,
+        isModelReady: true,
+        lastUpdatedAt: Date.now(),
+        error: ""
+      })
+    } finally {
+      this.isDetecting = false
+    }
   }
 
   async stop() {
@@ -157,7 +272,8 @@ export class HeadPoseDetector {
 
     this.canvasEl = null
     this.ctx = null
+    this.isDetecting = false
     this.downFrames = 0
-    this.setStatus("unknown")
+    this.setStatus("unknown", this.createDebugState())
   }
 }
