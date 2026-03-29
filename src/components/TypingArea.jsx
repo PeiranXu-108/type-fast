@@ -524,7 +524,10 @@ const TypingArea = () => {
         const isError = errorIndexSet.has(index)
         className += isError ? ' typing-error' : ' typing-correct'
       } else if (index === practiceState.currentIndex) {
-        // Current character
+        // Current character — strict mode records errors at this index without advancing
+        if (errorIndexSet.has(index)) {
+          className += ' typing-error'
+        }
         className += ` cursor-style-${settings?.visual?.cursorStyle || 'block'}`
       }
       
@@ -683,47 +686,32 @@ const TypingArea = () => {
         ) : null}
       </div>
       
-      {/* Instructions */}
-      <div className="text-sm text-muted-foreground">
-        <p className="mb-2">
-          <strong>{t('practice-control.mode')}:</strong>
-          {practiceState.mode === 'strict' 
-            ? t('practice-control.strict-mode-desc')
-            : t('practice-control.lenient-mode-desc')
-          }
-        </p>
-        <p className="mb-2">
-          <strong>{t('practice-control.headpose-training')}:</strong>{' '}
-          {isHeadPoseGateEnabled
-            ? headPoseStatus === 'down'
+      {/* Head pose status — only when feature is enabled */}
+      {isHeadPoseGateEnabled ? (
+        <div className="text-center text-sm text-muted-foreground">
+          <p className="mb-2">
+            <strong>{t('practice-control.headpose-training')}:</strong>{' '}
+            {headPoseStatus === 'down'
               ? t('practice-control.headpose-status-down')
               : headPoseStatus === 'up'
                 ? t('practice-control.headpose-status-up')
-                : t('practice-control.headpose-status-checking')
-            : t('practice-control.headpose-status-disabled')}
-        </p>
-        {isHeadPoseGateEnabled && isHeadPoseInGrace ? (
-          <p className="mb-2 text-amber-600 dark:text-amber-400">
-            {t('practice-control.headpose-grace-active')}
+                : t('practice-control.headpose-status-checking')}
           </p>
-        ) : null}
-        {isHeadPoseGateEnabled && isHeadPoseBlocked ? (
-          <p className="mb-2 text-red-600 dark:text-red-400">
-            {t('practice-control.headpose-input-blocked')}
-          </p>
-        ) : null}
-        {headPoseError ? (
-          <p className="mb-2 text-amber-600 dark:text-amber-400">{headPoseError}</p>
-        ) : null}
-        {/* <p className="mb-2">  
-          <strong>{t('practice-control.status')}:</strong>
-          {practiceState.isActive ? t('practice-control.in-progress') : t('practice-control.not-started')}
-        </p>
-        <p>
-          <strong>{t('practice-control.operation')}:</strong>
-          {t('practice-control.after-practice-starts-you-can-start-typing-here')}
-        </p> */}
-      </div>
+          {isHeadPoseInGrace ? (
+            <p className="mb-2 text-amber-600 dark:text-amber-400">
+              {t('practice-control.headpose-grace-active')}
+            </p>
+          ) : null}
+          {isHeadPoseBlocked ? (
+            <p className="mb-2 text-red-600 dark:text-red-400">
+              {t('practice-control.headpose-input-blocked')}
+            </p>
+          ) : null}
+          {headPoseError ? (
+            <p className="mb-2 text-amber-600 dark:text-amber-400">{headPoseError}</p>
+          ) : null}
+        </div>
+      ) : null}
       </CardContent>
 
       {showGrade && finalStats && (

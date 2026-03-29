@@ -566,6 +566,12 @@ const SettingsPage = () => {
     return mode === "strict" ? t("settings.strict") : t("settings.lenient")
   }
 
+  const getModeDescription = (mode) => {
+    return mode === "strict"
+      ? t("practice-control.strict-mode-desc")
+      : t("practice-control.lenient-mode-desc")
+  }
+
   const getFontSizeLabel = (fontSize) => {
     switch (fontSize) {
       case "xs":
@@ -826,7 +832,8 @@ const SettingsPage = () => {
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">
-                {t("settings.current")}: {getModeLabel(settings.defaultMode)}
+              {getModeLabel(settings.defaultMode)}:{" "}
+                {getModeDescription(settings.defaultMode)}
               </p>
             </div>
 
@@ -852,10 +859,6 @@ const SettingsPage = () => {
                   </SelectItem>
                 </SelectContent>
               </Select>
-              <p className="text-xs text-muted-foreground">
-                {t("settings.current")}:{" "}
-                {getWPMCalculationLabel(settings.wpmCalculation)}
-              </p>
             </div>
 
             <div className="space-y-3">

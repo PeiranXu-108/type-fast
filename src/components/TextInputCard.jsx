@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -136,14 +135,6 @@ const TextInputCard = ({ value, onChange, onSubmit }) => {
           </Button>
         </div>
       </CardContent>
-      <CardFooter className="flex-col items-start border-t pt-6">
-        <p className="text-xs text-muted-foreground">{t("practice.tips")}</p>
-        <ul className="mt-1 list-inside list-disc space-y-1 text-xs text-muted-foreground">
-          <li>{t("practice.tips-multiline")}</li>
-          <li>{t("practice.tips-punctuation")}</li>
-          <li>{t("practice.tips-length")}</li>
-        </ul>
-      </CardFooter>
     </Card>
   )
 }

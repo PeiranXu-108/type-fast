@@ -336,6 +336,23 @@
   animation: cursor-pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
+/* Strict-mode error at caret: block cursor utilities set text-primary and must not hide typing-error */
+.cursor-style-block.typing-error,
+.cursor-style-glow-block.typing-error,
+.cursor-style-pulse-block.typing-error {
+  @apply text-error-600 dark:text-error-400;
+}
+.cursor-style-block.typing-error {
+  background-color: color-mix(in oklch, var(--destructive) 22%, transparent);
+}
+.cursor-style-glow-block.typing-error {
+  background-color: color-mix(in oklch, var(--destructive) 25%, transparent);
+  box-shadow: 0 0 10px 0px color-mix(in oklch, var(--destructive) 45%, transparent);
+}
+.cursor-style-pulse-block.typing-error::after {
+  @apply bg-destructive;
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;
