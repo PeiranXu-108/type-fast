@@ -52,6 +52,7 @@ export const useStore = create(
         startTime: 0,
         mode: 'lenient',
         errors: [],
+        strictModeErrors: [],
         backspaces: 0,
         keystrokes: 0
       },
@@ -155,6 +156,7 @@ export const useStore = create(
             startTime: 0,
             mode: practiceMode,
             errors: [],
+            strictModeErrors: [],
             backspaces: 0,
             keystrokes: 0
           },
@@ -282,6 +284,7 @@ export const useStore = create(
             startTime: 0,
             mode: 'lenient',
             errors: [],
+            strictModeErrors: [],
             backspaces: 0,
             keystrokes: 0
           }

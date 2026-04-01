@@ -14,20 +14,13 @@ import {
 const TypingArea = () => {
   const { t } = useTranslation()
   const { currentArticle, practiceState, updatePracticeState, saveRecord, settings } = useStore()
-  const [realTimeStats, setRealTimeStats] = useState({
-    wpm: 0,
-    cpm: 0,
-    accuracy: 100
-  })
   const [showGrade, setShowGrade] = useState(false)
   const [finalStats, setFinalStats] = useState(null)
-  const [strictModeErrors, setStrictModeErrors] = useState([]) // Track errors in strict mode
   const [headPoseStatus, setHeadPoseStatus] = useState('disabled')
   const [headPoseError, setHeadPoseError] = useState('')
   const [downSince, setDownSince] = useState(null)
   
   const containerRef = useRef(null)
-  const statsIntervalRef = useRef(null)
   const detectorRef = useRef(null)
   const completionHandledRef = useRef(false)
   const headPoseSettings = useMemo(
@@ -35,8 +28,11 @@ const TypingArea = () => {
     [settings?.headPoseTraining]
   )
 
-  const formatMetric = (value) => Number(value || 0).toFixed(2)
   const practiceStartTime = practiceState.startTime || 0
+  const strictModeErrors = useMemo(
+    () => practiceState.strictModeErrors || [],
+    [practiceState.strictModeErrors]
+  )
   
   // Add sound refs instead
   const keyPressSound = useRef(null)
@@ -99,18 +95,17 @@ const TypingArea = () => {
     }
   }
   
-  // Focus container when practice starts and reset strict mode errors
+  // Focus container when practice runs; reset strict errors only at session start (index 0)
   useEffect(() => {
     if (practiceState.isActive) {
       containerRef.current?.focus()
-      // Reset strict mode errors when starting new practice
-      setStrictModeErrors([])
-      setDownSince(null)
       if (practiceState.currentIndex === 0) {
         completionHandledRef.current = false
+        updatePracticeState({ strictModeErrors: [] })
+        setDownSince(null)
       }
     }
-  }, [practiceState.currentIndex, practiceState.isActive])
+  }, [practiceState.currentIndex, practiceState.isActive, updatePracticeState])
 
   useEffect(() => {
     const isEnabled = Boolean(headPoseSettings.enabled)
@@ -169,82 +164,11 @@ const TypingArea = () => {
     t
   ])
   
-  // Real-time stats calculation
-  useEffect(() => {
-    if (
-      !practiceState.isActive ||
-      practiceStartTime <= 0 ||
-      !currentArticle ||
-      showGrade
-    ) {
-      if (statsIntervalRef.current) {
-        clearInterval(statsIntervalRef.current)
-        statsIntervalRef.current = null
-      }
-      return
-    }
-
-    statsIntervalRef.current = setInterval(() => {
-      const now = Date.now()
-      const elapsed = now - practiceStartTime
-      
-      if (elapsed > 0) {
-        // Use the new WPM calculation function that properly counts words
-        const wpm = calculateWPMFromText(currentArticle.content, practiceState.currentIndex, elapsed)
-        const cpm = calculateCPM(practiceState.currentIndex, elapsed)
-        
-        // Calculate accuracy based on mode
-        let accuracy
-        if (practiceState.mode === 'strict') {
-          // In strict mode, accuracy is based on highlighted errors
-          const totalTyped = practiceState.currentIndex + strictModeErrors.length
-          const correctChars = practiceState.currentIndex
-          accuracy = totalTyped > 0 ? Math.round((correctChars / totalTyped) * 100) : 100
-        } else {
-          // In lenient mode, use the original calculation
-          const correctChars = practiceState.currentIndex - practiceState.errors.length
-          accuracy = calculateAccuracy(correctChars, practiceState.keystrokes)
-        }
-        
-        setRealTimeStats({ wpm, cpm, accuracy })
-      }
-    }, 100)
-    
-    return () => {
-      if (statsIntervalRef.current) {
-        clearInterval(statsIntervalRef.current)
-        statsIntervalRef.current = null
-      }
-    }
-  }, [
-    currentArticle,
-    practiceState.isActive,
-    practiceStartTime,
-    practiceState.currentIndex,
-    practiceState.keystrokes,
-    practiceState.mode,
-    practiceState.errors.length,
-    showGrade,
-    strictModeErrors,
-  ])
-  
   const handleKeyDown = (e) => {
     if (!practiceState.isActive || showGrade) return
     
     e.preventDefault()
 
-    const gracePeriodMs = headPoseSettings.gracePeriodMs || 1000
-    const isHeadPoseGateEnabled = Boolean(headPoseSettings.enabled)
-    const shouldBlockInput =
-      isHeadPoseGateEnabled &&
-      headPoseStatus === 'down' &&
-      downSince !== null &&
-      Date.now() - downSince >= gracePeriodMs
-
-    if (shouldBlockInput) {
-      return
-    }
-    
     const expectedChar = currentArticle.content[practiceState.currentIndex]
     const pressedChar = e.key
     
@@ -274,14 +198,21 @@ const TypingArea = () => {
       if (practiceState.mode === 'strict' && practiceState.currentIndex > 0) {
         // Remove the last error if we're going back from an error position
         if (strictModeErrors.includes(practiceState.currentIndex - 1)) {
-          setStrictModeErrors(prev => prev.filter(index => index !== practiceState.currentIndex - 1))
+          updatePracticeState({
+            strictModeErrors: strictModeErrors.filter(
+              (index) => index !== practiceState.currentIndex - 1
+            ),
+            currentIndex: practiceState.currentIndex - 1,
+            backspaces: practiceState.backspaces + 1,
+            keystrokes: practiceState.keystrokes + 1,
+          })
+        } else {
+          updatePracticeState({
+            currentIndex: practiceState.currentIndex - 1,
+            backspaces: practiceState.backspaces + 1,
+            keystrokes: practiceState.keystrokes + 1,
+          })
         }
-        
-        updatePracticeState({
-          currentIndex: practiceState.currentIndex - 1,
-          backspaces: practiceState.backspaces + 1,
-          keystrokes: practiceState.keystrokes + 1
-        })
       }
       return
     }
@@ -346,12 +277,10 @@ const TypingArea = () => {
         }
       } else if (practiceState.mode === 'strict') {
         // Strict mode - mark error and prevent progression until corrected
-        setStrictModeErrors(prev => [...prev, practiceState.currentIndex])
-        // Don't increment currentIndex, don't add to errors array
-        // Just track the keystroke
         updatePracticeState({
           ...startTimeUpdate,
-          keystrokes: practiceState.keystrokes + 1
+          strictModeErrors: [...strictModeErrors, practiceState.currentIndex],
+          keystrokes: practiceState.keystrokes + 1,
         })
         
         // Play key press sound if enabled
@@ -376,12 +305,10 @@ const TypingArea = () => {
       currentIndex: 0,
       startTime: 0,
       errors: [],
+      strictModeErrors: [],
       backspaces: 0,
-      keystrokes: 0
+      keystrokes: 0,
     })
-    
-    setRealTimeStats({ wpm: 0, cpm: 0, accuracy: 100 })
-    setStrictModeErrors([]) // Reset strict mode errors
   }
   
   const handlePracticeAgain = () => {
@@ -395,12 +322,10 @@ const TypingArea = () => {
       currentIndex: 0,
       startTime: 0,
       errors: [],
+      strictModeErrors: [],
       backspaces: 0,
-      keystrokes: 0
+      keystrokes: 0,
     })
-    
-    setRealTimeStats({ wpm: 0, cpm: 0, accuracy: 100 })
-    setStrictModeErrors([]) // Reset strict mode errors
     
     if (currentArticle) {
       useStore.getState().startPractice(currentArticle, practiceState.mode)
@@ -410,11 +335,6 @@ const TypingArea = () => {
   const handlePracticeComplete = useCallback(() => {
     if (completionHandledRef.current || !currentArticle) return
     completionHandledRef.current = true
-
-    if (statsIntervalRef.current) {
-      clearInterval(statsIntervalRef.current)
-      statsIntervalRef.current = null
-    }
 
     const endTime = Date.now()
     const startedAt = practiceStartTime || endTime
@@ -434,9 +354,10 @@ const TypingArea = () => {
     
     // Calculate final accuracy based on mode
     let finalAccuracy
+    const sme = practiceState.strictModeErrors || []
     if (practiceState.mode === 'strict') {
       // In strict mode, accuracy is based on highlighted errors
-      const totalTyped = practiceState.currentIndex + strictModeErrors.length
+      const totalTyped = practiceState.currentIndex + sme.length
       const correctChars = practiceState.currentIndex
       finalAccuracy = totalTyped > 0 ? Math.round((correctChars / totalTyped) * 100) : 100
     } else {
@@ -456,7 +377,7 @@ const TypingArea = () => {
       accuracy: finalAccuracy / 100,
       totalKeystrokes: practiceState.keystrokes,
       backspaces: practiceState.backspaces,
-      errors: practiceState.mode === 'strict' ? strictModeErrors.map(index => ({
+      errors: practiceState.mode === 'strict' ? sme.map((index) => ({
         index,
         expected: currentArticle.content[index],
         actual: 'incorrect'
@@ -468,12 +389,6 @@ const TypingArea = () => {
     
     saveRecord(record)
 
-    setRealTimeStats({
-      wpm: finalWpm,
-      cpm: finalCpm,
-      accuracy: finalAccuracy
-    })
-    
     // Set final stats and show grade modal FIRST
     setFinalStats({
       wpm: finalWpm,
@@ -496,7 +411,7 @@ const TypingArea = () => {
     practiceState.mode,
     saveRecord,
     settings,
-    strictModeErrors,
+    practiceState.strictModeErrors,
   ])
 
   // Handle practice completion
@@ -599,39 +514,11 @@ const TypingArea = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg">
-          {t('practice-control.practice-area')}
+        <CardTitle className="text-lg text-center">
+          {currentArticle.title}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-      {/* Real-time Stats */}
-      <div className="grid grid-cols-2 gap-4 rounded-lg bg-muted/50 p-3 sm:grid-cols-4">
-        <div className="text-center">
-          <div className="text-lg font-bold text-primary">
-            {formatMetric(realTimeStats.wpm)}
-          </div>
-          <div className="text-xs text-muted-foreground">WPM</div>
-        </div>
-        <div className="text-center">
-          <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
-            {formatMetric(realTimeStats.cpm)}
-          </div>
-          <div className="text-xs text-muted-foreground">CPM</div>
-        </div>
-        <div className="text-center">
-          <div className="text-lg font-bold text-green-600 dark:text-green-400">
-            {realTimeStats.accuracy}%
-          </div>
-          <div className="text-xs text-muted-foreground">{t('results.accuracy')}</div>
-        </div>
-        <div className="text-center">
-          <div className="text-lg font-bold text-orange-600 dark:text-orange-400">
-            {practiceState.backspaces}
-          </div>
-          <div className="text-xs text-muted-foreground">{t('results.backspaces')}</div>
-        </div>
-      </div>
-      
       {/* Unified Text Display and Input */}
       <div
         ref={containerRef}

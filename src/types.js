@@ -35,6 +35,7 @@ export const PracticeState = {
   totalPauseTime: 0,
   mode: 'lenient', // 'lenient' | 'strict'
   errors: [],
+  strictModeErrors: [], // number[] — indices with uncorrected errors in strict mode
   backspaces: 0,
   keystrokes: 0
 }

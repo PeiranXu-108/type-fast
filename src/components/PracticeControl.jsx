@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from "react"
 import { RotateCcw } from "lucide-react"
 import { useStore } from "../store.js"
-import { formatDuration } from "../utils.js"
+import { formatDuration, calculateCPM, calculateAccuracy, calculateWPMFromText } from "../utils.js"
 import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+
+const formatMetric = (value) => Number(value || 0).toFixed(2)
 
 const PracticeControl = () => {
   const { t } = useTranslation()
@@ -17,7 +19,15 @@ const PracticeControl = () => {
     stopPractice,
   } = useStore()
   const [elapsedTime, setElapsedTime] = useState(0)
+  const [liveStats, setLiveStats] = useState({
+    wpm: 0,
+    cpm: 0,
+    accuracy: 100,
+  })
   const timerRef = useRef(null)
+  const statsIntervalRef = useRef(null)
+
+  const practiceStartTime = practiceState.startTime || 0
 
   useEffect(() => {
     if (practiceState.isActive && practiceState.startTime > 0) {
@@ -50,6 +60,68 @@ const PracticeControl = () => {
       }
     }
   }, [practiceState.currentIndex, currentArticle, practiceState.isActive])
+
+  useEffect(() => {
+    if (
+      !practiceState.isActive ||
+      practiceStartTime <= 0 ||
+      !currentArticle ||
+      practiceState.currentIndex >= currentArticle.content.length
+    ) {
+      if (statsIntervalRef.current) {
+        clearInterval(statsIntervalRef.current)
+        statsIntervalRef.current = null
+      }
+      if (!practiceState.isActive) {
+        setLiveStats({ wpm: 0, cpm: 0, accuracy: 100 })
+      }
+      return
+    }
+
+    statsIntervalRef.current = setInterval(() => {
+      const now = Date.now()
+      const elapsed = now - practiceStartTime
+      if (elapsed <= 0) return
+
+      const wpm = calculateWPMFromText(
+        currentArticle.content,
+        practiceState.currentIndex,
+        elapsed
+      )
+      const cpm = calculateCPM(practiceState.currentIndex, elapsed)
+
+      let accuracy
+      if (practiceState.mode === "strict") {
+        const sme = practiceState.strictModeErrors || []
+        const totalTyped = practiceState.currentIndex + sme.length
+        const correctChars = practiceState.currentIndex
+        accuracy =
+          totalTyped > 0 ? Math.round((correctChars / totalTyped) * 100) : 100
+      } else {
+        const correctChars =
+          practiceState.currentIndex - practiceState.errors.length
+        accuracy = calculateAccuracy(correctChars, practiceState.keystrokes)
+      }
+
+      setLiveStats({ wpm, cpm, accuracy })
+    }, 100)
+
+    return () => {
+      if (statsIntervalRef.current) {
+        clearInterval(statsIntervalRef.current)
+        statsIntervalRef.current = null
+      }
+    }
+  }, [
+    currentArticle,
+    practiceState.isActive,
+    practiceStartTime,
+    practiceState.currentIndex,
+    practiceState.keystrokes,
+    practiceState.mode,
+    practiceState.errors.length,
+    practiceState.strictModeErrors,
+  ])
 
   const handleRestart = () => {
     if (currentArticle) {
@@ -93,12 +165,36 @@ const PracticeControl = () => {
               </p>
             </div>
 
-            <div className="text-center sm:text-left">
-              <div className="font-mono text-2xl font-bold text-primary">
-                {formatDuration(elapsedTime)}
+            <div className="flex flex-wrap items-end gap-4 sm:gap-6">
+              <div className="text-center sm:text-left">
+                <div className="font-mono text-2xl font-bold text-primary">
+                  {formatDuration(elapsedTime)}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {t("results.elapsed-time")}
+                </div>
               </div>
-              <div className="text-xs text-muted-foreground">
-                {t("results.elapsed-time")}
+              <div className="grid grid-cols-3 gap-3 border-l border-border pl-4 sm:gap-6 sm:pl-6">
+                <div className="text-center sm:text-left">
+                  <div className="text-lg font-bold text-primary">
+                    {formatMetric(liveStats.wpm)}
+                  </div>
+                  <div className="text-xs text-muted-foreground">WPM</div>
+                </div>
+                <div className="text-center sm:text-left">
+                  <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                    {formatMetric(liveStats.cpm)}
+                  </div>
+                  <div className="text-xs text-muted-foreground">CPM</div>
+                </div>
+                <div className="text-center sm:text-left">
+                  <div className="text-lg font-bold text-green-600 dark:text-green-400">
+                    {liveStats.accuracy}%
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {t("results.accuracy")}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
