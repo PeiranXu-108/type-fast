@@ -19,6 +19,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { cn } from "@/lib/utils"
+import RingGauge from "./scifi/RingGauge.jsx"
+import HexBadge from "./scifi/HexBadge.jsx"
+import { TONE_TEXT } from "./scifi/tones.js"
 
 const ResultsPanel = () => {
   const { t } = useTranslation()
@@ -58,115 +62,118 @@ const ResultsPanel = () => {
     navigate("/history")
   }
 
-  const getAccuracyColor = (accuracy) => {
-    if (accuracy >= 95) return "text-green-600 dark:text-green-400"
-    if (accuracy >= 85) return "text-yellow-600 dark:text-yellow-400"
-    return "text-red-600 dark:text-red-400"
+  const getAccuracyTone = (accuracy) => {
+    if (accuracy >= 95) return "green"
+    if (accuracy >= 85) return "amber"
+    return "red"
   }
 
-  const getWPMColor = (wpm) => {
-    if (wpm >= 60) return "text-green-600 dark:text-green-400"
-    if (wpm >= 40) return "text-yellow-600 dark:text-yellow-400"
-    if (wpm >= 20) return "text-blue-600 dark:text-blue-400"
-    return "text-red-600 dark:text-red-400"
+  const getWPMTone = (wpm) => {
+    if (wpm >= 60) return "green"
+    if (wpm >= 40) return "amber"
+    if (wpm >= 20) return "info"
+    return "red"
   }
+
+  const dataRow = "flex items-center justify-between border-b border-hud-line/40 pb-2 last:border-0 last:pb-0"
 
   return (
     <Card>
       <CardHeader className="text-center">
+        <div
+          aria-hidden="true"
+          className="hud-label mb-1 flex items-center justify-center gap-2 !text-neon-green"
+        >
+          <span className="hud-led animate-hud-pulse" />
+          MISSION // COMPLETE
+        </div>
         <CardTitle className="text-3xl">{t("results.practice-completed")}</CardTitle>
         <CardDescription>{t("results.practice-completed-subtitle")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-8">
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-          <div className="rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 p-6 text-center dark:from-blue-900/20 dark:to-blue-800/20">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
-              <Trophy className="h-8 w-8 text-blue-600 dark:text-blue-400" />
-            </div>
-            <div
-              className={`text-4xl font-bold ${getWPMColor(latestRecord.wpm)}`}
-            >
-              {formatWPM(latestRecord.wpm)}
-            </div>
-            <div className="font-medium text-blue-600 dark:text-blue-400">
-              {t("results.wpm")}
-            </div>
-            <div className="mt-1 text-sm text-muted-foreground">
+          <div className="hud-corners relative flex flex-col items-center border border-hud-line/60 bg-background/30 p-6 text-center">
+            <Trophy aria-hidden="true" className={cn("mb-2 h-5 w-5", TONE_TEXT[getWPMTone(latestRecord.wpm)])} />
+            <RingGauge
+              value={latestRecord.wpm}
+              max={Math.max(100, latestRecord.wpm)}
+              display={formatWPM(latestRecord.wpm)}
+              label={t("results.wpm")}
+              tone={getWPMTone(latestRecord.wpm)}
+            />
+            <div className="mt-2 text-sm text-muted-foreground">
               {t("results.wpm-description")}
             </div>
           </div>
 
-          <div className="rounded-xl bg-gradient-to-br from-green-50 to-green-100 p-6 text-center dark:from-green-900/20 dark:to-green-800/20">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
-              <Target className="h-8 w-8 text-green-600 dark:text-green-400" />
-            </div>
-            <div
-              className={`text-4xl font-bold ${getAccuracyColor(latestRecord.accuracy * 100)}`}
-            >
-              {Math.round(latestRecord.accuracy * 100)}%
-            </div>
-            <div className="font-medium text-green-600 dark:text-green-400">
-              {t("results.accuracy")}
-            </div>
-            <div className="mt-1 text-sm text-muted-foreground">
+          <div className="hud-corners relative flex flex-col items-center border border-hud-line/60 bg-background/30 p-6 text-center">
+            <Target aria-hidden="true" className={cn("mb-2 h-5 w-5", TONE_TEXT[getAccuracyTone(latestRecord.accuracy * 100)])} />
+            <RingGauge
+              value={latestRecord.accuracy * 100}
+              max={100}
+              display={`${Math.round(latestRecord.accuracy * 100)}%`}
+              label={t("results.accuracy")}
+              tone={getAccuracyTone(latestRecord.accuracy * 100)}
+            />
+            <div className="mt-2 text-sm text-muted-foreground">
               {t("results.accuracy-description")}
             </div>
           </div>
 
-          <div className="rounded-xl bg-gradient-to-br from-purple-50 to-purple-100 p-6 text-center dark:from-purple-900/20 dark:to-purple-800/20">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-900/30">
-              <Clock className="h-8 w-8 text-purple-600 dark:text-purple-400" />
-            </div>
-            <div className="text-4xl font-bold text-purple-600 dark:text-purple-400">
+          <div className="hud-corners relative flex flex-col items-center justify-center border border-hud-line/60 bg-background/30 p-6 text-center">
+            <HexBadge className="mb-4 size-16 text-neon-violet">
+              <Clock className="h-7 w-7" />
+            </HexBadge>
+            <div className="neon-text font-display text-4xl font-bold tabular-nums text-neon-violet">
               {formatDuration(latestRecord.durationMs)}
             </div>
-            <div className="font-medium text-purple-600 dark:text-purple-400">
+            <div className="hud-label mt-2 !text-neon-violet">
               {t("results.elapsed-time")}
             </div>
-            <div className="mt-1 text-sm text-muted-foreground">
+            <div className="mt-2 text-sm text-muted-foreground">
               {t("results.elapsed-time-description")}
             </div>
           </div>
         </div>
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          <Card>
+          <Card className="bg-background/30">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
-                <TrendingUp className="h-5 w-5 text-green-600 dark:text-green-400" />
+                <TrendingUp className="h-5 w-5 text-neon-green" />
                 {t("results.detailed-stats")}
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex justify-between">
+            <CardContent className="space-y-3 font-mono text-sm">
+              <div className={dataRow}>
                 <span className="text-muted-foreground">{t("results.cpm")}</span>
-                <span className="font-mono font-semibold">{latestRecord.cpm}</span>
+                <span className="font-semibold">{latestRecord.cpm}</span>
               </div>
-              <div className="flex justify-between">
+              <div className={dataRow}>
                 <span className="text-muted-foreground">
                   {t("results.total-keystrokes")}
                 </span>
-                <span className="font-mono font-semibold">
+                <span className="font-semibold">
                   {latestRecord.totalKeystrokes}
                 </span>
               </div>
-              <div className="flex justify-between">
+              <div className={dataRow}>
                 <span className="text-muted-foreground">
                   {t("results.backspaces")}
                 </span>
-                <span className="font-mono font-semibold">
+                <span className="font-semibold">
                   {latestRecord.backspaces}
                 </span>
               </div>
-              <div className="flex justify-between">
+              <div className={dataRow}>
                 <span className="text-muted-foreground">
                   {t("results.error-count")}
                 </span>
-                <span className="font-mono font-semibold">
+                <span className="font-semibold">
                   {latestRecord.errors.length}
                 </span>
               </div>
-              <div className="flex justify-between">
+              <div className={dataRow}>
                 <span className="text-muted-foreground">
                   {t("results.practice-mode")}
                 </span>
@@ -179,50 +186,50 @@ const ResultsPanel = () => {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-background/30">
             <CardHeader>
               <CardTitle className="text-lg">
                 {t("results.history-comparison")}
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex justify-between">
+            <CardContent className="space-y-3 font-mono text-sm">
+              <div className={dataRow}>
                 <span className="text-muted-foreground">
                   {t("results.current-score")}
                 </span>
-                <span className="font-mono font-semibold text-primary">
+                <span className="font-semibold text-primary">
                   {formatWPM(latestRecord.wpm)} WPM
                 </span>
               </div>
-              <div className="flex justify-between">
+              <div className={dataRow}>
                 <span className="text-muted-foreground">
                   {t("results.best-record")}
                 </span>
-                <span className="font-mono font-semibold text-yellow-600 dark:text-yellow-400">
+                <span className="font-semibold text-neon-amber">
                   {formatWPM(getBestRecord().wpm)} WPM
                 </span>
               </div>
-              <div className="flex justify-between">
+              <div className={dataRow}>
                 <span className="text-muted-foreground">
                   {t("results.average-score")}
                 </span>
-                <span className="font-mono font-semibold text-blue-600 dark:text-blue-400">
+                <span className="font-semibold text-neon-info">
                   {formatWPM(getAverageWPM())} WPM
                 </span>
               </div>
-              <div className="flex justify-between">
+              <div className={dataRow}>
                 <span className="text-muted-foreground">
                   {t("results.practice-count")}
                 </span>
                 <span className="font-semibold">{articleRecords.length}</span>
               </div>
               {articleRecords.length >= 2 && (
-                <div className="flex justify-between">
+                <div className={dataRow}>
                   <span className="text-muted-foreground">
                     {t("results.compared-to-last")}
                   </span>
                   <span
-                    className={`font-semibold ${getImprovement() >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
+                    className={`font-semibold ${getImprovement() >= 0 ? "text-neon-green" : "text-neon-red"}`}
                   >
                     {getImprovement() >= 0 ? "+" : ""}
                     {getImprovement()} WPM
@@ -244,7 +251,7 @@ const ResultsPanel = () => {
           </Button>
           <Button
             size="lg"
-            variant="secondary"
+            variant="outline"
             className="gap-2 text-base"
             onClick={handleViewHistory}
           >
@@ -253,7 +260,7 @@ const ResultsPanel = () => {
           </Button>
         </div>
 
-        <div className="rounded-lg bg-gradient-to-r from-blue-50 to-purple-50 p-4 text-center dark:from-blue-900/20 dark:to-purple-900/20">
+        <div className="border-l-2 border-primary bg-gradient-to-r from-primary/10 via-neon-violet/5 to-transparent p-4 text-center">
           <p className="text-foreground">
             {latestRecord.wpm >= 60
               ? t("results.encouragement-excellent")

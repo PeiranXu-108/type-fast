@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
+import HexBadge from "@/components/scifi/HexBadge.jsx"
 
 export default function Confirm({ title, onConfirm, onCancel }) {
   const { t } = useTranslation()
@@ -35,17 +36,20 @@ export default function Confirm({ title, onConfirm, onCancel }) {
     <Dialog open onOpenChange={(next) => !next && onCancel()}>
       <DialogContent showCloseButton={false} className="sm:max-w-md">
         <DialogHeader>
-          <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-              <FileText className="h-5 w-5 text-primary" />
-            </div>
-            <div className="flex flex-col gap-1 text-left">
+          <div className="flex items-start gap-4">
+            <HexBadge className="size-11 text-primary">
+              <FileText className="h-5 w-5" />
+            </HexBadge>
+            <div className="flex flex-col gap-1.5 text-left">
+              <div aria-hidden="true" className="hud-label !text-primary">
+                READY // LAUNCH
+              </div>
               <DialogTitle>{t("confirm")}</DialogTitle>
               <DialogDescription>{t("prepare")}</DialogDescription>
             </div>
           </div>
         </DialogHeader>
-        <p className="text-sm text-muted-foreground">
+        <p className="border-l-2 border-primary bg-primary/[0.06] px-4 py-3 text-sm text-muted-foreground">
           {t("prepare")}{" "}
           <span className="font-semibold text-foreground">&quot;{title}&quot;</span>{" "}
           {t("ready")}

@@ -10,8 +10,22 @@ import TextInputCard from "../components/TextInputCard.jsx";
 import PracticeControl from "../components/PracticeControl.jsx";
 import TypingArea from "../components/TypingArea.jsx";
 import ResultsPanel from "../components/ResultsPanel.jsx";
-import { Trash2, X, Check, Plus, Sparkles, Loader2 } from "lucide-react"
+import {
+  Trash2,
+  X,
+  Check,
+  Plus,
+  Sparkles,
+  Loader2,
+  PenLine,
+  Library,
+  History as HistoryIcon,
+  Smartphone,
+  AlertTriangle,
+} from "lucide-react"
 import Confirm from "../modals/confirm.jsx";
+import HudHeader from "../components/scifi/HudHeader.jsx";
+import HexBadge from "../components/scifi/HexBadge.jsx";
 import { TextCardsGrid } from "../cards/textCards.jsx";
 import { useTranslation } from "react-i18next";
 import { generateTextWithDoubao, isApiKeyConfigured } from "../utils/aiService.js"
@@ -444,7 +458,18 @@ const PracticePage = () => {
 
   if (isMobileDevice) {
     return (
-      <div className="py-20 text-center text-lg font-medium text-muted-foreground">
+      <div className="hud-corners hud-glow relative mx-auto mt-10 max-w-md overflow-hidden rounded-[3px] bg-panel px-6 py-12 text-center text-lg font-medium text-muted-foreground backdrop-blur-md [--hud-corner:var(--neon-amber)]">
+        <div
+          aria-hidden="true"
+          className="hud-label mb-5 flex items-center justify-center gap-2 !text-neon-amber"
+        >
+          <span className="hud-led animate-hud-pulse" />
+          DEVICE // UNSUPPORTED
+        </div>
+        <Smartphone
+          aria-hidden="true"
+          className="mx-auto mb-4 size-10 text-neon-amber drop-shadow-[0_0_8px_var(--neon-amber)]"
+        />
         {t("practice.mobile-not-supported")}
       </div>
     );
@@ -461,30 +486,51 @@ const PracticePage = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h1 className="mb-2 text-3xl font-bold text-foreground">
-          {t("practice.title")}
-        </h1>
-        <p className="text-muted-foreground">{t("practice.subtitle")}</p>
-      </div>
+    <div className="space-y-8">
+      <HudHeader
+        code="01"
+        title={t("practice.title")}
+        subtitle={t("practice.subtitle")}
+      />
 
       <Card>
         <CardHeader className="pb-2">
-          <div className="flex flex-wrap gap-2">
-            {["custom", "samples", "recent"].map((tab) => (
-              <Button
-                key={tab}
-                type="button"
-                variant={activeTab === tab ? "default" : "secondary"}
-                size="sm"
-                onClick={() => setActiveTab(tab)}
-              >
-                {tab === "custom" && t("practice.custom-text")}
-                {tab === "samples" && t("practice.material-library")}
-                {tab === "recent" && t("practice.recent-usage")}
-              </Button>
-            ))}
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap gap-2">
+              {["custom", "samples", "recent"].map((tab, tabIndex) => {
+                const TabIcon =
+                  tab === "custom" ? PenLine : tab === "samples" ? Library : HistoryIcon
+                const isActiveTab = activeTab === tab
+                return (
+                  <button
+                    key={tab}
+                    type="button"
+                    aria-pressed={isActiveTab}
+                    onClick={() => setActiveTab(tab)}
+                    className={cn(
+                      "relative inline-flex h-10 items-center gap-2 px-4 text-sm font-medium tracking-wide transition-colors outline-none focus-visible:shadow-[0_0_0_2px_color-mix(in_oklch,var(--primary)_60%,transparent)] [--cut:8px]",
+                      isActiveTab
+                        ? "hud-chamfer-outline text-primary"
+                        : "border border-hud-line/60 text-muted-foreground hover:border-primary/50 hover:bg-primary/5 hover:text-foreground"
+                    )}
+                  >
+                    <span
+                      aria-hidden="true"
+                      className="font-mono text-[10px] tracking-wider opacity-70"
+                    >
+                      {String.fromCharCode(65 + tabIndex)}
+                    </span>
+                    <TabIcon className="size-4" aria-hidden="true" />
+                    {tab === "custom" && t("practice.custom-text")}
+                    {tab === "samples" && t("practice.material-library")}
+                    {tab === "recent" && t("practice.recent-usage")}
+                  </button>
+                )
+              })}
+            </div>
+            <span aria-hidden="true" className="hud-label hidden sm:block">
+              SOURCE // SELECT
+            </span>
           </div>
         </CardHeader>
         <CardContent>
@@ -526,7 +572,7 @@ const PracticePage = () => {
 
         {/* Recent Articles Tab */}
         {activeTab === "recent" && (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {recentArticles.length > 0 ? (
               recentArticles.map((article) => {
                 const records =
@@ -541,31 +587,31 @@ const PracticePage = () => {
                 return (
                   <Card
                     key={article.id}
-                    className="cursor-pointer transition-shadow hover:shadow-md"
+                    className="group cursor-pointer py-4 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_0_1px_var(--primary),0_0_28px_-10px_var(--hud-glow)]"
                     onClick={() => handleRecentArticleSelect(article)}
                   >
-                    <CardContent className="pt-6">
-                    <div className="mb-2 flex items-center justify-between">
-                      <h3 className="font-semibold text-foreground">
+                    <CardContent>
+                    <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
+                      <h3 className="font-display font-semibold tracking-wide text-foreground transition-colors group-hover:text-primary">
                         {article.title}
                       </h3>
                       <div className="flex items-center gap-2">
                         {bestRecord && (
-                          <span className="rounded-full bg-yellow-100 px-2 py-1 text-xs text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-200">
+                          <span className="border border-neon-amber/40 bg-neon-amber/10 px-2 py-1 font-mono text-xs text-neon-amber">
                             {t("best")}: {bestRecord.wpm} WPM
                           </span>
                         )}
                         {lastRecord && (
-                          <span className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800 dark:bg-blue-900/40 dark:text-blue-200">
+                          <span className="border border-neon-info/40 bg-neon-info/10 px-2 py-1 font-mono text-xs text-neon-info">
                             {t("recent")}: {lastRecord.wpm} WPM
                           </span>
                         )}
                       </div>
                     </div>
-                    <p className="mb-2 text-sm text-muted-foreground">
+                    <p className="mb-3 text-sm text-muted-foreground">
                       {article.content.substring(0, 100)}...
                     </p>
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <div className="flex items-center justify-between border-t border-hud-line/40 pt-2 font-mono text-xs text-muted-foreground">
                       <span>
                         {article.wordCount} {t("word")}
                       </span>
@@ -582,7 +628,11 @@ const PracticePage = () => {
                 )
               })
             ) : (
-              <div className="py-8 text-center text-muted-foreground">
+              <div className="py-10 text-center text-muted-foreground">
+                <HistoryIcon
+                  aria-hidden="true"
+                  className="mx-auto mb-3 size-8 text-primary/50"
+                />
                 <p>{t("practice.no-practice-records")}</p>
                 <p className="text-sm">{t("practice.start-practicing")}</p>
               </div>
@@ -602,8 +652,13 @@ const PracticePage = () => {
           showCloseButton={false}
           className="flex max-h-[90vh] max-w-2xl flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl"
         >
-          <div className="flex items-center justify-between border-b border-border px-6 py-4">
-            <DialogTitle className="text-lg">{t("practice.edit-article")}</DialogTitle>
+          <div className="flex items-center justify-between border-b border-hud-line/60 px-6 py-4">
+            <div className="space-y-1.5">
+              <div aria-hidden="true" className="hud-label !text-primary">
+                EDIT // DATA RECORD
+              </div>
+              <DialogTitle className="text-lg">{t("practice.edit-article")}</DialogTitle>
+            </div>
             <Button
               type="button"
               variant="ghost"
@@ -661,7 +716,7 @@ const PracticePage = () => {
               />
             </div>
           </div>
-          <DialogFooter className="border-t border-border px-6 py-4 sm:justify-end">
+          <DialogFooter className="mx-0 mb-0 px-6 py-4 sm:justify-end">
             <Button type="button" variant="outline" onClick={handleEditCancel}>
               {t("cancel")}
             </Button>
@@ -686,10 +741,10 @@ const PracticePage = () => {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-destructive/10">
-                <Trash2 className="h-5 w-5 text-destructive" />
-              </span>
+            <AlertDialogTitle className="flex items-center gap-3">
+              <HexBadge className="size-10 text-destructive">
+                <Trash2 className="h-4 w-4" />
+              </HexBadge>
               {t("practice.confirm-delete")}
             </AlertDialogTitle>
             <AlertDialogDescription>
@@ -697,7 +752,7 @@ const PracticePage = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           {deletingArticle && (
-            <p className="text-sm text-foreground">
+            <p className="border-l-2 border-destructive bg-destructive/[0.07] px-4 py-3 text-sm text-foreground">
               {t("practice.delete-confirmation")}
               <span className="font-semibold">
                 {" "}
@@ -709,7 +764,7 @@ const PracticePage = () => {
           <AlertDialogFooter>
             <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
             <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              variant="danger"
               onClick={handleCustomArticleDeleteConfirm}
             >
               <Trash2 className="mr-2 h-4 w-4" />
@@ -738,10 +793,15 @@ const PracticePage = () => {
           showCloseButton={false}
           className="flex h-[min(90vh,700px)] max-w-2xl flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl"
         >
-          <div className="flex items-center justify-between border-b border-border px-6 py-4">
-            <DialogTitle className="text-lg">
-              {t("practice.add-new-material")}
-            </DialogTitle>
+          <div className="flex items-center justify-between border-b border-hud-line/60 px-6 py-4">
+            <div className="space-y-1.5">
+              <div aria-hidden="true" className="hud-label !text-primary">
+                NEW // DATA CARTRIDGE
+              </div>
+              <DialogTitle className="text-lg">
+                {t("practice.add-new-material")}
+              </DialogTitle>
+            </div>
             <Button
               type="button"
               variant="ghost"
@@ -754,9 +814,9 @@ const PracticePage = () => {
           </div>
 
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-            <div className="border-b border-border px-6 py-3">
+            <div className="border-b border-hud-line/60 px-6 py-3">
               <div
-                className="inline-flex h-10 w-full max-w-md items-center rounded-full bg-muted p-1 text-muted-foreground sm:w-auto"
+                className="inline-flex h-11 w-full max-w-md items-center gap-1 border border-hud-line/60 bg-panel/40 p-1 text-muted-foreground sm:w-auto"
                 role="tablist"
                 aria-label={t("practice.add-new-material")}
               >
@@ -765,10 +825,10 @@ const PracticePage = () => {
                   role="tab"
                   aria-selected={addMode === "manual"}
                   className={cn(
-                    "inline-flex flex-1 items-center justify-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium transition-all sm:flex-initial",
+                    "inline-flex h-full flex-1 items-center justify-center gap-1.5 px-4 text-sm font-medium tracking-wide transition-all outline-none focus-visible:shadow-[0_0_0_2px_color-mix(in_oklch,var(--primary)_60%,transparent)] sm:flex-initial [--cut:6px]",
                     addMode === "manual"
-                      ? "bg-background text-foreground shadow-sm ring-1 ring-border/60"
-                      : "hover:text-foreground"
+                      ? "hud-chamfer-outline text-primary"
+                      : "border border-transparent hover:text-foreground"
                   )}
                   onClick={() => setAddMode("manual")}
                 >
@@ -779,10 +839,10 @@ const PracticePage = () => {
                   role="tab"
                   aria-selected={addMode === "ai"}
                   className={cn(
-                    "inline-flex flex-1 items-center justify-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium transition-all sm:flex-initial",
+                    "inline-flex h-full flex-1 items-center justify-center gap-1.5 px-4 text-sm font-medium tracking-wide transition-all outline-none focus-visible:shadow-[0_0_0_2px_color-mix(in_oklch,var(--primary)_60%,transparent)] sm:flex-initial [--cut:6px]",
                     addMode === "ai"
-                      ? "bg-background text-foreground shadow-sm ring-1 ring-border/60"
-                      : "hover:text-foreground"
+                      ? "hud-chamfer-outline text-primary"
+                      : "border border-transparent hover:text-foreground"
                   )}
                   onClick={() => setAddMode("ai")}
                 >
@@ -797,14 +857,16 @@ const PracticePage = () => {
                 {addMode === "ai" && (
                   <div className="space-y-4">
                     {!isApiKeyConfigured() && (
-                      <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
-                        <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                      <div className="flex items-start gap-3 border-l-2 border-neon-amber bg-neon-amber/10 px-4 py-3">
+                        <AlertTriangle aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-neon-amber" />
+                        <p className="text-sm text-foreground">
                           {t('practice.ai-error-no-key')}
                         </p>
                       </div>
                     )}
-                    <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
-                      <p className="text-sm text-purple-800 dark:text-purple-200">
+                    <div className="flex items-start gap-3 border-l-2 border-neon-violet bg-neon-violet/10 px-4 py-3">
+                      <Sparkles aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-neon-violet" />
+                      <p className="text-sm text-foreground">
                         {t('practice.ai-generate-title')}
                       </p>
                     </div>
@@ -848,14 +910,14 @@ const PracticePage = () => {
                     </div>
 
                     {aiError && (
-                      <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
-                        <p className="text-sm text-red-800 dark:text-red-200">{aiError}</p>
+                      <div className="border-l-2 border-neon-red bg-neon-red/10 px-4 py-3">
+                        <p className="text-sm text-neon-red">{aiError}</p>
                       </div>
                     )}
 
                     <Button
                       type="button"
-                      className="w-full bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600 disabled:opacity-50"
+                      className="hud-btn-ai h-10 w-full [--cut:9px]"
                       onClick={handleAiGenerate}
                       disabled={
                         isGenerating ||
@@ -881,14 +943,14 @@ const PracticePage = () => {
                       <div className="mt-4 animate-fadeIn">
                         <div className="flex items-center mb-2">
                           <Loader2 className="w-4 h-4 animate-spin text-primary mr-2" />
-                          <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          <p className="text-sm font-medium text-muted-foreground">
                             {t('practice.ai-generating')}...
                           </p>
                         </div>
-                        <div className="bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4 max-h-60 overflow-y-auto relative">
-                          <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
+                        <div className="relative max-h-60 overflow-y-auto border border-neon-violet/40 bg-neon-violet/[0.06] p-4 shadow-[inset_0_0_32px_-16px_var(--neon-violet)]">
+                          <p className="font-mono text-sm text-foreground/90 whitespace-pre-wrap leading-relaxed">
                             {streamingContent}
-                            <span className="inline-block w-0.5 h-4 bg-primary ml-0.5 animate-pulse"></span>
+                            <span className="inline-block w-2 h-4 translate-y-0.5 bg-primary ml-0.5 animate-pulse shadow-[0_0_8px_var(--primary)]"></span>
                           </p>
                         </div>
                       </div>
@@ -899,8 +961,8 @@ const PracticePage = () => {
                       <div className="mt-4 animate-fadeIn">
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center">
-                            <Check className="w-4 h-4 text-green-600 dark:text-green-400 mr-2" />
-                            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <Check className="w-4 h-4 text-neon-green mr-2" />
+                            <p className="text-sm font-medium text-foreground">
                               {t('practice.use-ai-generated')}
                             </p>
                           </div>
@@ -913,14 +975,14 @@ const PracticePage = () => {
                             {t("practice.manual-input")}
                           </Button>
                         </div>
-                        <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 max-h-60 overflow-y-auto border border-gray-200 dark:border-gray-700">
-                          <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap leading-relaxed">
+                        <div className="max-h-60 overflow-y-auto border border-hud-line bg-panel/40 p-4">
+                          <p className="font-mono text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
                             {newArticleContent.length > 300 
                               ? newArticleContent.substring(0, 300) + '...' 
                               : newArticleContent}
                           </p>
                           {newArticleContent.length > 300 && (
-                            <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
+                            <p className="font-mono text-xs text-muted-foreground mt-2">
                               ({newArticleContent.split(/\s+/).length} {t('word')})
                             </p>
                           )}
@@ -982,7 +1044,7 @@ const PracticePage = () => {
                         className="min-h-[220px] flex-1 resize-none"
                         placeholder={t("practice.content-placeholder")}
                       />
-                      <p className="text-right text-xs text-muted-foreground">
+                      <p className="text-right font-mono text-xs text-muted-foreground">
                         {countWords(newArticleContent)} {t("word")} ·{" "}
                         {countCharacters(newArticleContent)} {t("char")}
                       </p>
@@ -992,7 +1054,7 @@ const PracticePage = () => {
             </div>
           </div>
 
-          <DialogFooter className="!mx-0 !mb-0 shrink-0 gap-3 border-t border-border bg-muted/50 px-6 py-5 sm:flex-row sm:justify-end">
+          <DialogFooter className="!mx-0 !mb-0 shrink-0 gap-3 px-6 py-5 sm:flex-row sm:justify-end">
             <Button type="button" variant="outline" onClick={handleAddArticleCancel}>
               {t("cancel")}
             </Button>

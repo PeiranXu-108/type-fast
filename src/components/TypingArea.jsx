@@ -11,6 +11,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { Terminal } from 'lucide-react'
+import { cn } from '@/lib/utils'
 const TypingArea = () => {
   const { t } = useTranslation()
   const { currentArticle, practiceState, updatePracticeState, saveRecord, settings } = useStore()
@@ -512,24 +514,42 @@ const TypingArea = () => {
   }[settings?.visual?.fontSize || 'medium'] || 'text-xl'
   
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg text-center">
+    <Card className="gap-0 py-0">
+      <CardHeader className="flex flex-row items-center justify-between gap-4 border-b border-hud-line/60 py-3">
+        <div aria-hidden="true" className="hud-label hidden w-40 shrink-0 items-center gap-2 sm:flex">
+          <Terminal className="size-3.5 text-primary" />
+          TX // CONSOLE
+        </div>
+        <CardTitle className="min-w-0 flex-1 truncate text-lg text-center">
           {currentArticle.title}
         </CardTitle>
+        <div
+          aria-hidden="true"
+          className={cn(
+            'hud-label hidden w-40 shrink-0 items-center justify-end gap-2 sm:flex',
+            !practiceState.isActive
+              ? '!text-muted-foreground'
+              : isHeadPoseBlocked
+                ? '!text-neon-red'
+                : '!text-neon-green'
+          )}
+        >
+          <span className="hud-led animate-hud-pulse" />
+          {!practiceState.isActive ? 'STANDBY' : isHeadPoseBlocked ? 'LOCKED' : 'LINK ACTIVE'}
+        </div>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 py-5">
       {/* Unified Text Display and Input */}
       <div
         ref={containerRef}
         tabIndex={0}
         onKeyDown={handleKeyDown}
-        className={`relative w-full rounded-lg border-2 p-6 ${fontSizeClass} leading-relaxed whitespace-pre-wrap overflow-auto transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+        className={`relative w-full rounded-[3px] border p-6 ${fontSizeClass} leading-relaxed whitespace-pre-wrap overflow-auto transition-all duration-200 focus:outline-none focus-visible:ring-1 focus-visible:ring-ring/70 ${
           practiceState.isActive
             ? isHeadPoseBlocked
-              ? 'cursor-not-allowed border-red-500/50 bg-background'
-              : 'cursor-text border-primary/40 bg-background'
-            : 'cursor-default border-border bg-muted/40'
+              ? 'cursor-not-allowed border-neon-red/60 bg-neon-red/[0.04] shadow-[inset_0_0_48px_-24px_var(--neon-red)]'
+              : 'cursor-text border-primary/40 bg-background/60 shadow-[inset_0_0_64px_-32px_var(--hud-glow)] focus:border-primary/70'
+            : 'cursor-default border-hud-line bg-muted/30'
         }`}
         style={{ 
           fontFamily,
@@ -547,7 +567,7 @@ const TypingArea = () => {
         ) : (
           <div className="py-20 text-center text-muted-foreground">
             <div className="mb-4">
-              <svg className="mx-auto h-16 w-16 text-muted-foreground/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="mx-auto h-16 w-16 text-primary/60 drop-shadow-[0_0_8px_var(--primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
@@ -560,9 +580,13 @@ const TypingArea = () => {
         )}
 
         {isHeadPoseBlocked ? (
-          <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-background/70 backdrop-blur-[1px]">
-            <div className="max-w-md rounded-xl border border-red-500/30 bg-background/95 px-6 py-4 text-center shadow-lg">
-              <p className="text-lg font-semibold text-red-600 dark:text-red-400">
+          <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-background/70 backdrop-blur-[2px]">
+            <div className="hud-corners relative max-w-md border border-neon-red/50 bg-popover/95 px-6 py-4 text-center shadow-[0_0_40px_-12px_var(--neon-red)] [--hud-corner:var(--neon-red)]">
+              <div aria-hidden="true" className="hud-label mb-2 flex items-center justify-center gap-2 !text-neon-red">
+                <span className="hud-led animate-hud-pulse" />
+                ALERT // POSTURE
+              </div>
+              <p className="text-lg font-semibold text-neon-red">
                 {t('practice-control.headpose-input-blocked')}
               </p>
               <p className="mt-2 text-sm text-muted-foreground">
@@ -576,7 +600,18 @@ const TypingArea = () => {
       {/* Head pose status — only when feature is enabled */}
       {isHeadPoseGateEnabled ? (
         <div className="text-center text-sm text-muted-foreground">
-          <p className="mb-2">
+          <p className="mb-2 flex items-center justify-center gap-2">
+            <span
+              aria-hidden="true"
+              className={cn(
+                'hud-led',
+                headPoseStatus === 'down'
+                  ? 'text-neon-red'
+                  : headPoseStatus === 'up'
+                    ? 'text-neon-green'
+                    : 'text-neon-amber'
+              )}
+            />
             <strong>{t('practice-control.headpose-training')}:</strong>{' '}
             {headPoseStatus === 'down'
               ? t('practice-control.headpose-status-down')
@@ -585,17 +620,17 @@ const TypingArea = () => {
                 : t('practice-control.headpose-status-checking')}
           </p>
           {isHeadPoseInGrace ? (
-            <p className="mb-2 text-amber-600 dark:text-amber-400">
+            <p className="mb-2 text-neon-amber">
               {t('practice-control.headpose-grace-active')}
             </p>
           ) : null}
           {isHeadPoseBlocked ? (
-            <p className="mb-2 text-red-600 dark:text-red-400">
+            <p className="mb-2 text-neon-red">
               {t('practice-control.headpose-input-blocked')}
             </p>
           ) : null}
           {headPoseError ? (
-            <p className="mb-2 text-amber-600 dark:text-amber-400">{headPoseError}</p>
+            <p className="mb-2 text-neon-amber">{headPoseError}</p>
           ) : null}
         </div>
       ) : null}
