@@ -12,7 +12,7 @@ function Spinner({
     <span
       data-slot="spinner"
       className={cn(
-        "inline-block size-4 animate-spin rounded-full border-2 border-current border-t-transparent",
+        "inline-block size-4 animate-spin rounded-full border-2 border-current border-t-transparent [filter:drop-shadow(0_0_3px_currentColor)]",
         className
       )}
       aria-hidden="true"

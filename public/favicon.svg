@@ -1,5 +1,16 @@
 <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-label="T logo">
-  <rect x="0" y="0" width="32" height="32" rx="8" fill="#0284c7"/>
-  <rect x="7" y="8" width="17" height="3" fill="#ffffff"/>
-  <rect x="14" y="11" width="3" height="14" fill="#ffffff"/>
+  <defs>
+    <filter id="g" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="0.9" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect x="0" y="0" width="32" height="32" rx="7" fill="#0b1224"/>
+  <g filter="url(#g)" fill="none" stroke="#5cc8ff" stroke-linejoin="round">
+    <path d="M16 3.5 26.8 9.75v12.5L16 28.5 5.2 22.25V9.75Z" stroke-width="1.6"/>
+  </g>
+  <g filter="url(#g)" fill="#7dd8ff">
+    <rect x="10" y="10" width="12" height="2.6" rx="0.4"/>
+    <rect x="14.7" y="12.6" width="2.6" height="10" rx="0.4"/>
+  </g>
 </svg>

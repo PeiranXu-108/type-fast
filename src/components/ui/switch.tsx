@@ -10,7 +10,7 @@ function Switch({
   size?: "sm" | "default"
 }) {
   const isSmall = size === "sm"
-  const rootSizeClasses = isSmall ? "h-6 w-10 p-0.5" : "h-7 w-12 p-0.5"
+  const rootSizeClasses = isSmall ? "h-6 w-10 p-0.5" : "h-7 w-12 p-[3px]"
   const thumbSizeClasses = isSmall ? "size-4" : "size-5"
   const thumbTranslateClasses = isSmall
     ? "data-[checked]:translate-x-4"
@@ -23,7 +23,7 @@ function Switch({
       nativeButton
       render={<button type="button" />}
       className={cn(
-        "peer relative inline-flex shrink-0 cursor-pointer items-center overflow-hidden rounded-full border border-gray-400 bg-gray-300 transition-all outline-none after:absolute after:-inset-x-3 after:-inset-y-2 focus-visible:border-ring focus-visible:shadow-[0_0_0_3px_color-mix(in_oklch,var(--ring)_45%,transparent)] aria-invalid:border-destructive aria-invalid:shadow-[0_0_0_3px_color-mix(in_oklch,var(--destructive)_25%,transparent)] data-[checked]:border-primary data-[checked]:bg-primary data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:aria-invalid:border-destructive/50",
+        "peer relative inline-flex shrink-0 cursor-pointer items-center rounded-[3px] border border-hud-line bg-muted/70 transition-all outline-none after:absolute after:-inset-x-3 after:-inset-y-2 focus-visible:shadow-[0_0_0_2px_color-mix(in_oklch,var(--primary)_60%,transparent)] aria-invalid:border-destructive data-[checked]:border-primary data-[checked]:bg-primary/20 data-[checked]:shadow-[0_0_16px_-4px_var(--hud-glow)] data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50",
         rootSizeClasses,
         className
       )}
@@ -32,7 +32,7 @@ function Switch({
       <SwitchPrimitive.Thumb
         data-slot="switch-thumb"
         className={cn(
-          "pointer-events-none block translate-x-0 rounded-full bg-white shadow-sm ring-0 transition-transform",
+          "pointer-events-none block translate-x-0 rounded-[2px] bg-muted-foreground/60 transition-all duration-200 data-[checked]:bg-primary data-[checked]:shadow-[0_0_10px_var(--primary)]",
           thumbSizeClasses,
           thumbTranslateClasses
         )}

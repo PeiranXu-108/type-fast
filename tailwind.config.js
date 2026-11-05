@@ -1,5 +1,28 @@
 import tailwindcssAnimate from "tailwindcss-animate"
 
+/**
+ * Colors are backed by CSS variables (see src/index.css). Tailwind 3 cannot apply
+ * `/opacity` modifiers to a bare `var(--x)` color (the utility is silently dropped),
+ * so mix the variable with transparent instead. This keeps `bg-primary/10`,
+ * `border-hud-line/60` etc. working and following the active theme + accent color.
+ */
+const token = (name) => ({ opacityValue }) =>
+  opacityValue === undefined ||
+  opacityValue === "1" ||
+  String(opacityValue).startsWith("var(--tw-")
+    ? `var(--${name})`
+    : `color-mix(in oklch, var(--${name}) calc(${opacityValue} * 100%), transparent)`
+
+const CJK_SANS = [
+  "PingFang SC",
+  "Hiragino Sans GB",
+  "Microsoft YaHei",
+  "Noto Sans SC",
+  "Source Han Sans SC",
+  "system-ui",
+  "sans-serif",
+]
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
@@ -11,13 +34,9 @@ export default {
     extend: {
       fontFamily: {
         mono: ["JetBrains Mono", "Fira Code", "Consolas", "monospace"],
-        sans: ["Geist Variable", "JetBrains Mono", "system-ui", "sans-serif"],
-        heading: [
-          "var(--font-heading)",
-          "Geist Variable",
-          "system-ui",
-          "sans-serif",
-        ],
+        sans: ["Oxanium Variable", "Geist Variable", ...CJK_SANS],
+        display: ["Orbitron Variable", "Oxanium Variable", ...CJK_SANS],
+        heading: ["var(--font-heading)", "Orbitron Variable", ...CJK_SANS],
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -28,19 +47,19 @@ export default {
         3: "3px",
       },
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        background: token("background"),
+        foreground: token("foreground"),
         card: {
-          DEFAULT: "var(--card)",
-          foreground: "var(--card-foreground)",
+          DEFAULT: token("card"),
+          foreground: token("card-foreground"),
         },
         popover: {
-          DEFAULT: "var(--popover)",
-          foreground: "var(--popover-foreground)",
+          DEFAULT: token("popover"),
+          foreground: token("popover-foreground"),
         },
         primary: {
-          DEFAULT: "var(--primary)",
-          foreground: "var(--primary-foreground)",
+          DEFAULT: token("primary"),
+          foreground: token("primary-foreground"),
           50: "#f0f9ff",
           100: "#e0f2fe",
           200: "#bae6fd",
@@ -53,40 +72,55 @@ export default {
           900: "#0c4a6e",
         },
         secondary: {
-          DEFAULT: "var(--secondary)",
-          foreground: "var(--secondary-foreground)",
+          DEFAULT: token("secondary"),
+          foreground: token("secondary-foreground"),
         },
         muted: {
-          DEFAULT: "var(--muted)",
-          foreground: "var(--muted-foreground)",
+          DEFAULT: token("muted"),
+          foreground: token("muted-foreground"),
         },
         accent: {
-          DEFAULT: "var(--accent)",
-          foreground: "var(--accent-foreground)",
+          DEFAULT: token("accent"),
+          foreground: token("accent-foreground"),
         },
         destructive: {
-          DEFAULT: "var(--destructive)",
-          foreground: "var(--destructive-foreground)",
+          DEFAULT: token("destructive"),
+          foreground: token("destructive-foreground"),
         },
-        border: "var(--border)",
-        input: "var(--input)",
-        ring: "var(--ring)",
+        border: token("border"),
+        input: token("input"),
+        ring: token("ring"),
         chart: {
-          1: "var(--chart-1)",
-          2: "var(--chart-2)",
-          3: "var(--chart-3)",
-          4: "var(--chart-4)",
-          5: "var(--chart-5)",
+          1: token("chart-1"),
+          2: token("chart-2"),
+          3: token("chart-3"),
+          4: token("chart-4"),
+          5: token("chart-5"),
         },
         sidebar: {
-          DEFAULT: "var(--sidebar)",
-          foreground: "var(--sidebar-foreground)",
-          primary: "var(--sidebar-primary)",
-          "primary-foreground": "var(--sidebar-primary-foreground)",
-          accent: "var(--sidebar-accent)",
-          "accent-foreground": "var(--sidebar-accent-foreground)",
-          border: "var(--sidebar-border)",
-          ring: "var(--sidebar-ring)",
+          DEFAULT: token("sidebar"),
+          foreground: token("sidebar-foreground"),
+          primary: token("sidebar-primary"),
+          "primary-foreground": token("sidebar-primary-foreground"),
+          accent: token("sidebar-accent"),
+          "accent-foreground": token("sidebar-accent-foreground"),
+          border: token("sidebar-border"),
+          ring: token("sidebar-ring"),
+        },
+        // HUD surfaces
+        panel: token("panel"),
+        hud: {
+          line: token("hud-line"),
+          glow: token("hud-glow"),
+        },
+        // Semantic neon signals (bright in dark mode, deeper in light modes)
+        neon: {
+          info: token("neon-info"),
+          green: token("neon-green"),
+          amber: token("neon-amber"),
+          red: token("neon-red"),
+          violet: token("neon-violet"),
+          orange: token("neon-orange"),
         },
         success: {
           50: "#f0fdf4",
@@ -149,6 +183,57 @@ export default {
           "0%": { opacity: "1", transform: "translateY(0)" },
           "100%": { opacity: "0", transform: "translateY(6px)" },
         },
+        // Sci-fi HUD motion
+        "hud-scan": {
+          "0%": { transform: "translateX(-100%)" },
+          "100%": { transform: "translateX(400%)" },
+        },
+        "hud-scan-y": {
+          "0%": { transform: "translateY(-100%)" },
+          "100%": { transform: "translateY(900%)" },
+        },
+        "hud-spin": {
+          from: { transform: "rotate(0deg)" },
+          to: { transform: "rotate(360deg)" },
+        },
+        "hud-spin-rev": {
+          from: { transform: "rotate(360deg)" },
+          to: { transform: "rotate(0deg)" },
+        },
+        "hud-flicker": {
+          "0%, 100%": { opacity: "1" },
+          "8%": { opacity: "0.35" },
+          "10%": { opacity: "1" },
+          "12%": { opacity: "0.6" },
+          "14%": { opacity: "1" },
+          "60%": { opacity: "1" },
+          "61%": { opacity: "0.75" },
+          "62%": { opacity: "1" },
+        },
+        "hud-pulse": {
+          "0%, 100%": { opacity: "1", transform: "scale(1)" },
+          "50%": { opacity: "0.45", transform: "scale(0.85)" },
+        },
+        "hud-glow": {
+          "0%, 100%": { opacity: "0.55" },
+          "50%": { opacity: "1" },
+        },
+        "hud-grid-flow": {
+          from: { backgroundPosition: "0 0" },
+          to: { backgroundPosition: "0 48px" },
+        },
+        "hud-stars": {
+          from: { transform: "translateY(0)" },
+          to: { transform: "translateY(-320px)" },
+        },
+        "hud-stars-far": {
+          from: { transform: "translateY(0)" },
+          to: { transform: "translateY(-200px)" },
+        },
+        "hud-rise": {
+          "0%": { opacity: "0", transform: "translateY(12px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
       },
       animation: {
         "pulse-slow": "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
@@ -161,6 +246,19 @@ export default {
         "landing-drift-slow": "landing-drift-slow 18s ease-in-out infinite",
         "landing-cursor": "landing-cursor 1s step-end infinite",
         "landing-scroll-dot": "landing-scroll-dot 1.5s ease-in-out infinite",
+        "hud-scan": "hud-scan 5s cubic-bezier(0.45, 0, 0.55, 1) infinite",
+        "hud-scan-slow": "hud-scan 9s cubic-bezier(0.45, 0, 0.55, 1) infinite",
+        "hud-scan-y": "hud-scan-y 7s linear infinite",
+        "hud-spin": "hud-spin 40s linear infinite",
+        "hud-spin-fast": "hud-spin 12s linear infinite",
+        "hud-spin-rev": "hud-spin-rev 60s linear infinite",
+        "hud-flicker": "hud-flicker 6s linear infinite",
+        "hud-pulse": "hud-pulse 1.8s ease-in-out infinite",
+        "hud-glow": "hud-glow 3s ease-in-out infinite",
+        "hud-grid-flow": "hud-grid-flow 2.4s linear infinite",
+        "hud-stars": "hud-stars 90s linear infinite",
+        "hud-stars-far": "hud-stars-far 140s linear infinite",
+        "hud-rise": "hud-rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both",
       },
     },
   },
