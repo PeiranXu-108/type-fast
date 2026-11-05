@@ -41,6 +41,7 @@ import {
 } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { Switch } from "@/components/ui/switch"
+import HudHeader from "../components/scifi/HudHeader.jsx"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -101,7 +102,7 @@ const CURSOR_STYLES = [
 
 function CursorPreview({ styleId }) {
   return (
-    <span className="flex items-center justify-center w-6 h-6 mr-2 bg-muted/30 rounded-md shrink-0 overflow-hidden">
+    <span className="flex items-center justify-center w-6 h-6 mr-2 border border-hud-line/60 bg-background/40 rounded-[2px] shrink-0 overflow-hidden">
       <span className={`inline-block leading-none cursor-style-${styleId}`}>
         &nbsp;
       </span>
@@ -109,24 +110,27 @@ function CursorPreview({ styleId }) {
   )
 }
 
-/** OKLCH matches light-mode --primary in index.css for each data-theme-color */
+/** Each swatch reads the same --tone-* variable that drives --primary, so it matches the active mode */
 const THEME_COLOR_SWATCH = {
-  blue: "oklch(0.55 0.19 252)",
-  green: "oklch(0.55 0.19 145)",
-  orange: "oklch(0.55 0.19 65)",
-  rose: "oklch(0.55 0.19 12)",
-  violet: "oklch(0.55 0.19 285)",
-  amber: "oklch(0.55 0.19 80)",
-  teal: "oklch(0.55 0.19 190)",
-  slate: "oklch(0.4 0.03 264)",
+  blue: "var(--tone-blue)",
+  green: "var(--tone-green)",
+  orange: "var(--tone-orange)",
+  rose: "var(--tone-rose)",
+  violet: "var(--tone-violet)",
+  amber: "var(--tone-amber)",
+  teal: "var(--tone-teal)",
+  slate: "var(--tone-slate)",
 }
 
 function ThemeColorSwatch({ colorId }) {
   const fill = THEME_COLOR_SWATCH[colorId] ?? THEME_COLOR_SWATCH.blue
   return (
     <span
-      className="size-4 shrink-0 rounded-sm border border-border/70 shadow-sm"
-      style={{ backgroundColor: fill }}
+      className="size-4 shrink-0 rounded-[2px] border border-hud-line"
+      style={{
+        backgroundColor: fill,
+        boxShadow: `0 0 8px -1px ${fill}`,
+      }}
       aria-hidden
     />
   )
@@ -155,9 +159,9 @@ function HeadPoseScoreRow({ label, score, toneClass }) {
           {(score * 100).toFixed(1)}%
         </span>
       </div>
-      <div className="h-2 overflow-hidden rounded-full bg-muted">
+      <div className="h-2 overflow-hidden border border-hud-line/60 bg-background/50">
         <div
-          className={cn("h-full rounded-full transition-all duration-200", toneClass)}
+          className={cn("h-full transition-all duration-200", toneClass)}
           style={{ width: `${Math.max(0, Math.min(score * 100, 100))}%` }}
         />
       </div>
@@ -277,11 +281,11 @@ function HeadPoseDebugDialog({
 
   const statusTextClass =
     debugState.status === "down"
-      ? "text-red-600 dark:text-red-400"
+      ? "text-neon-red"
       : debugState.status === "up"
-        ? "text-emerald-600 dark:text-emerald-400"
+        ? "text-neon-green"
         : debugState.status === "no-face"
-          ? "text-amber-600 dark:text-amber-400"
+          ? "text-neon-amber"
           : "text-muted-foreground"
 
   const cameraStatusLoading = !debugState.isCameraReady && isStarting
@@ -299,7 +303,7 @@ function HeadPoseDebugDialog({
 
         <div className="grid items-stretch gap-4 md:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
           <div className="flex h-full">
-            <div className="min-h-[320px] w-full overflow-hidden rounded-xl border bg-black">
+            <div className="hud-corners relative min-h-[320px] w-full overflow-hidden border border-hud-line bg-black">
               <video
                 ref={previewRef}
                 autoPlay
@@ -307,21 +311,30 @@ function HeadPoseDebugDialog({
                 playsInline
                 className="h-full w-full object-cover [transform:scaleX(-1)]"
               />
+              <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+                <div className="absolute left-1/2 top-0 h-full w-px bg-primary/15" />
+                <div className="absolute left-0 top-1/2 h-px w-full bg-primary/15" />
+                <div className="absolute left-1/2 top-1/2 size-28 -translate-x-1/2 -translate-y-1/2 rounded-full border border-primary/40" />
+                <div className="hud-label absolute left-3 top-3 flex items-center gap-1.5 !text-neon-red">
+                  <span className="hud-led animate-hud-pulse" />
+                  REC // CAM-01
+                </div>
+              </div>
             </div>
           </div>
 
           <div className="flex h-full flex-col gap-4">
             <div className="grid gap-3 sm:grid-cols-3">
-              <div className="rounded-lg border bg-muted/40 p-3">
-                <div className="text-xs text-muted-foreground">
+              <div className="border border-hud-line/60 bg-background/40 p-3">
+                <div className="hud-label">
                   {t("settings.headpose-debug-current-status")}
                 </div>
                 <div className={cn("mt-1 text-sm font-semibold", statusTextClass)}>
                   {statusLabel}
                 </div>
               </div>
-              <div className="rounded-lg border bg-muted/40 p-3">
-                <div className="text-xs text-muted-foreground">
+              <div className="border border-hud-line/60 bg-background/40 p-3">
+                <div className="hud-label">
                   {t("settings.headpose-debug-camera")}
                 </div>
                 <div className="mt-1 flex items-center gap-2 text-sm font-medium text-foreground">
@@ -335,8 +348,8 @@ function HeadPoseDebugDialog({
                   </span>
                 </div>
               </div>
-              <div className="rounded-lg border bg-muted/40 p-3">
-                <div className="text-xs text-muted-foreground">
+              <div className="border border-hud-line/60 bg-background/40 p-3">
+                <div className="hud-label">
                   {t("settings.headpose-debug-model")}
                 </div>
                 <div className="mt-1 flex items-center gap-2 text-sm font-medium text-foreground">
@@ -352,7 +365,7 @@ function HeadPoseDebugDialog({
               </div>
             </div>
 
-            <div className="flex-1 space-y-3 rounded-xl border p-4">
+            <div className="flex-1 space-y-3 border border-hud-line/60 bg-background/30 p-4">
               <div>
                 <div className="text-sm font-medium text-foreground">
                   {t("settings.headpose-debug-scores")}
@@ -365,22 +378,22 @@ function HeadPoseDebugDialog({
               <HeadPoseScoreRow
                 label={t("settings.headpose-debug-score-down")}
                 score={debugState.scores.down}
-                toneClass="bg-red-500"
+                toneClass="bg-neon-red shadow-[0_0_10px_var(--neon-red)]"
               />
               <HeadPoseScoreRow
                 label={t("settings.headpose-debug-score-forward")}
                 score={debugState.scores.forward}
-                toneClass="bg-amber-500"
+                toneClass="bg-neon-amber shadow-[0_0_10px_var(--neon-amber)]"
               />
               <HeadPoseScoreRow
                 label={t("settings.headpose-debug-score-up")}
                 score={debugState.scores.up}
-                toneClass="bg-emerald-500"
+                toneClass="bg-neon-green shadow-[0_0_10px_var(--neon-green)]"
               />
             </div>
 
             {debugState.error ? (
-              <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+              <div className="border-l-2 border-destructive bg-destructive/10 p-3 text-sm text-destructive">
                 {debugState.error}
               </div>
             ) : null}
@@ -624,21 +637,23 @@ const SettingsPage = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h1 className="mb-2 text-3xl font-bold text-foreground">
-          {t("settings.title")}
-        </h1>
-        <p className="text-muted-foreground">{t("settings.subtitle")}</p>
-      </div>
+    <div className="space-y-8">
+      <HudHeader
+        code="03"
+        title={t("settings.title")}
+        subtitle={t("settings.subtitle")}
+      />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Palette className="h-5 w-5 text-primary" />
-              {t("settings.appearance-settings")}
-            </CardTitle>
+            <div className="flex items-center justify-between gap-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Palette className="h-5 w-5 text-primary" />
+                {t("settings.appearance-settings")}
+              </CardTitle>
+              <span aria-hidden="true" className="hud-label">CFG.01</span>
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
@@ -748,7 +763,7 @@ const SettingsPage = () => {
               </p>
               <div
                 data-slot="button-group"
-                className="flex w-full rounded-lg"
+                className="flex w-full gap-1 border border-hud-line/60 bg-background/40 p-1"
               >
                 {FONT_SIZE_VALUES.map((size) => {
                   const active = (settings.visual.fontSize ?? "medium") === size
@@ -757,10 +772,10 @@ const SettingsPage = () => {
                       key={size}
                       type="button"
                       size="sm"
-                      variant={active ? "default" : "outline"}
+                      variant={active ? "default" : "ghost"}
                       aria-pressed={active}
                       className={cn(
-                        "flex-1 rounded-none border-l-0 first:rounded-l-lg first:border-l last:rounded-r-lg",
+                        "flex-1",
                         active && "relative z-10"
                       )}
                       onClick={() =>
@@ -809,10 +824,13 @@ const SettingsPage = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Settings className="h-5 w-5 text-green-600 dark:text-green-400" />
-              {t("settings.practice-settings")}
-            </CardTitle>
+            <div className="flex items-center justify-between gap-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Settings className="h-5 w-5 text-neon-green" />
+                {t("settings.practice-settings")}
+              </CardTitle>
+              <span aria-hidden="true" className="hud-label">CFG.02</span>
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
@@ -861,9 +879,9 @@ const SettingsPage = () => {
               </Select>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-3 border-t border-hud-line/40 pt-4">
               <h3 className="flex items-center text-sm font-medium text-foreground">
-                <Volume2 className="mr-2 h-4 w-4" />
+                <Volume2 className="mr-2 h-4 w-4 text-primary" />
                 {t("settings.sound-settings")}
               </h3>
               <div className="flex items-center justify-between gap-4">
@@ -892,9 +910,9 @@ const SettingsPage = () => {
               </div>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-3 border-t border-hud-line/40 pt-4">
               <h3 className="flex items-center text-sm font-medium text-foreground">
-                <Monitor className="mr-2 h-4 w-4" />
+                <Monitor className="mr-2 h-4 w-4 text-primary" />
                 {t("settings.headpose-settings")}
               </h3>
               <div className="flex items-center justify-between gap-4">
@@ -963,16 +981,19 @@ const SettingsPage = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Monitor className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-              {t("settings.data-management")}
-            </CardTitle>
+            <div className="flex items-center justify-between gap-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Monitor className="h-5 w-5 text-neon-violet" />
+                {t("settings.data-management")}
+              </CardTitle>
+              <span aria-hidden="true" className="hud-label">CFG.03</span>
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
               <Button
                 type="button"
-                variant="secondary"
+                variant="outline"
                 className="w-full gap-2"
                 onClick={handleExport}
               >
@@ -984,14 +1005,14 @@ const SettingsPage = () => {
               </p>
             </div>
 
-            <div className="flex items-center justify-between rounded-lg bg-muted/50 p-3">
+            <div className="flex items-center justify-between border border-hud-line/50 border-l-2 border-l-primary/70 bg-background/40 p-3">
               <div className="flex items-center gap-2">
-                <Monitor className="h-4 w-4 text-muted-foreground" />
+                <Monitor className="h-4 w-4 text-primary" />
                 <span className="text-sm text-muted-foreground">
                   {t("settings.local-storage-usage")}
                 </span>
               </div>
-              <span className="text-sm font-medium text-foreground">
+              <span className="neon-text font-mono text-sm font-semibold text-primary">
                 {getStorageSize()} KB
               </span>
             </div>
@@ -1012,8 +1033,8 @@ const SettingsPage = () => {
                   className={cn(
                     "text-xs",
                     importStatus === "success"
-                      ? "text-green-600 dark:text-green-400"
-                      : "text-red-600 dark:text-red-400"
+                      ? "text-neon-green"
+                      : "text-neon-red"
                   )}
                 >
                   {importStatus === "success"
@@ -1042,10 +1063,13 @@ const SettingsPage = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Keyboard className="h-5 w-5 text-muted-foreground" />
-              {t("settings.keyboard-shortcuts")}
-            </CardTitle>
+            <div className="flex items-center justify-between gap-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Keyboard className="h-5 w-5 text-neon-info" />
+                {t("settings.keyboard-shortcuts")}
+              </CardTitle>
+              <span aria-hidden="true" className="hud-label">CFG.04</span>
+            </div>
             <CardDescription>
               {editingShortcutKey
                 ? t("settings.press-shortcut")
@@ -1080,10 +1104,10 @@ const SettingsPage = () => {
                     <div className="flex items-center gap-2">
                       <kbd
                         className={cn(
-                          "rounded px-2 py-1 text-sm",
+                          "hud-kbd px-2 py-1 text-sm",
                           isEditing
-                            ? "bg-primary/15 text-primary"
-                            : "bg-muted text-foreground"
+                            ? "animate-hud-glow border-primary text-primary"
+                            : "text-foreground"
                         )}
                       >
                         {isEditing
@@ -1146,7 +1170,7 @@ const SettingsPage = () => {
           <AlertDialogFooter>
             <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
             <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              variant="danger"
               onClick={handleClearData}
             >
               {t("settings.confirm-clear")}
