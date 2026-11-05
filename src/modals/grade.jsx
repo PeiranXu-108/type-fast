@@ -17,6 +17,8 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import HexBadge from "@/components/scifi/HexBadge.jsx"
+import HudStat from "@/components/scifi/HudStat.jsx"
 
 export default function Grade({
   wpm,
@@ -31,53 +33,55 @@ export default function Grade({
     if (wpmValue >= 60)
       return {
         grade: "A+",
-        color: "text-green-600 dark:text-green-400",
-        bgColor: "bg-green-100 dark:bg-green-900/20",
+        color: "text-neon-green",
+        bgColor: "[--line:color-mix(in_oklch,var(--neon-green)_65%,transparent)] [--fill:color-mix(in_oklch,var(--neon-green)_12%,var(--surface))]",
       }
     if (wpmValue >= 50)
       return {
         grade: "A",
-        color: "text-green-600 dark:text-green-400",
-        bgColor: "bg-green-100 dark:bg-green-900/20",
+        color: "text-neon-green",
+        bgColor: "[--line:color-mix(in_oklch,var(--neon-green)_65%,transparent)] [--fill:color-mix(in_oklch,var(--neon-green)_12%,var(--surface))]",
       }
     if (wpmValue >= 40)
       return {
         grade: "B+",
-        color: "text-blue-600 dark:text-blue-400",
-        bgColor: "bg-blue-100 dark:bg-blue-900/20",
+        color: "text-neon-info",
+        bgColor: "[--line:color-mix(in_oklch,var(--neon-info)_65%,transparent)] [--fill:color-mix(in_oklch,var(--neon-info)_12%,var(--surface))]",
       }
     if (wpmValue >= 35)
       return {
         grade: "B",
-        color: "text-blue-600 dark:text-blue-400",
-        bgColor: "bg-blue-100 dark:bg-blue-900/20",
+        color: "text-neon-info",
+        bgColor: "[--line:color-mix(in_oklch,var(--neon-info)_65%,transparent)] [--fill:color-mix(in_oklch,var(--neon-info)_12%,var(--surface))]",
       }
     if (wpmValue >= 30)
       return {
         grade: "C+",
-        color: "text-yellow-600 dark:text-yellow-400",
-        bgColor: "bg-yellow-100 dark:bg-yellow-900/20",
+        color: "text-neon-amber",
+        bgColor: "[--line:color-mix(in_oklch,var(--neon-amber)_65%,transparent)] [--fill:color-mix(in_oklch,var(--neon-amber)_12%,var(--surface))]",
       }
     if (wpmValue >= 25)
       return {
         grade: "C",
-        color: "text-yellow-600 dark:text-yellow-400",
-        bgColor: "bg-yellow-100 dark:bg-yellow-900/20",
+        color: "text-neon-amber",
+        bgColor: "[--line:color-mix(in_oklch,var(--neon-amber)_65%,transparent)] [--fill:color-mix(in_oklch,var(--neon-amber)_12%,var(--surface))]",
       }
     if (wpmValue >= 20)
       return {
         grade: "D",
-        color: "text-orange-600 dark:text-orange-400",
-        bgColor: "bg-orange-100 dark:bg-orange-900/20",
+        color: "text-neon-orange",
+        bgColor: "[--line:color-mix(in_oklch,var(--neon-orange)_65%,transparent)] [--fill:color-mix(in_oklch,var(--neon-orange)_12%,var(--surface))]",
       }
     return {
       grade: "F",
-      color: "text-red-600 dark:text-red-400",
-      bgColor: "bg-red-100 dark:bg-red-900/20",
+      color: "text-neon-red",
+      bgColor: "[--line:color-mix(in_oklch,var(--neon-red)_65%,transparent)] [--fill:color-mix(in_oklch,var(--neon-red)_12%,var(--surface))]",
     }
   }
 
   const gradeInfo = getGrade(wpm)
+  const tile =
+    "hud-corners relative border border-hud-line/60 bg-background/40 p-4 [--hud-corner-size:8px]"
 
   return (
     <Dialog open onOpenChange={(next) => !next && onReturn()}>
@@ -85,24 +89,29 @@ export default function Grade({
         <DialogHeader>
           <div className="flex flex-col items-center gap-4 text-center">
             <div
-              className={cn(
-                "flex h-20 w-20 items-center justify-center rounded-full",
-                gradeInfo.bgColor
-              )}
+              aria-hidden="true"
+              className="hud-label flex items-center gap-2 !text-neon-green"
             >
-              <Trophy className={cn("h-10 w-10", gradeInfo.color)} />
+              <span className="hud-led animate-hud-pulse" />
+              SESSION // COMPLETE
             </div>
-            <div className="space-y-2">
+            <HexBadge className={cn("size-20", gradeInfo.color)} fillOpacity={0.14}>
+              <Trophy className="h-9 w-9" />
+            </HexBadge>
+            <div className="space-y-3">
               <DialogTitle className="text-xl">
                 {t("results.practice-completed")}
               </DialogTitle>
               <div
                 className={cn(
-                  "inline-flex rounded-full px-4 py-2",
+                  "hud-chamfer-outline inline-flex items-center gap-3 px-6 py-1.5 [--cut:10px]",
                   gradeInfo.bgColor
                 )}
               >
-                <span className={cn("text-2xl font-bold", gradeInfo.color)}>
+                <span aria-hidden="true" className="hud-label">
+                  RANK
+                </span>
+                <span className={cn("neon-text font-display text-3xl font-black leading-none", gradeInfo.color)}>
                   {gradeInfo.grade}
                 </span>
               </div>
@@ -111,49 +120,31 @@ export default function Grade({
         </DialogHeader>
 
         <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-lg bg-blue-50 p-4 text-center dark:bg-blue-900/20">
-            <div className="mb-2 flex items-center justify-center gap-2">
-              <TrendingUp className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-              <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
-                WPM
-              </span>
-            </div>
-            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-              {wpm}
-            </div>
+          <div className={tile}>
+            <HudStat label="WPM" value={wpm} tone="info" icon={TrendingUp} align="center" />
           </div>
-          <div className="rounded-lg bg-green-50 p-4 text-center dark:bg-green-900/20">
-            <div className="mb-2 flex items-center justify-center gap-2">
-              <TrendingUp className="h-5 w-5 text-green-600 dark:text-green-400" />
-              <span className="text-sm font-medium text-green-600 dark:text-green-400">
-                CPM
-              </span>
-            </div>
-            <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-              {cpm}
-            </div>
+          <div className={tile}>
+            <HudStat label="CPM" value={cpm} tone="green" icon={TrendingUp} align="center" />
           </div>
-          <div className="rounded-lg bg-purple-50 p-4 text-center dark:bg-purple-900/20">
-            <div className="mb-2 flex items-center justify-center gap-2">
-              <Clock className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-              <span className="text-sm font-medium text-purple-600 dark:text-purple-400">
-                {t("results.elapsed-time")}
-              </span>
-            </div>
-            <div className="text-lg font-bold text-purple-600 dark:text-purple-400">
-              {duration}
-            </div>
+          <div className={tile}>
+            <HudStat
+              label={t("results.elapsed-time")}
+              value={duration}
+              tone="violet"
+              icon={Clock}
+              size="sm"
+              align="center"
+            />
           </div>
-          <div className="rounded-lg bg-orange-50 p-4 text-center dark:bg-orange-900/20">
-            <div className="mb-2 flex items-center justify-center gap-2">
-              <Target className="h-5 w-5 text-orange-600 dark:text-orange-400" />
-              <span className="text-sm font-medium text-orange-600 dark:text-orange-400">
-                {t("results.accuracy")}
-              </span>
-            </div>
-            <div className="text-lg font-bold text-orange-600 dark:text-orange-400">
-              {accuracy}%
-            </div>
+          <div className={tile}>
+            <HudStat
+              label={t("results.accuracy")}
+              value={`${accuracy}%`}
+              tone="orange"
+              icon={Target}
+              size="sm"
+              align="center"
+            />
           </div>
         </div>
 

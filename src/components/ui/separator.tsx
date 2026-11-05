@@ -14,7 +14,7 @@ function Separator({
       data-slot="separator"
       orientation={orientation}
       className={cn(
-        "shrink-0 bg-border data-horizontal:h-px data-horizontal:w-full data-vertical:w-px data-vertical:self-stretch",
+        "h-px w-full shrink-0 bg-gradient-to-r from-transparent via-hud-line to-transparent aria-[orientation=vertical]:h-auto aria-[orientation=vertical]:w-px aria-[orientation=vertical]:self-stretch aria-[orientation=vertical]:bg-gradient-to-b",
         className
       )}
       {...props}

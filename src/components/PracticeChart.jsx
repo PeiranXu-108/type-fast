@@ -10,11 +10,14 @@ import {
   ChartLegendContent,
 } from "@/components/ui/chart"
 
+// Neon signal colors follow the active theme mode (see --neon-* in index.css)
 const COLORS = {
-  wpm: "#3b82f6",
-  cpm: "#10b981",
-  accuracy: "#f59e0b",
+  wpm: "var(--neon-info)",
+  cpm: "var(--neon-green)",
+  accuracy: "var(--neon-amber)",
 }
+
+const GLOW_FILTER_ID = "tf-chart-neon-glow"
 
 const PracticeChart = ({ records }) => {
   const { t } = useTranslation()
@@ -51,7 +54,7 @@ const PracticeChart = ({ records }) => {
   )
 
   return (
-    <div className="h-80 w-full">
+    <div className="h-80 w-full font-mono">
       <ChartContainer config={chartConfig} className="h-full w-full !aspect-auto">
         <LineChart
           data={chartData}
@@ -62,7 +65,16 @@ const PracticeChart = ({ records }) => {
             bottom: 8,
           }}
         >
-          <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-border/50" />
+          <defs>
+            <filter id={GLOW_FILTER_ID} x="-10%" y="-30%" width="120%" height="160%">
+              <feGaussianBlur stdDeviation="2.5" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+          <CartesianGrid vertical={false} strokeDasharray="2 6" className="stroke-hud-line/60" />
           <XAxis
             dataKey="session"
             tickLine={false}
@@ -118,7 +130,8 @@ const PracticeChart = ({ records }) => {
             stroke="var(--color-wpm)"
             strokeWidth={2}
             dot={false}
-            activeDot={{ r: 4, strokeWidth: 0 }}
+            filter={`url(#${GLOW_FILTER_ID})`}
+            activeDot={{ r: 4, strokeWidth: 2, stroke: "var(--background)" }}
           />
           <Line
             name="CPM"
@@ -127,7 +140,8 @@ const PracticeChart = ({ records }) => {
             stroke="var(--color-cpm)"
             strokeWidth={2}
             dot={false}
-            activeDot={{ r: 4, strokeWidth: 0 }}
+            filter={`url(#${GLOW_FILTER_ID})`}
+            activeDot={{ r: 4, strokeWidth: 2, stroke: "var(--background)" }}
           />
           <Line
             name={t("history.accuracy")}
@@ -136,7 +150,8 @@ const PracticeChart = ({ records }) => {
             stroke="var(--color-accuracy)"
             strokeWidth={2}
             dot={false}
-            activeDot={{ r: 4, strokeWidth: 0 }}
+            filter={`url(#${GLOW_FILTER_ID})`}
+            activeDot={{ r: 4, strokeWidth: 2, stroke: "var(--background)" }}
           />
         </LineChart>
       </ChartContainer>

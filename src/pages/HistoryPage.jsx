@@ -13,6 +13,9 @@ import { useNavigate } from "react-router-dom"
 import Confirm from "../modals/confirm.jsx"
 import { useTranslation } from "react-i18next"
 import PracticeChart from "../components/PracticeChart.jsx"
+import HudHeader from "../components/scifi/HudHeader.jsx"
+import HudStat from "../components/scifi/HudStat.jsx"
+import HexBadge from "../components/scifi/HexBadge.jsx"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -177,16 +180,16 @@ const HistoryPage = () => {
   };
 
   const getWPMColor = (wpm) => {
-    if (wpm >= 60) return "text-green-600 dark:text-green-400";
-    if (wpm >= 40) return "text-yellow-600 dark:text-yellow-400";
-    if (wpm >= 20) return "text-blue-600 dark:text-blue-400";
-    return "text-red-600 dark:text-red-400";
+    if (wpm >= 60) return "text-neon-green";
+    if (wpm >= 40) return "text-neon-amber";
+    if (wpm >= 20) return "text-neon-info";
+    return "text-neon-red";
   };
 
   const getAccuracyColor = (accuracy) => {
-    if (accuracy >= 95) return "text-green-600 dark:text-green-400";
-    if (accuracy >= 85) return "text-yellow-600 dark:text-yellow-400";
-    return "text-red-600 dark:text-red-400";
+    if (accuracy >= 95) return "text-neon-green";
+    if (accuracy >= 85) return "text-neon-amber";
+    return "text-neon-red";
   };
 
   // Sort articles by most recent practice, with practiced articles first
@@ -205,13 +208,12 @@ const HistoryPage = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h1 className="mb-2 text-3xl font-bold text-foreground">
-          {t("history.title")}
-        </h1>
-        <p className="text-muted-foreground">{t("history.subtitle")}</p>
-      </div>
+    <div className="space-y-8">
+      <HudHeader
+        code="02"
+        title={t("history.title")}
+        subtitle={t("history.subtitle")}
+      />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-1">
@@ -225,14 +227,14 @@ const HistoryPage = () => {
                   <Calendar className="h-5 w-5 text-primary" />
                   {t("history.article-list")}
                 </CardTitle>
-                <span className="text-sm text-muted-foreground">
+                <span className="border border-hud-line/60 bg-primary/10 px-2 py-0.5 font-mono text-xs text-primary">
                   {articlesUnique.length} {t("history.articles-count")}
                 </span>
               </div>
             </CardHeader>
             <CardContent className="flex-1 overflow-hidden pt-0">
 
-            <div className="max-h-[1000px] space-y-3 overflow-y-auto">
+            <div className="max-h-[1000px] space-y-2.5 overflow-y-auto pr-1">
               {articlesUnique.length > 0 ? (
                 getSortedArticles(articlesUnique).map((article) => {
                   const stats = getArticleStats(article.id);
@@ -251,16 +253,25 @@ const HistoryPage = () => {
                         }
                       }}
                       className={cn(
-                        "cursor-pointer rounded-lg p-3 transition-all duration-200",
+                        "group relative cursor-pointer border py-3 pl-4 pr-3 outline-none transition-all duration-200 focus-visible:border-primary",
                         isSelected
-                          ? "border-2 border-primary/40 bg-primary/10"
-                          : "bg-muted/50 hover:bg-muted"
+                          ? "border-primary/60 bg-primary/10 shadow-[0_0_24px_-10px_var(--hud-glow)]"
+                          : "border-hud-line/40 bg-background/30 hover:border-primary/40 hover:bg-primary/5"
                       )}
                     >
-                      <h3 className="mb-1 font-medium text-foreground">
+                      <span
+                        aria-hidden="true"
+                        className={cn(
+                          "absolute inset-y-0 left-0 w-[2px] transition-colors",
+                          isSelected
+                            ? "bg-primary shadow-[0_0_10px_var(--primary)]"
+                            : "bg-transparent group-hover:bg-primary/40"
+                        )}
+                      />
+                      <h3 className="mb-1 font-display font-semibold tracking-wide text-foreground">
                         {article.title}
                       </h3>
-                      <p className="mb-2 text-sm text-muted-foreground">
+                      <p className="mb-2 font-mono text-xs text-muted-foreground">
                         {article.wordCount} {t("history.words-count")} •{" "}
                         {article.charCount} {t("history.chars-count")}
                       </p>
@@ -272,7 +283,7 @@ const HistoryPage = () => {
                               {t("history.best-wpm")}:{" "}
                             </span>
                             <span
-                              className={`font-semibold ${getWPMColor(
+                              className={`font-mono font-semibold ${getWPMColor(
                                 stats.bestRecord.wpm
                               )}`}
                             >
@@ -283,12 +294,12 @@ const HistoryPage = () => {
                             <span className="text-muted-foreground">
                               {t("history.practice-count")}:{" "}
                             </span>
-                            <span className="font-semibold text-foreground">
+                            <span className="font-mono font-semibold text-foreground">
                               {stats.practiceCount}
                             </span>
                           </div>
                           {stats.lastPractice && (
-                            <div className="text-sm text-muted-foreground">
+                            <div className="font-mono text-xs text-muted-foreground">
                               {t("history.recent")}{" "}
                               {new Date(
                                 stats.lastPractice.endedAt
@@ -301,9 +312,9 @@ const HistoryPage = () => {
                       <div className="mt-3 flex gap-2">
                         <Button
                           type="button"
-                          variant="outline"
+                          variant="destructive"
                           size="sm"
-                          className="flex-1 border-destructive/30 text-destructive hover:bg-destructive/10"
+                          className="flex-1"
                           onClick={(e) => {
                             e.stopPropagation()
                             handleDeleteRecords(article)
@@ -329,7 +340,11 @@ const HistoryPage = () => {
                   );
                 })
               ) : (
-                <div className="py-8 text-center text-muted-foreground">
+                <div className="py-10 text-center text-muted-foreground">
+                  <BarChart3
+                    aria-hidden="true"
+                    className="mx-auto mb-3 size-8 text-primary/50"
+                  />
                   <p>{t("history.no-practice-records")}</p>
                   <p className="text-sm">{t("history.start-practicing")}</p>
                 </div>
@@ -347,13 +362,16 @@ const HistoryPage = () => {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-lg">
-                    <TrendingUp className="h-5 w-5 text-green-600 dark:text-green-400" />
+                    <TrendingUp className="h-5 w-5 shrink-0 text-neon-green" />
                     {t("history.stats-overview")} {selectedArticle.title}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                <div className="rounded-lg bg-muted/50 p-4">
-                  <div className="whitespace-pre-wrap text-sm leading-relaxed text-foreground">
+                <div className="relative border border-hud-line/50 border-l-2 border-l-primary/70 bg-background/40 p-4">
+                  <div aria-hidden="true" className="hud-label mb-2">
+                    TRANSCRIPT
+                  </div>
+                  <div className="whitespace-pre-wrap font-mono text-sm leading-relaxed text-foreground">
                     {selectedArticle.content}
                   </div>
                 </div>
@@ -369,40 +387,40 @@ const HistoryPage = () => {
 
                   return (
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                        <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                          {formatWPM(stats.bestRecord.wpm)}
-                        </div>
-                        <div className="text-sm text-blue-600 dark:text-blue-400">
-                          {t("history.best-wpm")}
-                        </div>
+                      <div className="hud-corners relative border border-neon-info/30 bg-neon-info/[0.06] p-4 [--hud-corner-size:8px] [--hud-corner:var(--neon-info)]">
+                        <HudStat
+                          label={t("history.best-wpm")}
+                          value={formatWPM(stats.bestRecord.wpm)}
+                          tone="info"
+                          align="center"
+                        />
                       </div>
 
-                      <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                        <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                          {formatWPM(stats.averageWPM)}
-                        </div>
-                        <div className="text-sm text-green-600 dark:text-green-400">
-                          {t("history.average-wpm")}
-                        </div>
+                      <div className="hud-corners relative border border-neon-green/30 bg-neon-green/[0.06] p-4 [--hud-corner-size:8px] [--hud-corner:var(--neon-green)]">
+                        <HudStat
+                          label={t("history.average-wpm")}
+                          value={formatWPM(stats.averageWPM)}
+                          tone="green"
+                          align="center"
+                        />
                       </div>
 
-                      <div className="text-center p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                        <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                          {stats.averageAccuracy}%
-                        </div>
-                        <div className="text-sm text-purple-600 dark:text-purple-400">
-                          {t("history.average-accuracy")}
-                        </div>
+                      <div className="hud-corners relative border border-neon-violet/30 bg-neon-violet/[0.06] p-4 [--hud-corner-size:8px] [--hud-corner:var(--neon-violet)]">
+                        <HudStat
+                          label={t("history.average-accuracy")}
+                          value={`${stats.averageAccuracy}%`}
+                          tone="violet"
+                          align="center"
+                        />
                       </div>
 
-                      <div className="text-center p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-                        <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-                          {stats.practiceCount}
-                        </div>
-                        <div className="text-sm text-orange-600 dark:text-orange-400">
-                          {t("history.practice-count")}
-                        </div>
+                      <div className="hud-corners relative border border-neon-orange/30 bg-neon-orange/[0.06] p-4 [--hud-corner-size:8px] [--hud-corner:var(--neon-orange)]">
+                        <HudStat
+                          label={t("history.practice-count")}
+                          value={stats.practiceCount}
+                          tone="orange"
+                          align="center"
+                        />
                       </div>
                     </div>
                   );
@@ -418,12 +436,12 @@ const HistoryPage = () => {
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2 text-lg">
-                        <TrendingUp className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                        <TrendingUp className="h-5 w-5 text-neon-info" />
                         {t("history.practice-trend")}
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                    <div className="rounded-lg bg-muted/50 p-4">
+                    <div className="border border-hud-line/50 bg-background/40 p-4">
                       <PracticeChart records={getArticleRecords(selectedArticle.id)} />
                     </div>
                     </CardContent>
@@ -435,10 +453,10 @@ const HistoryPage = () => {
                 <CardHeader className="flex flex-col gap-4 space-y-0 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex flex-wrap items-center gap-3">
                     <CardTitle className="flex items-center gap-2 text-lg">
-                      <BarChart3 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                      <BarChart3 className="h-5 w-5 text-neon-info" />
                       {t("history.practice-records")}
                     </CardTitle>
-                    <span className="text-sm text-muted-foreground">
+                    <span className="font-mono text-xs text-muted-foreground">
                       ({getFilteredRecords(selectedArticle.id).length}{" "}
                       {t("history.records-count")})
                     </span>
@@ -467,25 +485,25 @@ const HistoryPage = () => {
                 </CardHeader>
                 <CardContent className="pt-0">
                 <div className="max-h-[500px] overflow-x-auto overflow-y-auto">
-                  <table className="w-full text-sm">
-                    <thead className="sticky top-0 z-10 bg-card">
-                      <tr className="border-b border-border">
-                        <th className="bg-card py-2 text-left text-muted-foreground">
+                  <table className="w-full font-mono text-sm">
+                    <thead className="sticky top-0 z-10 bg-popover">
+                      <tr className="border-b border-hud-line">
+                        <th className="hud-label bg-popover py-2.5 pl-2 text-left font-normal">
                           {t("history.date")}
                         </th>
-                        <th className="bg-card py-2 text-left text-muted-foreground">
+                        <th className="hud-label bg-popover py-2.5 text-left font-normal">
                           WPM
                         </th>
-                        <th className="bg-card py-2 text-left text-muted-foreground">
+                        <th className="hud-label bg-popover py-2.5 text-left font-normal">
                           CPM
                         </th>
-                        <th className="bg-card py-2 text-left text-muted-foreground">
+                        <th className="hud-label bg-popover py-2.5 text-left font-normal">
                           {t("history.accuracy")}
                         </th>
-                        <th className="bg-card py-2 text-left text-muted-foreground">
+                        <th className="hud-label bg-popover py-2.5 text-left font-normal">
                           {t("history.duration")}
                         </th>
-                        <th className="bg-card py-2 text-left text-muted-foreground">
+                        <th className="hud-label bg-popover py-2.5 text-left font-normal">
                           {t("history.mode")}
                         </th>
                       </tr>
@@ -499,10 +517,10 @@ const HistoryPage = () => {
                               `${selectedArticle.id}-${record.endedAt}-${index}`
                             }
                             className={cn(
-                              "border-b border-border/60 hover:bg-muted/40"
+                              "border-b border-hud-line/30 transition-colors hover:bg-primary/5"
                             )}
                           >
-                            <td className="py-2 text-foreground">
+                            <td className="py-2.5 pl-2 text-foreground">
                               {new Date(record.endedAt).toLocaleDateString()}
                             </td>
                             <td
@@ -528,10 +546,10 @@ const HistoryPage = () => {
                             <td className="py-2 text-foreground">
                               <div className="flex flex-wrap items-center gap-2">
                                 <span
-                                  className={`rounded-full px-2 py-1 text-xs ${
+                                  className={`border px-2 py-0.5 text-xs ${
                                     record.mode === "strict"
-                                      ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-                                      : "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                                      ? "border-neon-red/40 bg-neon-red/10 text-neon-red"
+                                      : "border-neon-green/40 bg-neon-green/10 text-neon-green"
                                   }`}
                                 >
                                   {record.mode === "strict"
@@ -539,7 +557,7 @@ const HistoryPage = () => {
                                     : t("history.lenient")}
                                 </span>
                                 {record.meta?.headPoseTrainingEnabled ? (
-                                  <span className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                  <span className="border border-neon-info/40 bg-neon-info/10 px-2 py-0.5 text-xs text-neon-info">
                                     {t("history.touch-typing")}
                                   </span>
                                 ) : null}
@@ -563,7 +581,16 @@ const HistoryPage = () => {
           ) : (
             <Card className="p-8 text-center">
               <CardContent className="pt-8">
-              <Target className="mx-auto mb-4 h-16 w-16 text-muted-foreground" />
+              <div className="relative mx-auto mb-6 grid size-28 place-items-center text-primary">
+                <svg aria-hidden="true" viewBox="0 0 100 100" className="animate-hud-spin absolute inset-0 h-full w-full" fill="none">
+                  <circle cx="50" cy="50" r="47" stroke="currentColor" strokeOpacity="0.35" strokeWidth="1" strokeDasharray="2 5" />
+                  <path d="M50 3 A47 47 0 0 1 97 50" stroke="currentColor" strokeOpacity="0.8" strokeWidth="1.5" />
+                </svg>
+                <svg aria-hidden="true" viewBox="0 0 100 100" className="animate-hud-spin-rev absolute inset-[14%] h-[72%] w-[72%]" fill="none">
+                  <circle cx="50" cy="50" r="46" stroke="currentColor" strokeOpacity="0.25" strokeWidth="6" strokeDasharray="1 9" />
+                </svg>
+                <Target className="relative h-12 w-12 drop-shadow-[0_0_8px_var(--primary)]" />
+              </div>
               <h3 className="mb-2 text-lg font-semibold text-foreground">
                 {t("history.select-article")}
               </h3>
@@ -584,10 +611,10 @@ const HistoryPage = () => {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-destructive/10">
-                <Trash2 className="h-5 w-5 text-destructive" />
-              </span>
+            <AlertDialogTitle className="flex items-center gap-3">
+              <HexBadge className="size-10 text-destructive">
+                <Trash2 className="h-4 w-4" />
+              </HexBadge>
               {t("history.confirm-delete-records")}
             </AlertDialogTitle>
             <AlertDialogDescription>
@@ -595,7 +622,7 @@ const HistoryPage = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           {confirmingDelete && (
-            <p className="text-sm text-foreground">
+            <p className="border-l-2 border-destructive bg-destructive/[0.07] px-4 py-3 text-sm text-foreground">
               {t("history.delete-records-confirmation")}{" "}
               <span className="font-semibold">&quot;{confirmingDelete.title}&quot;</span>{" "}
               {t("history.delete-records-irreversible")}
@@ -604,7 +631,7 @@ const HistoryPage = () => {
           <AlertDialogFooter>
             <AlertDialogCancel>{t("delete.cancel")}</AlertDialogCancel>
             <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              variant="danger"
               onClick={handleDeleteConfirm}
             >
               <Trash2 className="mr-2 h-4 w-4" />
