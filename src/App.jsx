@@ -2,6 +2,7 @@ import React from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
 import { useTheme } from './hooks/useTheme.js'
 import Navigation from './components/Navigation.jsx'
+import SciFiBackdrop from './components/scifi/SciFiBackdrop.jsx'
 import LandingPage from './pages/LandingPage.jsx'
 import PracticePage from './pages/PracticePage.jsx'
 import HistoryPage from './pages/HistoryPage.jsx'
@@ -13,14 +14,15 @@ function App() {
   const isLanding = location.pathname === '/'
 
   return (
-    <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
+    <div className="relative min-h-screen bg-background text-foreground transition-colors duration-300">
+      <SciFiBackdrop />
       <Navigation />
       {isLanding ? (
         <Routes>
           <Route path="/" element={<LandingPage />} />
         </Routes>
       ) : (
-        <main className="container mx-auto px-4 py-6 max-w-7xl">
+        <main className="container relative z-10 mx-auto max-w-7xl px-4 py-8">
           <Routes>
             <Route path="/practice" element={<PracticePage />} />
             <Route path="/history" element={<HistoryPage />} />

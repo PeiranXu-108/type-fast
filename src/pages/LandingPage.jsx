@@ -3,6 +3,7 @@ import { Link } from "react-router-dom"
 import { Zap, Target, BarChart3, ArrowRight, Sparkles, Pencil, Eye } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
+import HexBadge from "@/components/scifi/HexBadge.jsx"
 
 function useTypingEffect(phrases, { typeSpeed = 70, deleteSpeed = 40, pauseDuration = 2200 } = {}) {
   const [displayText, setDisplayText] = useState("")
@@ -60,33 +61,45 @@ function useScrollReveal() {
   return [ref, isVisible]
 }
 
-function KeycapSVG({ letter, w = 56, h = 56, className, style }) {
+/** Holographic key glyph: a framed key with corner brackets, drawn in the accent color. */
+function HoloKeySVG({ letter, w = 56, h = 56, className, style }) {
   const r = Math.min(w, h)
-  const rx = r * 0.14
-  const irx = r * 0.09
-  const pad = r * 0.09
-  const depth = r * 0.06
+  const arm = Math.max(5, r * 0.22)
+  const corners = [
+    `M1 ${1 + arm} V1 H${1 + arm}`,
+    `M${w - 1 - arm} 1 H${w - 1} V${1 + arm}`,
+    `M${w - 1} ${h - 1 - arm} V${h - 1} H${w - 1 - arm}`,
+    `M${1 + arm} ${h - 1} H1 V${h - 1 - arm}`,
+  ]
 
   return (
     <svg className={className} style={style} width={w} height={h} viewBox={`0 0 ${w} ${h}`} fill="none">
-      <rect x={2} y={depth + 1} width={w - 4} height={h - depth} rx={rx + 1} fill="var(--primary)" opacity="0.1" />
-      <rect x={0.75} y={0.75} width={w - 1.5} height={h - depth} rx={rx} fill="var(--primary)" fillOpacity="0.04" stroke="var(--primary)" strokeWidth="0.75" opacity="0.2" />
-      <rect x={pad + 3} y={pad + 1} width={w - (pad + 3) * 2} height={h - depth - (pad + 1) * 2} rx={irx} fill="var(--primary)" fillOpacity="0.02" stroke="var(--primary)" strokeWidth="0.5" opacity="0.14" />
-      <path
-        d={`M${pad + 6} ${pad + 2.5} Q${w / 2} ${pad} ${w - pad - 6} ${pad + 2.5}`}
-        stroke="var(--primary)" strokeWidth="0.5" opacity="0.12" fill="none" strokeLinecap="round"
+      <rect
+        x={3.5}
+        y={3.5}
+        width={w - 7}
+        height={h - 7}
+        fill="var(--primary)"
+        fillOpacity="0.05"
+        stroke="var(--primary)"
+        strokeOpacity="0.28"
+        strokeWidth="0.75"
       />
+      {corners.map((d) => (
+        <path key={d} d={d} stroke="var(--primary)" strokeOpacity="0.85" strokeWidth="1.25" />
+      ))}
+      <line x1={6} x2={w - 6} y1={h * 0.28} y2={h * 0.28} stroke="var(--primary)" strokeOpacity="0.12" strokeWidth="0.5" />
       {letter && (
         <text
           x={w / 2}
-          y={(h - depth) / 2 + 1}
+          y={h / 2 + 1}
           textAnchor="middle"
           dominantBaseline="central"
           fill="var(--primary)"
-          opacity="0.25"
-          fontSize={r * 0.32}
-          fontFamily="'JetBrains Mono', monospace"
-          fontWeight="500"
+          fillOpacity="0.7"
+          fontSize={r * 0.34}
+          fontFamily="'Orbitron Variable', 'JetBrains Mono', monospace"
+          fontWeight="600"
         >
           {letter}
         </text>
@@ -151,19 +164,43 @@ function generateKeycaps() {
   return caps
 }
 
-function AnimatedBackground() {
+/** Concentric HUD rings behind the hero title. */
+function HoloRings() {
+  return (
+    <div className="pointer-events-none absolute left-1/2 top-[42%] aspect-square w-[min(118vw,880px)] -translate-x-1/2 -translate-y-1/2 opacity-70">
+      <svg viewBox="0 0 400 400" className="animate-hud-spin absolute inset-0 h-full w-full" fill="none">
+        <circle cx="200" cy="200" r="196" stroke="var(--primary)" strokeOpacity="0.18" strokeWidth="0.6" strokeDasharray="1 6" />
+        <path d="M200 4 A196 196 0 0 1 338.6 61.4" stroke="var(--primary)" strokeOpacity="0.55" strokeWidth="1.2" />
+        <path d="M200 396 A196 196 0 0 1 61.4 338.6" stroke="var(--primary)" strokeOpacity="0.55" strokeWidth="1.2" />
+      </svg>
+      <svg viewBox="0 0 400 400" className="animate-hud-spin-rev absolute inset-[9%] h-[82%] w-[82%]" fill="none">
+        <circle cx="200" cy="200" r="194" stroke="var(--primary)" strokeOpacity="0.14" strokeWidth="0.8" />
+        <circle cx="200" cy="200" r="182" stroke="var(--primary)" strokeOpacity="0.28" strokeWidth="5" strokeDasharray="2 14" />
+        <path d="M6 200 A194 194 0 0 1 63 63" stroke="var(--primary)" strokeOpacity="0.5" strokeWidth="1" />
+        <path d="M394 200 A194 194 0 0 1 337 337" stroke="var(--primary)" strokeOpacity="0.5" strokeWidth="1" />
+      </svg>
+      <svg viewBox="0 0 400 400" className="animate-hud-spin-fast absolute inset-[22%] h-[56%] w-[56%]" fill="none">
+        <circle cx="200" cy="200" r="190" stroke="var(--primary)" strokeOpacity="0.2" strokeWidth="0.8" strokeDasharray="40 12 4 12" />
+      </svg>
+    </div>
+  )
+}
+
+function HoloField() {
   const [keycaps] = useState(generateKeycaps)
 
   return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
       <div
-        className="absolute -left-40 -top-40 h-[400px] w-[400px] rounded-full opacity-[0.04] blur-[120px] animate-landing-drift dark:opacity-[0.07]"
+        className="absolute -left-40 -top-40 h-[420px] w-[420px] rounded-full opacity-[0.12] blur-[120px] animate-landing-drift dark:opacity-[0.22]"
         style={{ background: "var(--primary)" }}
       />
       <div
-        className="absolute -right-32 bottom-[10%] h-[350px] w-[350px] rounded-full opacity-[0.03] blur-[120px] animate-landing-drift-reverse dark:opacity-[0.05]"
-        style={{ background: "var(--primary)" }}
+        className="absolute -right-32 bottom-[10%] h-[380px] w-[380px] rounded-full opacity-[0.08] blur-[120px] animate-landing-drift-reverse dark:opacity-[0.16]"
+        style={{ background: "var(--neon-violet)" }}
       />
+
+      <HoloRings />
 
       {keycaps.map((cap) => (
         <div
@@ -175,7 +212,7 @@ function AnimatedBackground() {
             transform: `rotate(${cap.rotation}deg)`,
           }}
         >
-          <KeycapSVG
+          <HoloKeySVG
             letter={cap.letter}
             w={cap.w}
             h={cap.h}
@@ -191,21 +228,28 @@ function AnimatedBackground() {
   )
 }
 
-function FeatureCard({ icon: Icon, title, description, delay, isVisible }) {
+function FeatureCard({ icon: Icon, title, description, delay, isVisible, index }) {
   return (
     <div
       className={cn(
-        "group relative overflow-hidden rounded-2xl border border-border/60 bg-card/60 p-8 backdrop-blur-sm transition-all duration-500 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5",
+        "transition-all duration-700",
         isVisible ? "translate-y-0 opacity-100" : "translate-y-12 opacity-0"
       )}
       style={{ transitionDelay: delay }}
     >
-      <div className="mb-5 inline-flex rounded-xl bg-primary/10 p-3 transition-colors group-hover:bg-primary/15">
-        <Icon className="h-6 w-6 text-primary" />
+      <div className="hud-corners group relative h-full overflow-hidden rounded-[3px] border border-hud-line/70 bg-panel p-7 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-primary/60 hover:shadow-[0_0_36px_-12px_var(--hud-glow)]">
+        <div className="mb-6 flex items-start justify-between">
+          <HexBadge className="size-12 text-primary transition-transform duration-500 group-hover:rotate-[30deg]">
+            <Icon className="h-5 w-5 transition-transform duration-500 group-hover:-rotate-[30deg]" />
+          </HexBadge>
+          <span aria-hidden="true" className="font-mono text-xs tracking-[0.2em] text-muted-foreground/60">
+            {`M-${String(index).padStart(2, "0")}`}
+          </span>
+        </div>
+        <h3 className="mb-2 font-display text-base font-semibold tracking-wide text-foreground">{title}</h3>
+        <p className="text-sm leading-relaxed text-muted-foreground">{description}</p>
+        <div className="absolute bottom-0 left-0 h-[2px] w-0 bg-gradient-to-r from-primary to-primary/0 shadow-[0_0_12px_var(--primary)] transition-all duration-500 group-hover:w-full" />
       </div>
-      <h3 className="mb-2 text-lg font-semibold text-foreground">{title}</h3>
-      <p className="text-sm leading-relaxed text-muted-foreground">{description}</p>
-      <div className="absolute -bottom-1 left-0 h-1 w-0 bg-gradient-to-r from-primary/60 to-primary/0 transition-all duration-500 group-hover:w-full" />
     </div>
   )
 }
@@ -256,34 +300,50 @@ function LiveTypingDemo() {
     return () => clearTimeout(timeout)
   }, [charIndex, sampleText.length, sampleTexts.length])
 
+  const progress = Math.round((Math.min(charIndex, sampleText.length) / sampleText.length) * 100)
+
   return (
-    <div className="mx-auto mt-8 max-w-xl rounded-xl border border-border/50 bg-card/40 p-5 font-mono text-sm backdrop-blur-sm">
-      <div className="mb-3 flex items-center gap-2">
-        <div className="h-3 w-3 rounded-full bg-error-400/60" />
-        <div className="h-3 w-3 rounded-full bg-amber-400/60" />
-        <div className="h-3 w-3 rounded-full bg-success-400/60" />
-        <span className="ml-2 text-xs text-muted-foreground/60">type-fast</span>
+    <div className="hud-corners hud-glow relative mx-auto mt-12 max-w-xl overflow-hidden rounded-[3px] bg-panel p-5 text-left font-mono text-sm backdrop-blur-md">
+      <div className="mb-4 flex items-center gap-2 border-b border-hud-line/60 pb-3">
+        <div className="h-2 w-2 bg-neon-red shadow-[0_0_6px_var(--neon-red)]" />
+        <div className="h-2 w-2 bg-neon-amber shadow-[0_0_6px_var(--neon-amber)]" />
+        <div className="h-2 w-2 bg-neon-green shadow-[0_0_6px_var(--neon-green)]" />
+        <span className="ml-2 text-xs tracking-wider text-muted-foreground">type-fast</span>
+        <span aria-hidden="true" className="ml-auto flex items-center gap-1.5 text-[10px] tracking-[0.2em] text-primary/80">
+          <span className="hud-led animate-hud-pulse" />
+          {`LIVE ${String(progress).padStart(3, "0")}%`}
+        </span>
       </div>
-      <div className="leading-relaxed tracking-wide">
+      <div className="min-h-[1.75rem] leading-relaxed tracking-wide">
         {sampleText.split("").map((char, i) => (
           <span
             key={i}
             className={cn(
               "transition-colors duration-100",
               i < charIndex
-                ? "text-primary"
+                ? "neon-text text-primary"
                 : i === charIndex
                   ? "relative text-foreground"
-                  : "text-muted-foreground/30"
+                  : "text-muted-foreground/40"
             )}
           >
             {i === charIndex && (
-              <span className="absolute -left-[1px] top-0 h-full w-[2px] animate-landing-cursor bg-primary" />
+              <span className="absolute -left-[1px] top-0 h-full w-[2px] animate-landing-cursor bg-primary shadow-[0_0_8px_var(--primary)]" />
             )}
             {char}
           </span>
         ))}
       </div>
+      <div aria-hidden="true" className="mt-4 h-[3px] w-full bg-hud-line/40">
+        <div
+          className="h-full bg-primary shadow-[0_0_10px_var(--primary)] transition-all duration-150"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-primary/10 to-transparent animate-hud-scan-y"
+      />
     </div>
   )
 }
@@ -306,42 +366,56 @@ const LandingPage = () => {
   }, [])
 
   return (
-    <div className="relative min-h-screen overflow-hidden">
-      <AnimatedBackground />
+    <div className="relative z-10 min-h-screen overflow-hidden">
+      <HoloField />
 
       {/* Hero Section */}
-      <section className="relative flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center px-6 py-20">
+      <section className="relative flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center px-6 pb-24 pt-28">
+        <div aria-hidden="true" className="hud-floor">
+          <div className="hud-floor-plane" />
+        </div>
+        <div
+          aria-hidden="true"
+          className="absolute inset-x-0 bottom-[36%] h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent"
+        />
+
         <div
           className={cn(
             "relative z-10 text-center transition-all duration-1000",
             heroLoaded ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
           )}
         >
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-xs font-medium text-primary backdrop-blur-sm">
+          <div className="mb-7 inline-flex items-center gap-2.5 border border-primary/40 bg-primary/10 px-4 py-1.5 font-mono text-xs tracking-[0.16em] text-primary backdrop-blur-sm">
+            <span className="hud-led animate-hud-pulse" aria-hidden="true" />
             <Zap className="h-3.5 w-3.5" />
             {t("landing.badge")}
           </div>
 
-          <h1 className="mb-6 text-6xl font-bold tracking-tight text-primary sm:text-7xl md:text-8xl lg:text-9xl">
+          <h1 className="holo-title mb-6 font-display text-[clamp(2.4rem,10.5vw,8.25rem)] font-black uppercase leading-[0.95] tracking-[0.06em]">
             Type Fast
           </h1>
 
-          <div className="mx-auto mb-4 h-px w-48 bg-gradient-to-r from-transparent via-border to-transparent" />
+          <div aria-hidden="true" className="mx-auto mb-5 flex w-72 items-center gap-2">
+            <span className="h-px flex-1 bg-gradient-to-r from-transparent to-primary/70" />
+            <span className="size-1.5 rotate-45 border border-primary bg-primary/40 shadow-[0_0_8px_var(--primary)]" />
+            <span className="h-px flex-1 bg-gradient-to-l from-transparent to-primary/70" />
+          </div>
 
-          <p className="mx-auto mb-2 max-w-xl text-base text-muted-foreground sm:text-lg">
+          <p className="mx-auto mb-3 max-w-xl text-base text-muted-foreground sm:text-lg">
             {t("landing.description")}
           </p>
 
-          <div className="mb-10 h-8 text-lg font-medium text-foreground/80 sm:text-xl">
+          <div className="mb-10 h-8 font-mono text-lg font-medium text-foreground/90 sm:text-xl">
+            <span aria-hidden="true" className="mr-2 text-primary">&gt;</span>
             <span>{displayText}</span>
-            <span className="ml-0.5 inline-block h-5 w-[2px] translate-y-0.5 animate-landing-cursor bg-primary sm:h-6" />
+            <span className="ml-1 inline-block h-5 w-[10px] translate-y-0.5 animate-landing-cursor bg-primary/80 shadow-[0_0_10px_var(--primary)] sm:h-6" />
           </div>
 
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
             <Link
               to="/practice"
               state={{ autoStartRandomSample: true }}
-              className="group inline-flex items-center gap-2 rounded-full bg-primary px-8 py-3.5 text-base font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-primary/30"
+              className="hud-btn-solid group inline-flex h-12 items-center gap-3 px-10 text-base font-bold uppercase tracking-[0.16em] transition-transform duration-300 [--cut:12px] hover:scale-[1.04]"
             >
               {t("landing.get_started")}
               <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
@@ -352,34 +426,41 @@ const LandingPage = () => {
         </div>
 
         {/* Scroll hint */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
-          <div className="h-8 w-5 rounded-full border-2 border-muted-foreground/20">
-            <div className="mx-auto mt-1 h-2 w-1 animate-landing-scroll-dot rounded-full bg-muted-foreground/40" />
+        <div aria-hidden="true" className="absolute bottom-6 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2">
+          <span className="font-mono text-[10px] tracking-[0.35em] text-muted-foreground/70">SCROLL</span>
+          <div className="relative h-10 w-px overflow-hidden bg-hud-line">
+            <span className="absolute inset-x-0 top-0 h-3 bg-primary shadow-[0_0_8px_var(--primary)] animate-hud-scan-y" />
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section ref={featuresRef} className="relative z-10 mx-auto max-w-5xl px-6 pb-32 pt-8">
+      <section ref={featuresRef} className="relative z-10 mx-auto max-w-6xl px-6 pb-28 pt-16">
         <div
           className={cn(
             "mb-14 text-center transition-all duration-700",
             featuresVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
           )}
         >
-          <h2 className="mb-3 text-3xl font-bold text-foreground sm:text-4xl">
+          <div aria-hidden="true" className="hud-label mb-3 flex items-center justify-center gap-3 !text-primary">
+            <span className="h-px w-10 bg-gradient-to-r from-transparent to-primary/70" />
+            {"// SYSTEM MODULES"}
+            <span className="h-px w-10 bg-gradient-to-l from-transparent to-primary/70" />
+          </div>
+          <h2 className="mb-3 font-display text-3xl font-bold tracking-wide text-foreground sm:text-4xl">
             {t("landing.features_title")}
           </h2>
           <p className="text-muted-foreground">{t("landing.features_subtitle")}</p>
         </div>
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           <FeatureCard
             icon={Zap}
             title={t("landing.feature_speed")}
             description={t("landing.feature_speed_desc")}
             delay="100ms"
             isVisible={featuresVisible}
+            index={1}
           />
           <FeatureCard
             icon={Target}
@@ -387,6 +468,7 @@ const LandingPage = () => {
             description={t("landing.feature_accuracy_desc")}
             delay="250ms"
             isVisible={featuresVisible}
+            index={2}
           />
           <FeatureCard
             icon={BarChart3}
@@ -394,6 +476,7 @@ const LandingPage = () => {
             description={t("landing.feature_modes_desc")}
             delay="400ms"
             isVisible={featuresVisible}
+            index={3}
           />
           <FeatureCard
             icon={Sparkles}
@@ -401,6 +484,7 @@ const LandingPage = () => {
             description={t("landing.feature_ai_desc")}
             delay="550ms"
             isVisible={featuresVisible}
+            index={4}
           />
           <FeatureCard
             icon={Pencil}
@@ -408,6 +492,7 @@ const LandingPage = () => {
             description={t("landing.feature_custom_desc")}
             delay="700ms"
             isVisible={featuresVisible}
+            index={5}
           />
           <FeatureCard
             icon={Eye}
@@ -415,11 +500,12 @@ const LandingPage = () => {
             description={t("landing.feature_headpose_desc")}
             delay="850ms"
             isVisible={featuresVisible}
+            index={6}
           />
         </div>
       </section>
 
-      <footer className="relative z-10 px-6 pb-8 text-center text-xs text-muted-foreground/80">
+      <footer className="relative z-10 border-t border-hud-line/50 px-6 py-8 text-center font-mono text-xs tracking-wider text-muted-foreground/80">
         Copyright © 2026 Ryan Xu. All rights reserved.
       </footer>
     </div>
